@@ -1,0 +1,63 @@
+<!-- Column 2: Rooms -->
+<section class="w-80 border-r border-white/5 flex flex-col bg-slate-900/30 h-full">
+    <div class="p-6 shrink-0">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500">Main Tower A</h3>
+                <p class="text-lg font-bold text-white">Rooms</p>
+            </div>
+            <button
+                class="px-3 py-1.5 rounded-lg border border-primary/50 text-primary text-xs font-bold hover:bg-primary hover:text-background-dark transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">add_box</span>
+                New Room
+            </button>
+        </div>
+        <div class="relative mb-4">
+            <input
+                class="w-full bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-xs text-white focus:ring-1 focus:ring-primary/50"
+                placeholder="Filter rooms..." />
+            <span
+                class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">filter_list</span>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4 space-y-1">
+        <!-- Room Header/Category -->
+        <p class="text-[10px] font-bold text-slate-600 px-3 py-2 uppercase tracking-tighter">Level 01 - Conference Floor
+        </p>
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg bg-slate-800 border-l-2 border-primary active-glow cursor-pointer">
+            <div class="flex flex-col">
+                <span class="text-sm font-bold text-white">Meeting Room 101</span>
+                <span class="text-[10px] text-slate-400">Standard VC Suite</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-mono">18</span>
+                <span class="material-symbols-outlined text-slate-600 text-sm">chevron_right</span>
+            </div>
+        </div>
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-slate-300">Boardroom Alpha</span>
+                <span class="text-[10px] text-slate-500">High-End AV Rack</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono">42</span>
+                <span class="material-symbols-outlined text-slate-600 text-sm">chevron_right</span>
+            </div>
+        </div>
+        <p class="text-[10px] font-bold text-slate-600 px-3 py-2 uppercase tracking-tighter mt-4">Basement - Technical
+        </p>
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-slate-300">Storage B1</span>
+                <span class="text-[10px] text-slate-500">Inventory Overflow</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-mono">64</span>
+                <span class="material-symbols-outlined text-slate-600 text-sm">chevron_right</span>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,36 @@
+<div class="bg-slate-800 rounded-xl border border-white/10 overflow-hidden group">
+    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+        <h4 class="text-sm font-bold flex items-center gap-2 text-white">
+            <span class="material-symbols-outlined text-primary">floor_lamp</span>
+            Space Visualization
+        </h4>
+        <div class="flex gap-2">
+            <button class="p-1 text-slate-400 hover:text-white"><span
+                    class="material-symbols-outlined text-sm">zoom_in</span></button>
+            <button class="p-1 text-slate-400 hover:text-white"><span
+                    class="material-symbols-outlined text-sm">fullscreen</span></button>
+        </div>
+    </div>
+    <div class="aspect-video relative bg-slate-900 overflow-hidden">
+        <div class="absolute inset-0 opacity-20 pointer-events-none"
+            style="background-image: radial-gradient(#00d4ff 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-60"
+            data-alt="Modern conference room interior for site documentation"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrmNE6a8wfDH-XwJuTpx_uhGqROMBGbd4I3uTeW2gQV7YlSdqIws0Waah2IXXNoCXscRMSz_YI6IwEom8o4P4Fba-ORWVTAGxMr7nh0tbgzEa9T3mrpKYhDxBAXYrIfLXoi95MJanTi1kdASQo0pPeVoxR9j9x5bFkzbO3EQldc0HNYmfE1zB9pUdJkDtW2IKsW-WQB_VwIPg4JODpj9tNdHbc_IQjknr5nkAJRfWpiDZBofsUbOXs0BLSlw1HbHq20_6dJ3k8qIo" />
+        <!-- Interactive Markers -->
+        <div class="absolute top-1/4 left-1/3 group/marker">
+            <div class="size-4 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#00d4ff]"></div>
+            <div
+                class="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-900 border border-primary/50 px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity text-white">
+                AV Rack 01 (12 Assets)
+            </div>
+        </div>
+        <div class="absolute bottom-1/3 right-1/4 group/marker">
+            <div class="size-4 bg-white/50 rounded-full border border-white"></div>
+            <div
+                class="absolute right-6 top-1/2 -translate-y-1/2 bg-slate-900 border border-white/20 px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity text-white">
+                Display Wall (4 Assets)
+            </div>
+        </div>
+    </div>
+</div>

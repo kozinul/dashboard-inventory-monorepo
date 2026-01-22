@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # The main development container handling both frontend and backend
+  # This approach ensures shared packages and pnpm workspaces work seamlessly
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace:cached
+    # Overriding command to sleep infinity lets VS Code control the lifecycle
+    command: sleep infinity
+    privileged: true
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/inventory
+      - NODE_ENV=development
+    ports:
+      - "5173:5173" # Frontend
+      - "3000:3000" # Backend
+    networks:
+      - dashboard-network
+    depends_on:
+      - mongo
+    tty: true
+
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017" # Exposed for local tools if needed
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - dashboard-network
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH: "false"
+    networks:
+      - dashboard-network
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:
+
+
+networks:
+  dashboard-network:

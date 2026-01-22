@@ -1,0 +1,45 @@
+{
+    "name": "Dashboard Inventory Monorepo",
+    "dockerComposeFile": [
+        "../docker-compose.yml"
+    ],
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "shutdownAction": "stopCompose",
+    "remoteUser": "node",
+    "forwardPorts": [
+        5173,
+        3000,
+        27017,
+        8081
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                "bradlc.vscode-tailwindcss",
+                "formulahendry.auto-rename-tag",
+                "christian-kohler.path-intellisense",
+                "dsznajder.es7-react-js-snippets",
+                "PKief.material-icon-theme",
+                "mongodb.mongodb-vscode",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "typescript.preferences.importModuleSpecifier": "non-relative"
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "configureZshAsDefaultShell": true
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    "postCreateCommand": "pnpm install",
+    "overrideCommand": false
+}

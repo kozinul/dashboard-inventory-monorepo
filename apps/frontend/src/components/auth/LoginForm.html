@@ -1,0 +1,51 @@
+<!-- Login Form -->
+<form class="flex flex-col gap-5 mt-4" onsubmit="event.preventDefault(); router.navigate('/dashboard');">
+    <!-- Username Field -->
+    <div class="flex flex-col gap-2">
+        <label class="text-slate-200 text-sm font-semibold tracking-wide flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[18px]">alternate_email</span>
+            Email or Username
+        </label>
+        <div class="cyan-glow rounded-lg border border-transparent transition-all duration-200">
+            <input
+                class="w-full bg-slate-input/50 border-none text-white rounded-lg h-14 px-4 placeholder:text-slate-500 focus:ring-0 text-base"
+                placeholder="Enter your corporate email..." required="" type="text" />
+        </div>
+    </div>
+    <!-- Password Field -->
+    <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+            <label class="text-slate-200 text-sm font-semibold tracking-wide flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[18px]">lock</span>
+                Password
+            </label>
+            <a class="text-primary text-xs font-semibold hover:underline decoration-primary/40 underline-offset-4 transition-all"
+                href="#">Forgot?</a>
+        </div>
+        <div class="cyan-glow relative rounded-lg border border-transparent transition-all duration-200">
+            <input
+                class="w-full bg-slate-input/50 border-none text-white rounded-lg h-14 px-4 pr-12 placeholder:text-slate-500 focus:ring-0 text-base"
+                placeholder="••••••••" required="" type="password" />
+            <button
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
+                type="button">
+                <span class="material-symbols-outlined">visibility</span>
+            </button>
+        </div>
+    </div>
+    <!-- Submit Button -->
+    <button
+        class="mt-4 w-full h-14 bg-gradient-to-r from-blue-600 to-primary text-white rounded-lg font-bold text-base tracking-wide flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(0,212,255,0.2)]"
+        type="submit">
+        Sign In
+        <span class="material-symbols-outlined">login</span>
+    </button>
+</form>
+<!-- Bottom Meta -->
+<div class="pt-2 flex flex-col items-center gap-4">
+    <div class="h-px w-full bg-slate-700/50"></div>
+    <div class="flex items-center gap-2 text-slate-400 text-xs">
+        <span>Don't have access?</span>
+        <a class="text-white font-bold hover:text-primary transition-colors" href="#">Request Account</a>
+    </div>
+</div>

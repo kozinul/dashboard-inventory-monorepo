@@ -1,0 +1,5 @@
+# Placeholder for shared packages
+# This directory will contain shared code between apps:
+# - @dashboard/ui - Shared UI components
+# - @dashboard/utils - Shared utilities
+# - @dashboard/types - Shared TypeScript types

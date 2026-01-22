@@ -1,0 +1,109 @@
+<!-- Specific Locations (Racks/Shelves) -->
+<div>
+    <div class="flex justify-between items-end mb-6">
+        <div>
+            <h3 class="text-2xl font-bold tracking-tight text-white">Sub-Locations</h3>
+            <p class="text-slate-500 text-sm">Managing racks, shelves, and zones within this room</p>
+        </div>
+        <button
+            class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm font-medium border border-white/5 text-white">
+            <span class="material-symbols-outlined text-sm">format_list_bulleted</span>
+            Manage Layout
+        </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <!-- Location Card -->
+        <div
+            class="bg-slate-800 border border-white/10 rounded-xl p-5 hover:border-primary/50 transition-all cursor-pointer group">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="size-10 bg-slate-900 rounded-lg flex items-center justify-center text-primary border border-white/5">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                </div>
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 hover:text-primary transition-colors text-slate-400"><span
+                            class="material-symbols-outlined text-lg">edit_note</span></button>
+                    <button class="p-1 hover:text-red-400 transition-colors text-slate-400"><span
+                            class="material-symbols-outlined text-lg">delete</span></button>
+                </div>
+            </div>
+            <h5 class="text-lg font-bold mb-1 text-white">AV Rack 01</h5>
+            <p class="text-xs text-slate-400 mb-6">Middle-Atlantic 42U Server Rack</p>
+            <div class="space-y-3">
+                <div
+                    class="flex justify-between items-center text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                    <span>Asset Type</span>
+                    <span>Count</span>
+                </div>
+                <div class="flex justify-between text-sm items-center">
+                    <span class="flex items-center gap-2 text-slate-300"><span
+                            class="size-1.5 rounded-full bg-primary"></span> Switched PDU</span>
+                    <span class="font-mono font-bold text-white">04</span>
+                </div>
+                <div class="flex justify-between text-sm items-center">
+                    <span class="flex items-center gap-2 text-slate-300"><span
+                            class="size-1.5 rounded-full bg-blue-500"></span> Media Encoder</span>
+                    <span class="font-mono font-bold text-white">08</span>
+                </div>
+                <div class="flex justify-between text-sm items-center">
+                    <span class="flex items-center gap-2 text-slate-300"><span
+                            class="size-1.5 rounded-full bg-slate-500"></span> Misc Cabling</span>
+                    <span class="font-mono font-bold text-white">--</span>
+                </div>
+            </div>
+            <button
+                class="w-full mt-6 py-2 border border-slate-700 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors text-slate-300 uppercase tracking-widest">
+                View Full Inventory
+            </button>
+        </div>
+        <!-- Shelf Card -->
+        <div
+            class="bg-slate-800 border border-white/10 rounded-xl p-5 hover:border-primary/50 transition-all cursor-pointer group">
+            <div class="flex justify-between items-start mb-4">
+                <div
+                    class="size-10 bg-slate-900 rounded-lg flex items-center justify-center text-slate-400 border border-white/5">
+                    <span class="material-symbols-outlined">view_agenda</span>
+                </div>
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 hover:text-primary transition-colors text-slate-400"><span
+                            class="material-symbols-outlined text-lg">edit_note</span></button>
+                    <button class="p-1 hover:text-red-400 transition-colors text-slate-400"><span
+                            class="material-symbols-outlined text-lg">delete</span></button>
+                </div>
+            </div>
+            <h5 class="text-lg font-bold mb-1 text-white">Display Wall A-1</h5>
+            <p class="text-xs text-slate-400 mb-6">North Facing Video Wall Area</p>
+            <div class="space-y-3">
+                <div
+                    class="flex justify-between items-center text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                    <span>Asset Type</span>
+                    <span>Count</span>
+                </div>
+                <div class="flex justify-between text-sm items-center">
+                    <span class="flex items-center gap-2 text-slate-300"><span
+                            class="size-1.5 rounded-full bg-primary"></span> 75" LCD Panel</span>
+                    <span class="font-mono font-bold text-white">02</span>
+                </div>
+                <div class="flex justify-between text-sm items-center">
+                    <span class="flex items-center gap-2 text-slate-300"><span
+                            class="size-1.5 rounded-full bg-blue-500"></span> Digital Signage Player</span>
+                    <span class="font-mono font-bold text-white">01</span>
+                </div>
+            </div>
+            <button
+                class="w-full mt-6 py-2 border border-slate-700 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors text-slate-300 uppercase tracking-widest">
+                View Full Inventory
+            </button>
+        </div>
+        <!-- Add New Sub-Location -->
+        <div
+            class="bg-background-dark border-2 border-dashed border-white/10 rounded-xl p-5 flex flex-col items-center justify-center text-slate-500 hover:border-primary/40 hover:text-primary transition-all group cursor-pointer">
+            <div
+                class="size-12 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-3xl">add_circle</span>
+            </div>
+            <p class="font-bold">Add Sub-Location</p>
+            <p class="text-[10px] text-center mt-1">Rack, Shelf, Cabinet or Zone</p>
+        </div>
+    </div>
+</div>

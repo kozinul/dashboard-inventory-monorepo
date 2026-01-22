@@ -1,0 +1,9 @@
+# Assets Directory
+
+Place static assets here:
+- Images
+- Icons
+- Fonts
+- Other static files
+
+These will be processed by Vite and included in the build.

@@ -1,0 +1,32 @@
+{
+  "name": "dashboard-inventory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard Inventory - Monorepo for fullstack application",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@dashboard/frontend",
+    "dev:frontend": "npm run dev --workspace=@dashboard/frontend",
+    "build": "npm run build --workspace=@dashboard/frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "dashboard",
+    "inventory",
+    "monorepo",
+    "react",
+    "typescript"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "vite": "^7.3.1"
+  }
+}

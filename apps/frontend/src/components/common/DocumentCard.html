@@ -1,0 +1,19 @@
+<!-- Document Card Component (Reusable) -->
+<div
+    class="p-6 bg-white dark:bg-slate-card rounded-xl border border-slate-200 dark:border-slate-border flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <!-- Icon Slot (defaulting to PDF red icon for now) -->
+        <div class="size-12 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600">
+            <span class="material-symbols-outlined text-3xl">picture_as_pdf</span>
+        </div>
+        <div>
+            <!-- Title Slot -->
+            <p class="text-sm font-bold">Document Title.pdf</p>
+            <!-- Meta Slot -->
+            <p class="text-[10px] text-slate-500">PDF Document • Size</p>
+        </div>
+    </div>
+    <button class="size-9 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+        <span class="material-symbols-outlined">download</span>
+    </button>
+</div>

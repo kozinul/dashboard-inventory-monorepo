@@ -1,0 +1,31 @@
+<div
+    class="bg-background-light dark:bg-background-dark bg-geometric min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <!-- Top Navigation components can be injected here if needed, but for now we keep it minimal as per source -->
+    <header class="fixed top-0 left-0 w-full p-6 flex justify-between items-center opacity-80 z-20">
+        <div class="flex items-center gap-3">
+            <div
+                class="size-8 bg-primary rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.4)]">
+                <span class="material-symbols-outlined text-background-dark font-bold">inventory_2</span>
+            </div>
+            <h2 class="text-white text-xl font-bold tracking-tight hidden sm:block">IT &amp; AV Inventory</h2>
+        </div>
+        <div class="flex items-center gap-2 text-primary/80">
+            <span class="material-symbols-outlined text-sm">terminal</span>
+            <span class="text-xs font-mono uppercase tracking-widest">v4.2.0-secure</span>
+        </div>
+    </header>
+
+    <!-- Main Content Slot -->
+    <div id="auth-content-slot" class="w-full max-w-[440px] z-10"></div>
+
+    <!-- Footer Badge Slot -->
+    <footer id="auth-footer-slot" class="fixed bottom-10 left-0 w-full flex flex-col items-center gap-3 z-20"></footer>
+
+    <!-- Abstract Background Elements -->
+    <div
+        class="fixed top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none">
+    </div>
+    <div
+        class="fixed bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none">
+    </div>
+</div>

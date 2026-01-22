@@ -1,0 +1,53 @@
+<!-- Column 1: Buildings -->
+<aside class="w-72 border-r border-white/5 flex flex-col bg-slate-900/50 h-full">
+    <div class="p-6 flex justify-between items-center shrink-0">
+        <div>
+            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500">Campus</h3>
+            <p class="text-lg font-bold text-white">Buildings</p>
+        </div>
+        <button
+            class="size-8 rounded bg-primary/10 text-primary hover:bg-primary hover:text-background-dark transition-all flex items-center justify-center">
+            <span class="material-symbols-outlined text-sm">add</span>
+        </button>
+    </div>
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-4 space-y-2">
+        <!-- Building Item Active -->
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/30 active-glow cursor-pointer">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary">domain</span>
+                <div>
+                    <p class="text-sm font-bold text-white">Main Tower A</p>
+                    <p class="text-[10px] text-primary/60">124 Assets</p>
+                </div>
+            </div>
+            <span
+                class="material-symbols-outlined text-slate-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+        </div>
+        <!-- Building Item -->
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-slate-500 group-hover:text-primary/70">apartment</span>
+                <div>
+                    <p class="text-sm font-medium text-slate-300">West Wing Lab</p>
+                    <p class="text-[10px] text-slate-500 font-mono">82 Assets</p>
+                </div>
+            </div>
+            <span
+                class="material-symbols-outlined text-slate-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+        </div>
+        <div
+            class="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-slate-500 group-hover:text-primary/70">warehouse</span>
+                <div>
+                    <p class="text-sm font-medium text-slate-300">Storage Annex</p>
+                    <p class="text-[10px] text-slate-500 font-mono">312 Assets</p>
+                </div>
+            </div>
+            <span
+                class="material-symbols-outlined text-slate-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity">more_vert</span>
+        </div>
+    </div>
+</aside>
