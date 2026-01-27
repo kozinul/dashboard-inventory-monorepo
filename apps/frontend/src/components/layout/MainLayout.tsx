@@ -4,6 +4,7 @@
 
 import { type ReactNode } from 'react';
 import { Header } from './Header';
+import { Footer } from './Footer';
 import styles from './MainLayout.module.css';
 
 interface MainLayoutProps {
@@ -19,6 +20,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     {children}
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

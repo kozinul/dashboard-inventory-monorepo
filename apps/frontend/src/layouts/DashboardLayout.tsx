@@ -1,28 +1,61 @@
 import { Fragment, useState } from 'react'
-import { Dialog, Menu, Transition } from '@headlessui/react'
+import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import {
     Bars3Icon,
     BellIcon,
-    CalendarIcon,
-    ChartPieIcon,
-    DocumentDuplicateIcon,
-    FolderIcon,
     HomeIcon,
     UsersIcon,
     XMarkIcon,
+    ArchiveBoxIcon,
+    WrenchScrewdriverIcon,
+    ChartBarIcon,
+    TrashIcon,
+    Cog6ToothIcon,
+    UserGroupIcon,
+    BriefcaseIcon,
+    BuildingOfficeIcon,
+    CubeIcon,
+    TagIcon,
+    CircleStackIcon,
 } from '@heroicons/react/24/outline'
-import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-const navigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-    { name: 'Users', href: '/master-data/users', icon: UsersIcon, current: false },
-    { name: 'Job Titles', href: '/master-data/job-titles', icon: FolderIcon, current: false },
-    { name: 'Departments', href: '/master-data/departments', icon: CalendarIcon, current: false },
-    { name: 'Item Types', href: '/master-data/item-types', icon: DocumentDuplicateIcon, current: false },
-    { name: 'Item Categories', href: '/master-data/item-categories', icon: ChartPieIcon, current: false },
+// Main app navigation
+const mainNavigation = [
+    { name: 'Dashboard', href: '/', icon: HomeIcon },
+    { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
+    { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
+    { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+    { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
+    { name: 'Disposal', href: '/disposal', icon: TrashIcon },
+    { name: 'Users', href: '/users', icon: UsersIcon },
+    { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+]
+
+// Master data navigation
+const masterDataNavigation = [
+    { name: 'Users', href: '/master-data/users', icon: UserGroupIcon },
+    { name: 'Job Titles', href: '/master-data/job-titles', icon: BriefcaseIcon },
+    { name: 'Departments', href: '/master-data/departments', icon: BuildingOfficeIcon },
+    { name: 'Item Types', href: '/master-data/item-types', icon: CubeIcon },
+    { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
+    { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
+]
+
+type NavigationItem = {
+    name: string;
+    href?: string;
+    icon: any;
+    children?: { name: string; href: string; icon: any }[];
+    current?: boolean;
+}
+
+const navigation: NavigationItem[] = [
+    ...mainNavigation,
+    { name: 'Master Data', icon: CircleStackIcon, children: masterDataNavigation }
 ]
 
 function classNames(...classes: string[]) {
@@ -92,18 +125,63 @@ export default function DashboardLayout() {
                                                     <ul role="list" className="-mx-2 space-y-1">
                                                         {navigation.map((item) => (
                                                             <li key={item.name}>
-                                                                <Link
-                                                                    to={item.href}
-                                                                    className={classNames(
-                                                                        location.pathname === item.href
-                                                                            ? 'bg-gray-800 text-white'
-                                                                            : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                                                        'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                                                    )}
-                                                                >
-                                                                    <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                                                                    {item.name}
-                                                                </Link>
+                                                                {!item.children ? (
+                                                                    <Link
+                                                                        to={item.href!}
+                                                                        className={classNames(
+                                                                            location.pathname === item.href
+                                                                                ? 'bg-gray-800 text-white'
+                                                                                : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                                                        )}
+                                                                    >
+                                                                        <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                                                                        {item.name}
+                                                                    </Link>
+                                                                ) : (
+                                                                    <Disclosure as="div">
+                                                                        {({ open }) => (
+                                                                            <>
+                                                                                <Disclosure.Button
+                                                                                    className={classNames(
+                                                                                        item.children?.some(child => child.href === location.pathname)
+                                                                                            ? 'bg-gray-800 text-white'
+                                                                                            : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                                                        'flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold'
+                                                                                    )}
+                                                                                >
+                                                                                    <item.icon className="h-6 w-6 shrink-0 text-gray-400" aria-hidden="true" />
+                                                                                    {item.name}
+                                                                                    <ChevronRightIcon
+                                                                                        className={classNames(
+                                                                                            open ? 'rotate-90 text-gray-500' : 'text-gray-400',
+                                                                                            'ml-auto h-5 w-5 shrink-0 transition-transform duration-200'
+                                                                                        )}
+                                                                                        aria-hidden="true"
+                                                                                    />
+                                                                                </Disclosure.Button>
+                                                                                <Disclosure.Panel as="ul" className="mt-1 px-2">
+                                                                                    {item.children?.map((subItem) => (
+                                                                                        <li key={subItem.name}>
+                                                                                            <Disclosure.Button
+                                                                                                as={Link}
+                                                                                                to={subItem.href}
+                                                                                                className={classNames(
+                                                                                                    location.pathname === subItem.href
+                                                                                                        ? 'bg-gray-800 text-white'
+                                                                                                        : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                                                                    'block rounded-md py-2 pr-2 pl-9 text-sm leading-6 font-semibold'
+                                                                                                )}
+                                                                                            >
+                                                                                                {subItem.name}
+                                                                                            </Disclosure.Button>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </Disclosure.Panel>
+                                                                            </>
+                                                                        )}
+                                                                    </Disclosure>
+                                                                )}
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -133,18 +211,63 @@ export default function DashboardLayout() {
                                     <ul role="list" className="-mx-2 space-y-1">
                                         {navigation.map((item) => (
                                             <li key={item.name}>
-                                                <Link
-                                                    to={item.href}
-                                                    className={classNames(
-                                                        location.pathname === item.href
-                                                            ? 'bg-gray-800 text-white'
-                                                            : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                                        'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                                    )}
-                                                >
-                                                    <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                                                    {item.name}
-                                                </Link>
+                                                {!item.children ? (
+                                                    <Link
+                                                        to={item.href!}
+                                                        className={classNames(
+                                                            location.pathname === item.href
+                                                                ? 'bg-gray-800 text-white'
+                                                                : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                                        )}
+                                                    >
+                                                        <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+                                                        {item.name}
+                                                    </Link>
+                                                ) : (
+                                                    <Disclosure as="div">
+                                                        {({ open }) => (
+                                                            <>
+                                                                <Disclosure.Button
+                                                                    className={classNames(
+                                                                        item.children?.some(child => child.href === location.pathname)
+                                                                            ? 'bg-gray-800 text-white'
+                                                                            : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                                        'flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold'
+                                                                    )}
+                                                                >
+                                                                    <item.icon className="h-6 w-6 shrink-0 text-gray-400" aria-hidden="true" />
+                                                                    {item.name}
+                                                                    <ChevronRightIcon
+                                                                        className={classNames(
+                                                                            open ? 'rotate-90 text-gray-500' : 'text-gray-400',
+                                                                            'ml-auto h-5 w-5 shrink-0 transition-transform duration-200'
+                                                                        )}
+                                                                        aria-hidden="true"
+                                                                    />
+                                                                </Disclosure.Button>
+                                                                <Disclosure.Panel as="ul" className="mt-1 px-2">
+                                                                    {item.children?.map((subItem) => (
+                                                                        <li key={subItem.name}>
+                                                                            <Disclosure.Button
+                                                                                as={Link}
+                                                                                to={subItem.href}
+                                                                                className={classNames(
+                                                                                    location.pathname === subItem.href
+                                                                                        ? 'bg-gray-800 text-white'
+                                                                                        : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                                                                    'block rounded-md py-2 pr-2 pl-9 text-sm leading-6 font-semibold'
+                                                                                )}
+                                                                            >
+                                                                                {subItem.name}
+                                                                            </Disclosure.Button>
+                                                                        </li>
+                                                                    ))}
+                                                                </Disclosure.Panel>
+                                                            </>
+                                                        )}
+                                                    </Disclosure>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

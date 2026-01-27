@@ -8,10 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=@dashboard/frontend",
-    "dev:frontend": "npm run dev --workspace=@dashboard/frontend",
-    "build": "npm run build --workspace=@dashboard/frontend",
-    "lint": "npm run lint --workspaces --if-present",
+    "dev": "pnpm --parallel -r run dev",
+    "dev:frontend": "pnpm --filter @dashboard/frontend run dev",
+    "dev:backend": "pnpm --filter @dashboard/backend run dev",
+    "build": "pnpm --filter @dashboard/frontend run build",
+    "lint": "pnpm -r run lint",
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "engines": {

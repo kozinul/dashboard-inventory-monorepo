@@ -4,6 +4,7 @@
 
 import { type ReactNode } from 'react';
 import styles from './Card.module.css';
+import { cn } from '@/lib/utils';
 
 interface CardProps {
     children: ReactNode;
@@ -18,14 +19,25 @@ export function Card({
     variant = 'default',
     padding = 'md',
 }: CardProps) {
-    const classes = [
-        styles.card,
-        styles[variant],
-        styles[`padding-${padding}`],
-        className,
-    ]
-        .filter(Boolean)
-        .join(' ');
+    const variantStyles = {
+        default: 'bg-card border border-slate-200 dark:border-slate-800 shadow-sm',
+        elevated: 'bg-card border-none shadow-md',
+        glass: 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-sm',
+    };
+
+    const paddingStyles = {
+        none: 'p-0',
+        sm: 'p-4',
+        md: 'p-6',
+        lg: 'p-8',
+    };
+
+    const classes = cn(
+        'rounded-xl text-card-foreground',
+        variantStyles[variant],
+        paddingStyles[padding],
+        className
+    );
 
     return <div className={classes}>{children}</div>;
 }

@@ -11,7 +11,12 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "paths": {
+            "@dashboard/schemas": [
+                "../../packages/schemas/src/index.ts"
+            ]
+        }
     },
     "include": [
         "src/**/*"

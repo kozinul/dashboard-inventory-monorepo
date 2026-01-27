@@ -31,26 +31,26 @@ export function DataTable<T extends { _id?: string; id?: string }>({
 
     if (isLoading) {
         return (
-            <div className="w-full h-32 flex items-center justify-center bg-white rounded-lg border border-gray-200">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="w-full h-32 flex items-center justify-center bg-card rounded-lg border border-border">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         );
     }
 
     return (
         <div className="flow-root">
-            <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 custom-scrollbar">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                        <table className="min-w-full divide-y divide-gray-300">
-                            <thead className="bg-gray-50">
+                    <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                            <thead className="bg-slate-50 dark:bg-slate-900/50">
                                 <tr>
                                     {columns.map((column, index) => (
                                         <th
                                             key={index}
                                             scope="col"
                                             className={classNames(
-                                                "py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6",
+                                                "py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6",
                                                 column.className || ""
                                             )}
                                         >
@@ -64,12 +64,12 @@ export function DataTable<T extends { _id?: string; id?: string }>({
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 bg-white">
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-card">
                                 {data.length === 0 ? (
                                     <tr>
                                         <td
                                             colSpan={columns.length + (actions ? 1 : 0)}
-                                            className="py-10 text-center text-sm text-gray-500"
+                                            className="py-10 text-center text-sm text-muted-foreground"
                                         >
                                             No data found.
                                         </td>
@@ -79,13 +79,13 @@ export function DataTable<T extends { _id?: string; id?: string }>({
                                         <tr
                                             key={item._id || item.id || rowIdx}
                                             onClick={() => onRowClick?.(item)}
-                                            className={classNames(onRowClick ? "cursor-pointer hover:bg-gray-50 transition-colors" : "")}
+                                            className={classNames(onRowClick ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors" : "")}
                                         >
                                             {columns.map((column, colIdx) => (
                                                 <td
                                                     key={colIdx}
                                                     className={classNames(
-                                                        "whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-6",
+                                                        "whitespace-nowrap py-4 pl-4 pr-3 text-sm text-foreground sm:pl-6",
                                                         column.className || ""
                                                     )}
                                                 >

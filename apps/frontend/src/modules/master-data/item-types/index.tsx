@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Section } from '../../components/common/Section';
-import { DataTable } from '../../components/common/DataTable';
-import Modal from '../../components/common/Modal';
+import { PageHeader } from '../../../components/common/PageHeader';
+import { Section } from '../../../components/common/Section';
+import { DataTable } from '../../../components/common/DataTable';
+import Modal from '../../../components/common/Modal';
 
 const mockItemTypes = [
     { id: '1', name: 'Laptop', category: 'Electronics', description: 'Portable computers' },
@@ -16,9 +16,9 @@ export function ItemTypesPage() {
     const [data] = useState(mockItemTypes);
 
     const columns = [
-        { header: 'Type Name', accessorKey: 'name' },
-        { header: 'Category', accessorKey: 'category' },
-        { header: 'Description', accessorKey: 'description' },
+        { header: 'Type Name', accessorKey: 'name' as const },
+        { header: 'Category', accessorKey: 'category' as const },
+        { header: 'Description', accessorKey: 'description' as const },
     ];
 
     return (
@@ -42,7 +42,7 @@ export function ItemTypesPage() {
                 <DataTable
                     data={data}
                     columns={columns}
-                    actions={(item) => (
+                    actions={() => (
                         <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
                     )}
                 />

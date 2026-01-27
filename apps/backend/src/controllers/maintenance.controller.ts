@@ -1,0 +1,52 @@
+import { Request, Response, NextFunction } from 'express';
+import { MaintenanceRecord } from '../models/maintenance.model.js';
+
+export const getMaintenanceRecords = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const records = await MaintenanceRecord.find()
+            .populate('asset', 'name serial')
+            .populate('technician', 'name avatar')
+            .sort({ createdAt: -1 });
+        res.json(records);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const createMaintenanceRecord = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const record = new MaintenanceRecord(req.body);
+        await record.save();
+        res.status(201).json(record);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateMaintenanceRecord = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const record = await MaintenanceRecord.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!record) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+        res.json(record);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getMaintenanceStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const activeRepairs = await MaintenanceRecord.countDocuments({ status: 'In Progress' });
+        const pending = await MaintenanceRecord.countDocuments({ status: 'Pending' });
+        const completed = await MaintenanceRecord.countDocuments({ status: 'Done' });
+
+        res.json({
+            activeRepairs,
+            pending,
+            completed
+        });
+    } catch (error) {
+        next(error);
+    }
+};

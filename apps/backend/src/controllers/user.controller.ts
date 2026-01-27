@@ -15,7 +15,6 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Validate with Zod
-        // Note: In a real app we'd use a validation middleware
         const validatedData = CreateUserSchema.parse(req.body);
 
         const userExists = await User.findOne({ email: validatedData.email });
@@ -29,9 +28,47 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         res.status(201).json({
             _id: user._id,
             email: user.email,
-            fullName: user.fullName,
+            name: user.name,
             role: user.role
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        res.json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        await user.deleteOne();
+
+        res.json({ message: 'User removed' });
     } catch (error) {
         next(error);
     }

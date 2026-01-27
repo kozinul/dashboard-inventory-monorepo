@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
-import { PageHeader } from '../../components/common/PageHeader';
-import { Section } from '../../components/common/Section';
-import { DataTable } from '../../components/common/DataTable';
-import Modal from '../../components/common/Modal';
+import { PageHeader } from '../../../components/common/PageHeader';
+import { Section } from '../../../components/common/Section';
+import { DataTable } from '../../../components/common/DataTable';
+import Modal from '../../../components/common/Modal';
 
 const mockDepartments = [
     { id: '1', name: 'Engineering', manager: 'Lindsay Walton' },
@@ -16,8 +16,8 @@ export function DepartmentsPage() {
     const [data] = useState(mockDepartments);
 
     const columns = [
-        { header: 'Department Name', accessorKey: 'name' },
-        { header: 'Manager', accessorKey: 'manager' },
+        { header: 'Department Name', accessorKey: 'name' as const },
+        { header: 'Manager', accessorKey: 'manager' as const },
     ];
 
     return (
@@ -41,7 +41,7 @@ export function DepartmentsPage() {
                 <DataTable
                     data={data}
                     columns={columns}
-                    actions={(item) => (
+                    actions={() => (
                         <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
                     )}
                 />

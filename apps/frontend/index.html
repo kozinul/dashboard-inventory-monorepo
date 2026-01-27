@@ -17,20 +17,13 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="./src/styles/custom.css">
 
-  <!-- Tailwind Config (must load before the CDN script checks, or be available) -->
-  <script src="./src/styles/tailwind.config.js"></script>
-
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
 <body
-  class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased h-screen overflow-hidden flex">
+  class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
   <div id="root" class="w-full h-full"></div>
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/main.tsx"></script>
 </body>
 
 </html>

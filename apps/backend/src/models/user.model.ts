@@ -1,17 +1,31 @@
 import mongoose from 'mongoose';
-import { UserRoleSchema } from '@dashboard/schemas';
 
 const userSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    fullName: { type: String, required: true },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    avatarUrl: String,
+    department: String,
+    designation: String,
+    status: {
+        type: String,
+        enum: ['Active', 'Offline', 'Away'],
+        default: 'Active'
+    },
     role: {
         type: String,
-        enum: UserRoleSchema.options,
+        enum: ['admin', 'manager', 'user', 'auditor'],
         default: 'user'
-    },
-    isActive: { type: Boolean, default: true },
-    lastLogin: { type: Date }
+    }
 }, {
     timestamps: true
 });

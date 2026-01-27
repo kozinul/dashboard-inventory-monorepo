@@ -1,0 +1,68 @@
+import { Asset } from '../data/mock-inventory';
+import { AssetImageCell, AssetNameCell, AssetMetaCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
+
+interface AssetTableProps {
+    assets: Asset[];
+}
+
+export function AssetTable({ assets }: AssetTableProps) {
+    return (
+        <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest w-16">Image</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Asset Details</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Identity</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Location</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {assets.map((asset) => (
+                            <tr key={asset.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                <td className="px-6 py-4">
+                                    <AssetImageCell asset={asset} />
+                                </td>
+                                <td className="px-6 py-4">
+                                    <AssetNameCell asset={asset} />
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className="text-xs font-medium text-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                                        {asset.category}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <AssetMetaCell title={asset.id} subtitle={asset.serial} />
+                                </td>
+                                <td className="px-6 py-4">
+                                    <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-sm text-muted-foreground">location_on</span>
+                                        {asset.location}
+                                    </p>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <AssetStatusBadge status={asset.status} />
+                                </td>
+                                <td className="px-6 py-3">
+                                    <AssetRowActions assetId={asset.id} />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between">
+                <p className="text-xs text-muted-foreground font-medium">Showing 5 of 2,450 assets</p>
+                <div className="flex gap-2">
+                    <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground disabled:opacity-50 transition-colors" disabled>Previous</button>
+                    <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground transition-colors">Next</button>
+                </div>
+            </div>
+        </div>
+    );
+}
