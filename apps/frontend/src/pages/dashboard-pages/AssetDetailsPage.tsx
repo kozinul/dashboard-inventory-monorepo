@@ -109,7 +109,7 @@ export default function AssetDetailsPage() {
 
             <div className="px-8 py-6 space-y-8 flex-1 overflow-y-auto">
                 <AssetHero asset={asset} onEdit={() => setIsEditModalOpen(true)} />
-                <AssetGallery asset={asset} />
+                <AssetGallery asset={asset} onUpdate={handleUpdateAsset} />
                 <AssetTabs asset={asset} />
                 <AssetDocuments asset={asset} />
             </div>

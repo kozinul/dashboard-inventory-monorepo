@@ -16,10 +16,11 @@ export interface Asset {
     department?: string;
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     value: number;
-    images?: string[];
+    images?: (string | { url: string; caption?: string; filename?: string })[];
     purchaseDate?: string;
     updatedAt?: string;
     createdAt?: string;
+    technicalSpecifications?: Record<string, string>;
 }
 
 export const assetService = {

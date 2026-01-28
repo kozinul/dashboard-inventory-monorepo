@@ -47,11 +47,20 @@ const assetSchema = new mongoose.Schema({
         enum: ['active', 'maintenance', 'storage', 'retired'],
         default: 'active'
     },
-    images: [String],
+    images: [{
+        url: String,
+        caption: String,
+        filename: String
+    }],
     purchaseDate: Date,
     value: {
         type: Number,
         required: true
+    },
+    technicalSpecifications: {
+        type: Map,
+        of: String,
+        default: {}
     }
 }, {
     timestamps: true

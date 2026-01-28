@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Asset } from "@/services/assetService";
+import { TechnicalSpecsEditor } from './TechnicalSpecsEditor';
 
 interface AssetTabsProps {
     asset: Asset;
@@ -26,64 +27,7 @@ export function AssetTabs({ asset }: AssetTabsProps) {
             </div>
             <div className="p-8">
                 {activeTab.includes('technical') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        {/* Left: Specs */}
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span> Hardware Specifications
-                            </h4>
-                            <dl className="grid grid-cols-1 gap-y-4">
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Max Resolution</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">4K @ 60Hz (4:4:4)</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">HDCP Compliance</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">v2.2 / v1.4</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Data Rate</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">18 Gbps</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Input Port</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">1x HDMI Type A</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Output Ports</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">4x HDMI Type A</dd>
-                                </div>
-                            </dl>
-                        </div>
-                        {/* Right: Electrical/Physical */}
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span> Operational Details
-                            </h4>
-                            <dl className="grid grid-cols-1 gap-y-4">
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Power Supply</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">DC 5V/1A (Barrel)</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Operating Temp</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">0°C to 40°C</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Chassis Material</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">Steel Case (Black)</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Weight</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">245g</dd>
-                                </div>
-                                <div className="flex justify-between border-b border-slate-100 dark:border-slate-700/30 pb-2">
-                                    <dt className="text-sm text-slate-500">Certification</dt>
-                                    <dd className="text-sm font-semibold dark:text-slate-200">CE, FCC, RoHS</dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
+                    <TechnicalSpecsEditor asset={asset} />
                 )}
                 {/* Placeholders for other tabs */}
                 {!activeTab.includes('technical') && (

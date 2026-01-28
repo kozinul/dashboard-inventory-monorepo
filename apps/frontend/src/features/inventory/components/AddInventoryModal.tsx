@@ -3,8 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { Asset } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
-import { ImageUploader } from '../../../components/common/ImageUploader';
-import { uploadService } from '../../../services/uploadService';
+import { categoryService, Category } from '../../../services/categoryService';
 
 interface AddInventoryModalProps {
     isOpen: boolean;
@@ -24,53 +23,62 @@ interface InventoryFormInputs {
 }
 
 export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalProps) {
-    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<InventoryFormInputs>({
+    // Watch departmentId to filter categories
+    const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<InventoryFormInputs>({
         defaultValues: {
             status: 'active'
         }
     });
+
+    const selectedDepartmentId = watch('departmentId');
+    const filteredCategories = categories.filter(cat =>
+        // Show category if it has no restrictions (empty authorizedDepartments)
+        // OR if the selected department is in the authorized list
+        cat.authorizedDepartments.length === 0 ||
+        cat.authorizedDepartments.some(d => d._id === selectedDepartmentId)
+    );
 
     useEffect(() => {
         if (isOpen) {
             departmentService.getAll().then(data => {
                 setDepartments(data);
             }).catch(err => console.error("Failed to load departments", err));
+
+            categoryService.getAll().then(data => {
+                setCategories(data);
+            }).catch(err => console.error("Failed to load categories", err));
         }
     }, [isOpen]);
+
+    // Reset category when department changes
+    useEffect(() => {
+        setValue('category', '');
+    }, [selectedDepartmentId, setValue]);
 
     const onSubmit = async (data: InventoryFormInputs) => {
         // Find the selected department name
         const selectedDept = departments.find(d => d._id === data.departmentId);
 
         try {
-            // Upload images first
-            let uploadedUrls: string[] = [];
-            if (imageFiles.length > 0) {
-                uploadedUrls = await uploadService.uploadMultiple(imageFiles);
-            }
-
             onAdd({
                 ...data,
                 department: selectedDept?.name || 'Unknown',
-                images: uploadedUrls,
+                images: [],
             } as any);
 
             // Reset form and local state
             reset();
-            setImageFiles([]);
             onClose();
         } catch (error) {
-            console.error("Failed to upload images or add asset", error);
-            // Optionally set form error here
+            console.error("Failed to add asset", error);
         }
     };
 
     const handleClose = () => {
         reset();
-        setImageFiles([]);
         onClose();
     };
 
@@ -146,15 +154,13 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
                                                 <select
                                                     {...register('category', { required: 'Category is required' })}
-                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                    disabled={!selectedDepartmentId}
                                                 >
-                                                    <option value="">Select Category</option>
-                                                    <option value="Laptops">Laptops</option>
-                                                    <option value="AV Gear">AV Gear</option>
-                                                    <option value="Workstations">Workstations</option>
-                                                    <option value="Audio">Audio</option>
-                                                    <option value="Lighting">Lighting</option>
-                                                    <option value="Furniture">Furniture</option>
+                                                    <option value="">{selectedDepartmentId ? 'Select Category' : 'Select Department First'}</option>
+                                                    {filteredCategories.map(cat => (
+                                                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                                    ))}
                                                 </select>
                                                 {errors.category && <span className="text-xs text-red-500 mt-1">{errors.category.message}</span>}
                                             </div>
@@ -223,16 +229,6 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                 {errors.purchaseDate && <span className="text-xs text-red-500 mt-1">{errors.purchaseDate.message}</span>}
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Image Uploader */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Asset Photos</label>
-                                        <ImageUploader
-                                            onImagesChange={setImageFiles}
-                                            multiple
-                                            targetDimensions={{ width: 1280, height: 720 }}
-                                        />
                                     </div>
 
                                     <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-6">

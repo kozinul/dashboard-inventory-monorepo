@@ -3,8 +3,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { Asset } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
-import { ImageUploader } from '../../../components/common/ImageUploader';
-import { uploadService } from '../../../services/uploadService';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -25,7 +23,6 @@ interface InventoryFormInputs {
 }
 
 export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInventoryModalProps) {
-    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<InventoryFormInputs>();
@@ -62,30 +59,20 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
         const selectedDept = departments.find(d => d._id === data.departmentId);
 
         try {
-            // Upload new images first
-            let uploadedUrls: string[] = [];
-            if (imageFiles.length > 0) {
-                uploadedUrls = await uploadService.uploadMultiple(imageFiles);
-            }
-
-            const existingImages = asset?.images || [];
-
             onUpdate(asset.id || asset._id, {
                 ...data,
                 department: selectedDept?.name || asset.department,
                 value: Number(data.value),
-                images: [...existingImages, ...uploadedUrls],
             });
 
             onClose();
         } catch (error) {
-            console.error("Failed to upload images or update asset", error);
+            console.error("Failed to update asset", error);
         }
     };
 
     const handleClose = () => {
         reset();
-        setImageFiles([]);
         onClose();
     };
 
@@ -238,17 +225,6 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                 {errors.purchaseDate && <span className="text-xs text-red-500 mt-1">{errors.purchaseDate.message}</span>}
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Image Uploader */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Asset Photos</label>
-                                        <ImageUploader
-                                            onImagesChange={setImageFiles}
-                                            initialImages={asset?.images}
-                                            multiple
-                                            targetDimensions={{ width: 1280, height: 720 }}
-                                        />
                                     </div>
 
                                     <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-6">

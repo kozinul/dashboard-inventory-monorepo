@@ -31,11 +31,13 @@ import userRoutes from './routes/user.routes.js';
 import departmentRoutes from './routes/department.routes.js';
 import jobTitleRoutes from './routes/jobTitle.routes.js';
 import inventoryRoutes from './routes/inventory.routes.js';
+import categoryRoutes from './routes/category.routes.js';
 import maintenanceRoutes from './routes/maintenance.routes.js';
 import disposalRoutes from './routes/disposal.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import { locationRoutes } from './routes/location.routes.js';
 import { locationTypeRoutes } from './routes/locationType.routes.js';
+import databaseRoutes from './routes/database.routes.js';
 
 // Routes
 app.get('/health', (req, res) => {
@@ -45,12 +47,14 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/departments', departmentRoutes);
 app.use('/api/v1/job-titles', jobTitleRoutes);
+app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/maintenance', maintenanceRoutes);
 app.use('/api/v1/disposal', disposalRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/location-types', locationTypeRoutes);
+app.use('/api/v1/database', databaseRoutes);
 
 import uploadRoutes from './routes/upload.routes.js';
 import path from 'path';

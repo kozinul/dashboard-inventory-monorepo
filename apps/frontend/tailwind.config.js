@@ -24,32 +24,28 @@ export default {
                 ring: "hsl(var(--ring))",
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
-                // Location App Colors (New Design)
-                "background-dark": "#0F0F23", // Custom deep dark for locations
-                "surface-dark": "#1A1A2E",    // Custom surface for cards
-                "border-dark": "#2E2E48",     // Custom border
-                "text-secondary": "#9292c9",  // Custom muted text
-                "accent-indigo": "#6366F1",   // Custom accent
-                // User Design Template Colors
-                "primary": "#0b94ea",
-                "background-light": "#f9fafb",
-                "background-dark": "#0f1929",
-                "surface-dark": "#1E293B",
-                "border-dark": "#334155",
 
-                // Legacy Map
+                // NexusAV Context Colors (From User HTML)
+                "background-dark": "#0F0F23",
+                "surface-dark": "#161632",
+                "surface-lighter": "#1E1E42",
+                "border-dark": "#2E2E48",
+                "text-secondary": "#94A3B8",
+                "accent-indigo": "#6366F1",
+
+                // Legacy/Shared Colors (Preserving some keys but ensuring User Request wins for main ones)
                 "slate-card": "#1E293B",
                 "card-dark": "#1E293B",
 
                 primary: {
-                    DEFAULT: "#0b94ea",
+                    DEFAULT: "#6366F1", // Updated to match user's HTML (Indigo)
                     foreground: "hsl(var(--primary-foreground))",
                     50: '#eff6ff',
                     100: '#dbeafe',
                     200: '#bfdbfe',
                     300: '#93c5fd',
                     400: '#60a5fa',
-                    500: '#3b82f6',
+                    500: '#6366F1', // Indigo
                     600: '#2563eb',
                     700: '#1d4ed8',
                     800: '#1e40af',
@@ -94,9 +90,6 @@ export default {
                     900: '#0f172a',
                     950: '#020617',
                 },
-                // Add specific surface colors
-                "background-light": "#f8fafc", // slate-50
-                "background-dark": "#020617",  // slate-950
             },
             borderRadius: {
                 lg: "var(--radius)",
@@ -106,7 +99,7 @@ export default {
             fontFamily: {
                 sans: ["Inter", "sans-serif"],
                 display: ["Inter", "sans-serif"],
-                header: ["Space Grotesk", "sans-serif"], // Added Space Grotesk
+                header: ["Space Grotesk", "sans-serif"],
                 mono: ["JetBrains Mono", "monospace"],
             },
             boxShadow: {

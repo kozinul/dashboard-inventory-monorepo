@@ -43,6 +43,7 @@ const masterDataNavigation = [
     { name: 'Item Types', href: '/master-data/item-types', icon: CubeIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
+    { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
 
 type NavigationItem = {

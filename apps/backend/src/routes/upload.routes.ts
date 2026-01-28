@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 50 * 1024 * 1024 // 50MB limit
     },
     fileFilter: (req, file, cb) => {
         // Basic filter, can be improved to check magic numbers
@@ -45,26 +45,43 @@ const upload = multer({
 });
 
 // Route: POST /api/v1/upload
-router.post('/', upload.single('file'), (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+router.post('/', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            console.error('Multer Middleware Error:', err);
+
+            if (err instanceof multer.MulterError) {
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    return res.status(413).json({ message: 'File is too large. Maximum size is 50MB.' });
+                }
+                return res.status(400).json({ message: err.message });
+            }
+
+            // Other errors (e.g. fileFilter)
+            return res.status(400).json({ message: (err as Error).message });
         }
 
-        // Return the accessible URL for the file
-        // Assuming static serve at /uploads
-        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-
-        res.status(201).json({
-            message: 'File uploaded successfully',
-            data: {
-                url: fileUrl,
-                filename: req.file.filename
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'No file uploaded' });
             }
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'Upload failed', error: (error as Error).message });
-    }
+
+            // Return the accessible URL for the file
+            // Assuming static serve at /uploads
+            const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+            res.status(201).json({
+                message: 'File uploaded successfully',
+                data: {
+                    url: fileUrl,
+                    filename: req.file.filename
+                }
+            });
+        } catch (error) {
+            console.error('Route Handler Error:', error);
+            res.status(500).json({ message: 'Upload failed', error: (error as Error).message });
+        }
+    });
 });
 
 // Route: POST /api/v1/upload/multiple
@@ -85,6 +102,30 @@ router.post('/multiple', upload.array('files', 10), (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Upload failed', error: (error as Error).message });
+    }
+});
+
+// Route: DELETE /api/v1/upload/:filename
+router.delete('/:filename', (req, res) => {
+    try {
+        const filename = req.params.filename;
+        const filepath = path.resolve(process.cwd(), 'uploads', filename);
+
+        // Security check: ensure the resolved path is within the uploads directory
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        if (!filepath.startsWith(uploadsDir)) {
+            return res.status(403).json({ message: 'Invalid file path' });
+        }
+
+        if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
+            res.status(200).json({ message: 'File deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'File not found' });
+        }
+    } catch (error) {
+        console.error('Delete File Error', error);
+        res.status(500).json({ message: 'Failed to delete file', error: (error as Error).message });
     }
 });
 

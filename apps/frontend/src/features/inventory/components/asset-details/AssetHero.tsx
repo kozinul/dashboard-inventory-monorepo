@@ -1,6 +1,8 @@
-import { ShareIcon, PrinterIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import { ShareIcon, MapPinIcon, QrCodeIcon } from "@heroicons/react/24/outline";
 import { Asset } from "@/services/assetService";
 import { formatIDR } from "@/utils/currency";
+import QRCode from 'qrcode';
+import Swal from 'sweetalert2';
 
 interface AssetHeroProps {
     asset: Asset;
@@ -9,7 +11,47 @@ interface AssetHeroProps {
 
 export function AssetHero({ asset, onEdit }: AssetHeroProps) {
     // Determine main image
-    const mainImage = (asset.images && asset.images.length > 0) ? asset.images[0] : null;
+    const mainImageRaw = (asset.images && asset.images.length > 0) ? asset.images[0] : null;
+    const mainImage = typeof mainImageRaw === 'string' ? mainImageRaw : mainImageRaw?.url;
+
+    const handleGenerateLabel = async () => {
+        try {
+            // Generate QR Code with Asset ID/URL
+            const qrData = `${window.location.origin}/inventory/asset-details/${asset.id || asset._id}`;
+            const qrDataUrl = await QRCode.toDataURL(qrData, { width: 300, margin: 2 });
+
+            Swal.fire({
+                title: 'Asset Label',
+                html: `
+                    <div class="flex flex-col items-center">
+                        <img src="${qrDataUrl}" alt="QR Code" class="mb-4 border border-slate-200 rounded-lg p-2" />
+                        <p class="font-bold text-lg">${asset.name}</p>
+                        <p class="font-mono text-slate-500 text-sm">${asset.serial}</p>
+                        <p class="text-xs text-slate-400 mt-2">${asset.id || asset._id}</p>
+                    </div>
+                `,
+                showCloseButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Download',
+                confirmButtonColor: '#6366F1',
+                showCancelButton: true,
+                cancelButtonText: 'Close',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Download Logic
+                    const link = document.createElement('a');
+                    link.download = `label-${asset.serial || asset.name}.png`;
+                    link.href = qrDataUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+        } catch (error) {
+            console.error('QR Generation Failed', error);
+            Swal.fire('Error', 'Failed to generate QR Code', 'error');
+        }
+    };
 
     return (
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -57,8 +99,11 @@ export function AssetHero({ asset, onEdit }: AssetHeroProps) {
                             >
                                 <ShareIcon className="w-[18px] h-[18px]" /> Edit
                             </button>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold transition-all hover:shadow-lg hover:shadow-primary/30">
-                                <PrinterIcon className="w-[18px] h-[18px]" /> Label
+                            <button
+                                onClick={handleGenerateLabel}
+                                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold transition-all hover:shadow-lg hover:shadow-primary/30"
+                            >
+                                <QrCodeIcon className="w-[18px] h-[18px]" /> Label
                             </button>
                         </div>
                     </div>

@@ -4,7 +4,6 @@ import { UsersPage } from '../modules/master-data/users';
 import { JobTitlesPage } from '../modules/master-data/job-titles';
 import { DepartmentsPage } from '../modules/master-data/departments';
 import { ItemTypesPage } from '../modules/master-data/item-types';
-import { ItemCategoriesPage } from '../modules/master-data/item-categories';
 
 // Merged pages from react-dashboard
 import DashboardPage from '../pages/dashboard-pages/DashboardPage';
@@ -22,6 +21,8 @@ import RentalPage from '../pages/dashboard-pages/RentalPage';
 import AssignAssetPage from '../pages/dashboard-pages/AssignAssetPage';
 import { LocationsPage } from '../modules/master-data/locations/LocationsPage';
 import { LocationTypesPage } from '../modules/master-data/locations/LocationTypesPage';
+import DatabaseManagement from '../pages/master-data/DatabaseManagement';
+import CategoryManagement from '../pages/master-data/CategoryManagement';
 
 export const router = createBrowserRouter([
     {
@@ -98,7 +99,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'master-data/item-categories',
-                element: <ItemCategoriesPage />,
+                element: <CategoryManagement />,
             },
             {
                 path: 'master-data/locations',
@@ -107,6 +108,10 @@ export const router = createBrowserRouter([
             {
                 path: 'master-data/locations/types',
                 element: <LocationTypesPage />,
+            },
+            {
+                path: 'master-data/database',
+                element: <DatabaseManagement />,
             }
         ],
     },
