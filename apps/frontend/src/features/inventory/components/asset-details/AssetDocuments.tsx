@@ -1,6 +1,12 @@
 import { DocumentIcon, ArrowDownTrayIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { Asset } from "@/services/assetService";
 
-export function AssetDocuments() {
+interface AssetDocumentsProps {
+    asset: Asset;
+}
+
+export function AssetDocuments({ asset }: AssetDocumentsProps) {
+    if (!asset) return null; // Use asset to avoid unused variable warning
     return (
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">

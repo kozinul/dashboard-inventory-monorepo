@@ -22,12 +22,22 @@ const assetSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
+    departmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: false // Make required when data migrated?
+    },
+    department: {
+        type: String,
+        required: false,
+        trim: true
+    },
     locationId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Location',
-        required: false // Optional for now to not break legacy
+        required: false
     },
-    location: { // Legacy string field, keep for now or sync
+    location: {
         type: String,
         required: false,
         trim: true
@@ -37,7 +47,7 @@ const assetSchema = new mongoose.Schema({
         enum: ['active', 'maintenance', 'storage', 'retired'],
         default: 'active'
     },
-    image: String,
+    images: [String],
     purchaseDate: Date,
     value: {
         type: Number,

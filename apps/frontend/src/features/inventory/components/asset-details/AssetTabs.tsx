@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import { Asset } from "@/services/assetService";
 
-export function AssetTabs() {
+interface AssetTabsProps {
+    asset: Asset;
+}
+
+export function AssetTabs({ asset }: AssetTabsProps) {
     const [activeTab, setActiveTab] = useState('technical');
 
     return (
@@ -11,8 +16,8 @@ export function AssetTabs() {
                         key={tab}
                         onClick={() => setActiveTab(tab.toLowerCase())}
                         className={`px-6 py-4 text-sm font-medium transition-colors ${activeTab === tab.toLowerCase()
-                                ? 'border-b-2 border-primary text-primary font-bold'
-                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            ? 'border-b-2 border-primary text-primary font-bold'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
                     >
                         {tab}

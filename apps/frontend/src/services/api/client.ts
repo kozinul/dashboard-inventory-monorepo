@@ -73,10 +73,17 @@ class HttpClient {
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
         try {
+            const isFormData = data instanceof FormData;
+            const headers = this.getHeaders(options?.headers);
+
+            if (isFormData) {
+                headers.delete('Content-Type');
+            }
+
             const response = await fetch(this.buildUrl(endpoint, options?.params), {
                 method,
-                headers: this.getHeaders(options?.headers),
-                body: data ? JSON.stringify(data) : undefined,
+                headers,
+                body: isFormData ? (data as FormData) : (data ? JSON.stringify(data) : undefined),
                 signal: options?.signal || controller.signal,
             });
 

@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
 export function AssetImageCell({ asset }: { asset: Asset }) {
-    if (asset.image) {
+    if (asset.images && asset.images.length > 0) {
         return (
             <div
                 className="size-10 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
-                style={{ backgroundImage: `url('${asset.image}')` }}
+                style={{ backgroundImage: `url('${asset.images[0]}')` }}
             ></div>
         );
     }
@@ -55,7 +55,7 @@ export function AssetStatusBadge({ status }: { status: Asset['status'] }) {
     );
 }
 
-export function AssetRowActions({ assetId }: { assetId: string }) {
+export function AssetRowActions({ assetId, onEdit, onDelete }: { assetId: string, onEdit: (id: string) => void, onDelete: (id: string) => void }) {
     return (
         <div className="flex items-center gap-1 justify-end">
             <Link
@@ -64,11 +64,17 @@ export function AssetRowActions({ assetId }: { assetId: string }) {
             >
                 <span className="material-symbols-outlined !text-[18px]">visibility</span>
             </Link>
-            <button className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors">
+            <button
+                onClick={() => onEdit(assetId)}
+                className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+            >
                 <span className="material-symbols-outlined !text-[18px]">edit</span>
             </button>
-            <button className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors">
-                <span className="material-symbols-outlined !text-[18px]">more_vert</span>
+            <button
+                onClick={() => onDelete(assetId)}
+                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+            >
+                <span className="material-symbols-outlined !text-[18px]">delete</span>
             </button>
         </div>
     );

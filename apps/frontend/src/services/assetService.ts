@@ -1,41 +1,55 @@
 import axios from 'axios';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') + '/inventory/items';
+// Ensure this matches the backend route prefix: /api/v1/inventory
+const API_URL = '/api/v1/inventory';
 
 export interface Asset {
-    _id: string;
+    _id: string; // Backend uses _id
+    id?: string; // Frontend often uses id, we might need to map it or use _id
     name: string;
     model: string;
     category: string;
     serial: string;
     locationId?: string;
-    location?: string; // legacy
+    location?: string;
+    departmentId?: string;
+    department?: string;
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     value: number;
+    images?: string[];
+    purchaseDate?: string;
+    updatedAt?: string;
+    createdAt?: string;
 }
 
 export const assetService = {
     getAll: async (params?: any) => {
-        const response = await axios.get<{ data: Asset[], pagination: any }>(API_URL, { params });
+        // Backend route is /items
+        const response = await axios.get<{ data: Asset[], pagination: any }>(`${API_URL}/items`, { params });
         return response.data;
     },
 
     getById: async (id: string) => {
-        const response = await axios.get<Asset>(`${API_URL}/${id}`);
+        const response = await axios.get<Asset>(`${API_URL}/items/${id}`);
         return response.data;
     },
 
-    create: async (data: any) => {
-        const response = await axios.post<Asset>(API_URL, data);
+    create: async (data: Omit<Asset, '_id' | 'id'>) => {
+        const response = await axios.post<Asset>(`${API_URL}/items`, data);
         return response.data;
     },
 
-    update: async (id: string, data: any) => {
-        const response = await axios.put<Asset>(`${API_URL}/${id}`, data);
+    update: async (id: string, data: Partial<Asset>) => {
+        const response = await axios.put<Asset>(`${API_URL}/items/${id}`, data);
         return response.data;
     },
 
     delete: async (id: string) => {
-        await axios.delete(`${API_URL}/${id}`);
+        await axios.delete(`${API_URL}/items/${id}`);
+    },
+
+    getStats: async () => {
+        const response = await axios.get<any>(`${API_URL}/stats`);
+        return response.data;
     }
 };

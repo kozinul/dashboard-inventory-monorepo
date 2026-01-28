@@ -4,6 +4,8 @@ import { ComputerDesktopIcon, ServerIcon, CubeIcon } from '@heroicons/react/24/o
 import { clsx } from 'clsx';
 
 
+import { formatIDR } from '@/utils/currency';
+
 interface AssetListProps {
     locationId: string;
     locationName: string;
@@ -37,7 +39,7 @@ function AssetRow({ asset }: { asset: Asset }) {
                     {asset.status}
                 </span>
             </td>
-            <td className="px-3 py-3 text-sm text-text-secondary text-right">${asset.value.toLocaleString()}</td>
+            <td className="px-3 py-3 text-sm text-text-secondary text-right">{formatIDR(asset.value)}</td>
         </tr>
     );
 }

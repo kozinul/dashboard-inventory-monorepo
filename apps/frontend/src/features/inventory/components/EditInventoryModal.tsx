@@ -6,10 +6,11 @@ import { departmentService, Department } from '../../../services/departmentServi
 import { ImageUploader } from '../../../components/common/ImageUploader';
 import { uploadService } from '../../../services/uploadService';
 
-interface AddInventoryModalProps {
+interface EditInventoryModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (asset: Omit<Asset, 'id'>) => void;
+    onUpdate: (assetId: string, data: Partial<Asset>) => void;
+    asset: Asset | null;
 }
 
 interface InventoryFormInputs {
@@ -23,15 +24,11 @@ interface InventoryFormInputs {
     purchaseDate: string;
 }
 
-export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalProps) {
+export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInventoryModalProps) {
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<InventoryFormInputs>({
-        defaultValues: {
-            status: 'active'
-        }
-    });
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<InventoryFormInputs>();
 
     useEffect(() => {
         if (isOpen) {
@@ -41,30 +38,48 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        if (asset) {
+            setValue('name', asset.name);
+            setValue('model', asset.model);
+            setValue('category', asset.category);
+            setValue('serial', asset.serial);
+            setValue('departmentId', asset.departmentId || '');
+            setValue('status', asset.status);
+            setValue('value', asset.value.toString());
+            // Format date for input type="date"
+            if (asset.purchaseDate) {
+                const date = new Date(asset.purchaseDate);
+                setValue('purchaseDate', date.toISOString().split('T')[0]);
+            }
+        }
+    }, [asset, setValue, isOpen]);
+
     const onSubmit = async (data: InventoryFormInputs) => {
+        if (!asset) return;
+
         // Find the selected department name
         const selectedDept = departments.find(d => d._id === data.departmentId);
 
         try {
-            // Upload images first
+            // Upload new images first
             let uploadedUrls: string[] = [];
             if (imageFiles.length > 0) {
                 uploadedUrls = await uploadService.uploadMultiple(imageFiles);
             }
 
-            onAdd({
-                ...data,
-                department: selectedDept?.name || 'Unknown',
-                images: uploadedUrls,
-            } as any);
+            const existingImages = asset?.images || [];
 
-            // Reset form and local state
-            reset();
-            setImageFiles([]);
+            onUpdate(asset.id || asset._id, {
+                ...data,
+                department: selectedDept?.name || asset.department,
+                value: Number(data.value),
+                images: [...existingImages, ...uploadedUrls],
+            });
+
             onClose();
         } catch (error) {
-            console.error("Failed to upload images or add asset", error);
-            // Optionally set form error here
+            console.error("Failed to upload images or update asset", error);
         }
     };
 
@@ -105,12 +120,12 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                     as="h3"
                                     className="text-lg font-bold leading-6 text-slate-900 dark:text-white flex items-center gap-2"
                                 >
-                                    <span className="material-symbols-outlined text-primary">add_circle</span>
-                                    Add New Asset
+                                    <span className="material-symbols-outlined text-primary">edit_square</span>
+                                    Edit Asset
                                 </Dialog.Title>
                                 <div className="mt-2">
                                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        Enter the details of the new equipment or asset to track in the inventory.
+                                        Update the details of the asset.
                                     </p>
                                 </div>
 
@@ -207,7 +222,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                 <input
                                                     {...register('value', { required: 'Value is required' })}
                                                     type="text"
-                                                    placeholder="e.g. $2,499"
+                                                    placeholder="e.g. 2499"
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.value && <span className="text-xs text-red-500 mt-1">{errors.value.message}</span>}
@@ -230,6 +245,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Asset Photos</label>
                                         <ImageUploader
                                             onImagesChange={setImageFiles}
+                                            initialImages={asset?.images}
                                             multiple
                                             targetDimensions={{ width: 1280, height: 720 }}
                                         />
@@ -247,7 +263,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                             type="submit"
                                             className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/25 transition-all"
                                         >
-                                            Add Asset
+                                            Save Changes
                                         </button>
                                     </div>
                                 </form>

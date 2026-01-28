@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') + '/locations';
+// Ensure this matches the backend route prefix: /api/v1/locations
+const API_URL = '/api/v1/locations';
 
 export interface BoxLocation {
     _id: string;
