@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Asset } from "@/services/assetService";
 import { TechnicalSpecsEditor } from './TechnicalSpecsEditor';
+import { AssetAssignmentTab } from './AssetAssignmentTab';
 
 interface AssetTabsProps {
     asset: Asset;
@@ -12,7 +13,7 @@ export function AssetTabs({ asset }: AssetTabsProps) {
     return (
         <section className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                {['Technical Info', 'Documents', 'Usage History', 'Maintenance'].map((tab) => (
+                {['Technical Info', 'Documents', 'Assignments', 'Usage History', 'Maintenance'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab.toLowerCase())}
@@ -28,6 +29,9 @@ export function AssetTabs({ asset }: AssetTabsProps) {
             <div className="p-8">
                 {activeTab.includes('technical') && (
                     <TechnicalSpecsEditor asset={asset} />
+                )}
+                {activeTab.includes('assignments') && (
+                    <AssetAssignmentTab asset={asset} />
                 )}
                 {/* Placeholders for other tabs */}
                 {!activeTab.includes('technical') && (

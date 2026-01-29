@@ -27,6 +27,7 @@ import { twMerge } from 'tailwind-merge'
 const mainNavigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
+    { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },

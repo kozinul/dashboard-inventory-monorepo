@@ -9,6 +9,7 @@ import { ItemTypesPage } from '../modules/master-data/item-types';
 import DashboardPage from '../pages/dashboard-pages/DashboardPage';
 import InventoryPage from '../pages/dashboard-pages/InventoryPage';
 import AssetDetailsPage from '../pages/dashboard-pages/AssetDetailsPage';
+import AssetAssignmentPage from '@/pages/dashboard-pages/AssetAssignmentPage';
 import MaintenancePage from '../pages/dashboard-pages/MaintenancePage';
 import ReportsPage from '../pages/dashboard-pages/ReportsPage';
 import DisposalPage from '../pages/dashboard-pages/DisposalPage';
@@ -53,6 +54,11 @@ export const router = createBrowserRouter([
                 path: 'maintenance',
                 element: <MaintenancePage />,
             },
+            {
+                path: 'assignments',
+                element: <AssetAssignmentPage />,
+            },
+
             {
                 path: 'history',
                 element: <HistoryPage />,

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Asset Assignment List View</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6464f2",
+                        "background-dark": "#0F0F23",
+                        "surface-dark": "#1A1A2E",
+                        "border-dark": "#2E2E48",
+                        "accent-indigo": "#6366F1",
+                        "text-secondary": "#9292c9",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "header": ["Space Grotesk", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F0F23; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2E2E48; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3E3E58; 
+        }
+        .table-row-hover:hover {
+            background-color: rgba(100, 100, 242, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display h-screen w-full flex overflow-hidden">
+<aside class="w-64 bg-background-dark border-r border-border-dark flex flex-col shrink-0 z-20">
+<div class="h-16 flex items-center px-6 border-b border-border-dark">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">dns</span>
+</div>
+<h1 class="font-header text-xl font-bold tracking-tight text-white">TechInventory</h1>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-6 px-3 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">location_on</span>
+<span class="text-sm font-medium">Locations</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/15 text-white" href="#">
+<span class="material-symbols-outlined fill-1">assignment_turned_in</span>
+<span class="text-sm font-medium">Assignments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">summarize</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-white hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-border-dark">
+<div class="mt-4 flex items-center gap-3 px-2">
+<div class="size-9 rounded-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAC18UAKCH8F21exlpWGzwRABiXFEUT3oxa7-gYm0clAqBqw-eKxoznDQNQHpjjmaZyNcMp-MPr12XVn6HWpfmH4jzPttooouiuwiFZpKpJTK-KYaeFbPv0q581021OpnbRwv1SDIOS6xyyTVx1PofYZWwtqie4ulUVsEPFGb0rv_vM2lGuUTdy1mu8BvrRpivDLy6IT24c_n3fZBOyqu6sMKVEbIfowFKQa8ICLZoiTC82ml6VjKu19BjL4ehiyuPx4eC2ZL3yN0Y');"></div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-sm font-medium text-white truncate">Alex Morgan</span>
+<span class="text-xs text-text-secondary truncate">IT Administrator</span>
+</div>
+</div>
+</div>
+</aside>
+<div class="flex-1 flex flex-col h-full min-w-0">
+<header class="h-16 bg-background-dark border-b border-border-dark px-8 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-4 w-96">
+<div class="relative w-full group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full bg-surface-dark border-none rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder-text-secondary focus:ring-1 focus:ring-primary focus:outline-none h-10 transition-all" placeholder="Search assignments, assets, or users..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="h-10 px-4 bg-surface-dark text-white text-sm font-medium rounded-lg border border-border-dark hover:bg-[#252540] transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                    More Filters
+                </button>
+<div class="h-6 w-px bg-border-dark mx-1"></div>
+<button class="h-10 px-4 bg-primary text-white text-sm font-bold rounded-lg hover:bg-indigo-500 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+<span class="material-symbols-outlined text-[20px]">assignment_add</span>
+                    Assign Asset
+                </button>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<aside class="w-72 bg-background-dark border-r border-border-dark overflow-y-auto p-6 hidden lg:flex flex-col gap-8">
+<div>
+<h3 class="text-xs font-bold text-text-secondary uppercase tracking-widest mb-4">Quick Filters</h3>
+<div class="flex flex-col gap-2">
+<button class="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 text-white group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-primary">all_inbox</span>
+<span class="text-sm font-medium">All Assignments</span>
+</div>
+<span class="text-xs bg-surface-dark px-2 py-0.5 rounded text-text-secondary">158</span>
+</button>
+<button class="flex items-center justify-between px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-rose-500">priority_high</span>
+<span class="text-sm font-medium">Overdue</span>
+</div>
+<span class="text-xs bg-surface-dark px-2 py-0.5 rounded text-text-secondary">12</span>
+</button>
+<button class="flex items-center justify-between px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-amber-500">today</span>
+<span class="text-sm font-medium">Due Today</span>
+</div>
+<span class="text-xs bg-surface-dark px-2 py-0.5 rounded text-text-secondary">5</span>
+</button>
+<button class="flex items-center justify-between px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-emerald-500">outbox</span>
+<span class="text-sm font-medium">Checked Out</span>
+</div>
+<span class="text-xs bg-surface-dark px-2 py-0.5 rounded text-text-secondary">141</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold text-text-secondary uppercase tracking-widest mb-4">Asset Categories</h3>
+<div class="flex flex-col gap-1">
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-dark rounded-lg group">
+<input class="rounded border-border-dark bg-background-dark text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-secondary group-hover:text-white">Laptops</span>
+</label>
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-dark rounded-lg group">
+<input class="rounded border-border-dark bg-background-dark text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-secondary group-hover:text-white">Monitors</span>
+</label>
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-dark rounded-lg group">
+<input class="rounded border-border-dark bg-background-dark text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-secondary group-hover:text-white">AV Equipment</span>
+</label>
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-dark rounded-lg group">
+<input class="rounded border-border-dark bg-background-dark text-primary focus:ring-primary focus:ring-offset-background-dark" type="checkbox"/>
+<span class="text-sm text-text-secondary group-hover:text-white">Mobile Devices</span>
+</label>
+</div>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto bg-background-dark">
+<div class="p-8 max-w-[1400px] mx-auto">
+<div class="flex items-end justify-between mb-8">
+<div>
+<div class="flex items-center gap-2 text-text-secondary text-xs font-medium mb-2 uppercase tracking-wider">
+<span>Assignments</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary">List View</span>
+</div>
+<h2 class="font-header text-3xl font-bold text-white mb-1">Asset Assignments</h2>
+<p class="text-text-secondary text-sm">Reviewing 158 active equipment check-outs and returns.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-dark border border-border-dark rounded-lg text-sm text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                                Export CSV
+                            </button>
+<div class="flex bg-surface-dark p-1 rounded-lg border border-border-dark">
+<button class="p-1.5 text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+<button class="p-1.5 bg-primary text-white rounded-md shadow-sm">
+<span class="material-symbols-outlined text-[20px]">list</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-2xl">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#21213e]/50 border-b border-border-dark">
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest w-24">ID</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest">Asset Name</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest">Assigned To</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest">Date Issued</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest">Expected Return</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest">Status</th>
+<th class="px-6 py-4 text-[10px] font-bold text-text-secondary uppercase tracking-widest text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<tr class="table-row-hover transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-text-secondary">#AS-4921</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded bg-background-dark border border-border-dark flex items-center justify-center overflow-hidden">
+<img alt="MacBook" class="object-cover size-full opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTs6znmFeVVcjydb3rnbekJRDam9SiIlhrfo0t8YwXg-RjvjomnkPItZ20krclJyaOthI0Az_ofJaZYz_pSKbve5BxHsGcL_Fh3fwSH_0XG8CYn5GXBoY8FuS24R1OG76EA0Cm973pkcjQd_Djy_8Wye0eAYFyCa2J8ZHic3bTyA3IbYBp1m_glXPrMbBkYuLqH7LcNH_5oL0UplqhnN7sg0oo3mVoUVWP7wu7ywSj3DYSrFMh0huvcbvyj4hJVpXI9uNl0-r3Jb0"/>
+</div>
+<div>
+<p class="text-sm font-bold text-white">MacBook Pro 16" (M2)</p>
+<p class="text-[11px] text-text-secondary">SN: C02F83VBMD6R</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded-full bg-cover bg-center border border-border-dark" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAC18UAKCH8F21exlpWGzwRABiXFEUT3oxa7-gYm0clAqBqw-eKxoznDQNQHpjjmaZyNcMp-MPr12XVn6HWpfmH4jzPttooouiuwiFZpKpJTK-KYaeFbPv0q581021OpnbRwv1SDIOS6xyyTVx1PofYZWwtqie4ulUVsEPFGb0rv_vM2lGuUTdy1mu8BvrRpivDLy6IT24c_n3fZBOyqu6sMKVEbIfowFKQa8ICLZoiTC82ml6VjKu19BjL4ehiyuPx4eC2ZL3yN0Y');"></div>
+<span class="text-sm font-medium text-white">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Oct 12, 2023</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Oct 12, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVE</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="table-row-hover transition-colors bg-rose-500/5">
+<td class="px-6 py-4 text-sm font-mono text-text-secondary">#AS-4812</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded bg-background-dark border border-border-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-text-secondary">videocam</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Sony Alpha A7 IV</p>
+<p class="text-[11px] text-text-secondary">SN: SN-9021-332</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/20">DK</div>
+<span class="text-sm font-medium text-white">David Kim</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Nov 05, 2023</td>
+<td class="px-6 py-4 text-sm text-rose-500 font-medium">Nov 05, 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">OVERDUE</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="table-row-hover transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-text-secondary">#AS-4799</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded bg-background-dark border border-border-dark flex items-center justify-center overflow-hidden">
+<img alt="Monitor" class="object-cover size-full opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQjY6tsCEkDervM_uhjafcIqXHVrMA2DLTv8WS-xDA20zteyQ0dzfYGDGVF10ogEq3UrdMCNT73u7rSeYPusEfUDrZhGOvQEKOv-YrlZMJi7t6MC99_XbTRvoUYTI5sdSoqwY81_-nVzSxJ_UINlS3Ea-LVtsXKcHcxqCsBxIedA5fVcGLbkZQZ6KMn2BX_BfiP91FZFVBV9TI_nyd1E2I-4cL7ed-VtMrZNbs5UugZlV5yllWYmpMEvGTyjckPW0ANos2q6RjiME"/>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Dell UltraSharp 27"</p>
+<p class="text-[11px] text-text-secondary">SN: DEL-827-X1</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded-full bg-orange-500/20 flex items-center justify-center text-[10px] font-bold text-orange-500 border border-orange-500/20">MT</div>
+<span class="text-sm font-medium text-white">Mark Thompson</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Dec 01, 2023</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Dec 01, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVE</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="table-row-hover transition-colors bg-amber-500/5">
+<td class="px-6 py-4 text-sm font-mono text-text-secondary">#AS-4652</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded bg-background-dark border border-border-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-text-secondary">headset</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Logitech G Pro X</p>
+<p class="text-[11px] text-text-secondary">SN: LOGI-HS-22</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-500 border border-emerald-500/20">EC</div>
+<span class="text-sm font-medium text-white">Elena Cruz</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Jan 15, 2024</td>
+<td class="px-6 py-4 text-sm text-amber-500 font-bold">Jan 30, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">DUE TODAY</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="table-row-hover transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-text-secondary">#AS-4521</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded bg-background-dark border border-border-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-text-secondary">tablet_mac</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">iPad Air (5th Gen)</p>
+<p class="text-[11px] text-text-secondary">SN: PAD-M1-882</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded-full bg-purple-500/20 flex items-center justify-center text-[10px] font-bold text-purple-500 border border-purple-500/20">RB</div>
+<span class="text-sm font-medium text-white">Robert Brown</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Feb 02, 2024</td>
+<td class="px-6 py-4 text-sm text-text-secondary">Aug 02, 2024</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVE</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<p class="text-xs text-text-secondary">Showing <span class="text-white font-medium">1-10</span> of <span class="text-white font-medium">158</span> assignments</p>
+<div class="flex items-center gap-2">
+<button class="size-8 rounded border border-border-dark flex items-center justify-center text-text-secondary hover:text-white hover:bg-surface-dark transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="size-8 rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 rounded border border-border-dark text-xs text-text-secondary hover:text-white transition-all">2</button>
+<button class="size-8 rounded border border-border-dark text-xs text-text-secondary hover:text-white transition-all">3</button>
+<span class="text-text-secondary mx-1">...</span>
+<button class="size-8 rounded border border-border-dark text-xs text-text-secondary hover:text-white transition-all">16</button>
+<button class="size-8 rounded border border-border-dark flex items-center justify-center text-text-secondary hover:text-white hover:bg-surface-dark transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>
