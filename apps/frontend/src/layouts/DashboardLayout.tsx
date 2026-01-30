@@ -22,11 +22,13 @@ import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroico
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
 
 // Main app navigation
 const mainNavigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
+    { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
@@ -42,7 +44,9 @@ const masterDataNavigation = [
     { name: 'Job Titles', href: '/master-data/job-titles', icon: BriefcaseIcon },
     { name: 'Departments', href: '/master-data/departments', icon: BuildingOfficeIcon },
     { name: 'Item Types', href: '/master-data/item-types', icon: CubeIcon },
+    { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
+    { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
@@ -369,6 +373,9 @@ export default function DashboardLayout() {
 
                     <main className="py-10">
                         <div className="px-4 sm:px-6 lg:px-8">
+                            <div className="mb-6">
+                                <Breadcrumbs />
+                            </div>
                             <Outlet />
                         </div>
                     </main>

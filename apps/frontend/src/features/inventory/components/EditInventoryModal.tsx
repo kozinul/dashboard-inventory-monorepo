@@ -3,6 +3,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { Asset } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
+import { categoryService, Category } from '../../../services/categoryService';
+import { uploadService } from '../../../services/uploadService';
+import { vendorService, Vendor } from '../../../services/vendorService';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -20,18 +23,51 @@ interface InventoryFormInputs {
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     value: string;
     purchaseDate: string;
+
+    // Vendor Fields
+    vendorName: string;
+    vendorContact: string;
+    vendorPhone: string;
+    vendorEmail: string;
+    vendorAddress: string;
+    vendorWebsite: string;
+
+    // Warranty Fields
+    warrantyExpiration: string;
+    warrantyDetails: string;
 }
 
 export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInventoryModalProps) {
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
 
-    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<InventoryFormInputs>();
+    // File Upload State
+    const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<InventoryFormInputs>();
+
+    const selectedDepartmentId = watch('departmentId');
+    const filteredCategories = categories.filter(cat =>
+        cat.authorizedDepartments.length === 0 ||
+        cat.authorizedDepartments.some(d => d._id === selectedDepartmentId)
+    );
 
     useEffect(() => {
         if (isOpen) {
             departmentService.getAll().then(data => {
                 setDepartments(data);
             }).catch(err => console.error("Failed to load departments", err));
+
+            categoryService.getAll().then(data => {
+                setCategories(data);
+            }).catch(err => console.error("Failed to load categories", err));
+
+            vendorService.getAll().then(data => {
+                setVendors(data.filter(v => v.status === 'active'));
+            }).catch(err => console.error("Failed to load vendors", err));
         }
     }, [isOpen]);
 
@@ -46,33 +82,104 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
             setValue('value', asset.value.toString());
             // Format date for input type="date"
             if (asset.purchaseDate) {
-                const date = new Date(asset.purchaseDate);
-                setValue('purchaseDate', date.toISOString().split('T')[0]);
+                try {
+                    const date = new Date(asset.purchaseDate);
+                    if (!isNaN(date.getTime())) {
+                        const dateString = date.toISOString().split('T')[0] || '';
+                        setValue('purchaseDate', dateString);
+                    }
+                } catch (e) {
+                    console.error("Invalid purchase date", e);
+                }
+            }
+
+            // Set Vendor Data
+            if (asset.vendor) {
+                setValue('vendorName', asset.vendor.name || '');
+                setValue('vendorContact', asset.vendor.contact || '');
+                setValue('vendorPhone', asset.vendor.phone || '');
+                setValue('vendorEmail', asset.vendor.email || '');
+                setValue('vendorAddress', asset.vendor.address || '');
+                setValue('vendorWebsite', asset.vendor.website || '');
+            }
+
+            // Set Warranty Data
+            if (asset.warranty) {
+                if (asset.warranty.expirationDate) {
+                    try {
+                        const wDate = new Date(asset.warranty.expirationDate);
+                        if (!isNaN(wDate.getTime())) {
+                            const wDateString = wDate.toISOString().split('T')[0] || '';
+                            setValue('warrantyExpiration', wDateString);
+                        }
+                    } catch (e) {
+                        console.error("Invalid warranty date", e);
+                    }
+                }
+                setValue('warrantyDetails', asset.warranty.details || '');
             }
         }
     }, [asset, setValue, isOpen]);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setInvoiceFile(e.target.files[0]);
+        }
+    };
+
     const onSubmit = async (data: InventoryFormInputs) => {
         if (!asset) return;
 
-        // Find the selected department name
         const selectedDept = departments.find(d => d._id === data.departmentId);
 
         try {
+            setIsUploading(true);
+            let invoiceData = asset.invoice; // Keep existing invoice if not replaced
+
+            if (invoiceFile) {
+                const uploadResult = await uploadService.upload(invoiceFile, (progress) => {
+                    setUploadProgress(progress);
+                });
+                invoiceData = {
+                    number: asset.invoice?.number || '',
+                    url: uploadResult.url,
+                    filename: uploadResult.filename,
+                    uploadDate: new Date().toISOString()
+                };
+            }
+
             onUpdate(asset.id || asset._id, {
                 ...data,
                 department: selectedDept?.name || asset.department,
                 value: Number(data.value),
+                vendor: {
+                    name: data.vendorName,
+                    contact: data.vendorContact,
+                    phone: data.vendorPhone,
+                    email: data.vendorEmail,
+                    address: data.vendorAddress,
+                    website: data.vendorWebsite
+                },
+                invoice: invoiceData,
+                warranty: {
+                    expirationDate: data.warrantyExpiration,
+                    details: data.warrantyDetails
+                }
             });
 
             onClose();
+            setInvoiceFile(null);
+            setUploadProgress(0);
         } catch (error) {
             console.error("Failed to update asset", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
     const handleClose = () => {
         reset();
+        setInvoiceFile(null);
         onClose();
     };
 
@@ -151,12 +258,9 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 >
                                                     <option value="">Select Category</option>
-                                                    <option value="Laptops">Laptops</option>
-                                                    <option value="AV Gear">AV Gear</option>
-                                                    <option value="Workstations">Workstations</option>
-                                                    <option value="Audio">Audio</option>
-                                                    <option value="Lighting">Lighting</option>
-                                                    <option value="Furniture">Furniture</option>
+                                                    {filteredCategories.map(cat => (
+                                                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                                    ))}
                                                 </select>
                                                 {errors.category && <span className="text-xs text-red-500 mt-1">{errors.category.message}</span>}
                                             </div>
@@ -227,6 +331,104 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                         </div>
                                     </div>
 
+                                    {/* Vendor & Invoice Section */}
+                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Purchasing & Vendor Details</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Vendor (Autofill)</label>
+                                                    <select
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                        onChange={(e) => {
+                                                            const vendorId = e.target.value;
+                                                            if (vendorId) {
+                                                                const vendor = vendors.find(v => v._id === vendorId);
+                                                                if (vendor) {
+                                                                    setValue('vendorName', vendor.name);
+                                                                    setValue('vendorContact', vendor.contactName || '');
+                                                                    setValue('vendorPhone', vendor.phone || '');
+                                                                    setValue('vendorEmail', vendor.email || '');
+                                                                    setValue('vendorAddress', vendor.address || '');
+                                                                    setValue('vendorWebsite', vendor.website || '');
+                                                                }
+                                                            }
+                                                        }}
+                                                    >
+                                                        <option value="">-- Choose from existing vendors --</option>
+                                                        {vendors.map(v => (
+                                                            <option key={v._id} value={v._id}>{v.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vendor Name</label>
+                                                    <input
+                                                        {...register('vendorName')}
+                                                        type="text"
+                                                        placeholder="e.g. Official Store"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vendor Website</label>
+                                                    <input
+                                                        {...register('vendorWebsite')}
+                                                        type="text"
+                                                        placeholder="e.g. https://store.com"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Invoice / Receipt Scan</label>
+                                                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-slate-50 dark:bg-slate-900 text-center relative hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*,.pdf"
+                                                            onChange={handleFileChange}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                        {invoiceFile ? (
+                                                            <div className="flex items-center justify-center gap-2 text-primary">
+                                                                <span className="material-symbols-outlined">description</span>
+                                                                <span className="text-sm font-medium truncate max-w-[200px]">{invoiceFile.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center gap-1 text-slate-400">
+                                                                <span className="material-symbols-outlined text-2xl">upload_file</span>
+                                                                <span className="text-xs">
+                                                                    {asset?.invoice?.url ? 'Click to replace receipt' : 'Click to upload receipt (Img/PDF)'}
+                                                                </span>
+                                                                {asset?.invoice?.url && (
+                                                                    <span className="text-[10px] text-primary">Current: {asset.invoice.filename}</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contact Person / Phone</label>
+                                                    <input
+                                                        {...register('vendorContact')}
+                                                        type="text"
+                                                        placeholder="Name or Phone number"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Warranty Expiration</label>
+                                                    <input
+                                                        {...register('warrantyExpiration')}
+                                                        type="date"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-6">
                                         <button
                                             type="button"
@@ -237,9 +439,17 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/25 transition-all"
+                                            disabled={isUploading}
+                                            className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/25 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Save Changes
+                                            {isUploading ? (
+                                                <>
+                                                    <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                                                    {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Saving...'}
+                                                </>
+                                            ) : (
+                                                'Save Changes'
+                                            )}
                                         </button>
                                     </div>
                                 </form>
@@ -248,6 +458,6 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                     </div>
                 </div>
             </Dialog>
-        </Transition>
+        </Transition >
     );
 }

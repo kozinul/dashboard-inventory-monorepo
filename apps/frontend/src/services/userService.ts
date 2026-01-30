@@ -20,6 +20,11 @@ export const userService = {
         return response.data;
     },
 
+    getById: async (id: string) => {
+        const response = await axios.get<User>(`${API_URL}/${id}`);
+        return response.data;
+    },
+
     create: async (data: CreateUserDto) => {
         const response = await axios.post<User>(API_URL, data);
         return response.data;

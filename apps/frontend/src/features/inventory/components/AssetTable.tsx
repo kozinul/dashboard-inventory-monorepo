@@ -1,13 +1,14 @@
-import { Asset } from '../data/mock-inventory';
+import { Asset } from '../../../services/assetService';
 import { AssetImageCell, AssetNameCell, AssetMetaCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
 
 interface AssetTableProps {
     assets: Asset[];
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
+    onClone?: (id: string) => void;
 }
 
-export function AssetTable({ assets, onEdit, onDelete }: AssetTableProps) {
+export function AssetTable({ assets, onEdit, onDelete, onClone }: AssetTableProps) {
     return (
         <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto custom-scrollbar">
@@ -54,6 +55,7 @@ export function AssetTable({ assets, onEdit, onDelete }: AssetTableProps) {
                                         assetId={asset.id || asset._id}
                                         onEdit={onEdit}
                                         onDelete={onDelete}
+                                        onClone={onClone}
                                     />
                                 </td>
                             </tr>

@@ -8,11 +8,15 @@ interface UserRowProps {
     user: User;
     onEdit: (user: User) => void;
     onDelete: (user: User) => void;
+    onView?: (user: User) => void;
 }
 
-export function UserRow({ user, onEdit, onDelete }: UserRowProps) {
+export function UserRow({ user, onEdit, onDelete, onView }: UserRowProps) {
     return (
-        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border-slate-100 dark:border-slate-800">
+        <tr
+            onClick={() => onView && onView(user)}
+            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border-slate-100 dark:border-slate-800 cursor-pointer"
+        >
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     <img
@@ -32,7 +36,7 @@ export function UserRow({ user, onEdit, onDelete }: UserRowProps) {
                 <StatusBadge status={user.status as any} />
             </td>
             <td className="px-6 py-4 text-right relative">
-                <Menu as="div" className="relative inline-block text-left">
+                <Menu as="div" className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
                     <Menu.Button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 group-hover:text-primary">
                         <span className="material-symbols-outlined">more_vert</span>
                     </Menu.Button>

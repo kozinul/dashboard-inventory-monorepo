@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { Asset } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
 import { categoryService, Category } from '../../../services/categoryService';
+import { uploadService } from '../../../services/uploadService';
+import { vendorService, Vendor } from '../../../services/vendorService';
 
 interface AddInventoryModalProps {
     isOpen: boolean;
@@ -20,11 +22,29 @@ interface InventoryFormInputs {
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     value: string;
     purchaseDate: string;
+
+    // Vendor Fields
+    vendorName: string;
+    vendorContact: string;
+    vendorPhone: string;
+    vendorEmail: string;
+    vendorAddress: string;
+    vendorWebsite: string;
+
+    // Warranty Fields
+    warrantyExpiration: string;
+    warrantyDetails: string;
 }
 
 export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalProps) {
     const [departments, setDepartments] = useState<Department[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+
+    // File Upload State
+    const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     // Watch departmentId to filter categories
     const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<InventoryFormInputs>({
@@ -35,8 +55,6 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
 
     const selectedDepartmentId = watch('departmentId');
     const filteredCategories = categories.filter(cat =>
-        // Show category if it has no restrictions (empty authorizedDepartments)
-        // OR if the selected department is in the authorized list
         cat.authorizedDepartments.length === 0 ||
         cat.authorizedDepartments.some(d => d._id === selectedDepartmentId)
     );
@@ -50,6 +68,10 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
             categoryService.getAll().then(data => {
                 setCategories(data);
             }).catch(err => console.error("Failed to load categories", err));
+
+            vendorService.getAll().then(data => {
+                setVendors(data.filter(v => v.status === 'active'));
+            }).catch(err => console.error("Failed to load vendors", err));
         }
     }, [isOpen]);
 
@@ -58,27 +80,74 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
         setValue('category', '');
     }, [selectedDepartmentId, setValue]);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setInvoiceFile(e.target.files[0]);
+        }
+    };
+
     const onSubmit = async (data: InventoryFormInputs) => {
-        // Find the selected department name
         const selectedDept = departments.find(d => d._id === data.departmentId);
 
         try {
-            onAdd({
-                ...data,
+            setIsUploading(true);
+            let invoiceData = undefined;
+
+            if (invoiceFile) {
+                const uploadResult = await uploadService.upload(invoiceFile, (progress) => {
+                    setUploadProgress(progress);
+                });
+                invoiceData = {
+                    number: '', // Could add field for invoice number if needed
+                    url: uploadResult.url,
+                    filename: uploadResult.filename,
+                    uploadDate: new Date().toISOString()
+                };
+            }
+
+            const assetData: any = {
+                name: data.name,
+                model: data.model,
+                category: data.category,
+                serial: data.serial,
+                departmentId: data.departmentId,
                 department: selectedDept?.name || 'Unknown',
+                status: data.status,
+                value: parseFloat(data.value.replace(/[^0-9.]/g, '')), // Basic cleaning
+                purchaseDate: data.purchaseDate,
                 images: [],
-            } as any);
+                vendor: {
+                    name: data.vendorName,
+                    contact: data.vendorContact,
+                    phone: data.vendorPhone,
+                    email: data.vendorEmail,
+                    address: data.vendorAddress,
+                    website: data.vendorWebsite
+                },
+                invoice: invoiceData,
+                warranty: {
+                    expirationDate: data.warrantyExpiration,
+                    details: data.warrantyDetails
+                }
+            };
+
+            onAdd(assetData);
 
             // Reset form and local state
             reset();
+            setInvoiceFile(null);
+            setUploadProgress(0);
             onClose();
         } catch (error) {
             console.error("Failed to add asset", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
     const handleClose = () => {
         reset();
+        setInvoiceFile(null);
         onClose();
     };
 
@@ -213,7 +282,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                 <input
                                                     {...register('value', { required: 'Value is required' })}
                                                     type="text"
-                                                    placeholder="e.g. $2,499"
+                                                    placeholder="e.g. 2500000"
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.value && <span className="text-xs text-red-500 mt-1">{errors.value.message}</span>}
@@ -231,6 +300,99 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                         </div>
                                     </div>
 
+                                    {/* Vendor & Invoice Section */}
+                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Purchasing & Vendor Details</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Vendor (Optional)</label>
+                                                    <select
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                        onChange={(e) => {
+                                                            const vendorId = e.target.value;
+                                                            if (vendorId) {
+                                                                const vendor = vendors.find(v => v._id === vendorId);
+                                                                if (vendor) {
+                                                                    setValue('vendorName', vendor.name);
+                                                                    setValue('vendorContact', vendor.contactName || '');
+                                                                    setValue('vendorPhone', vendor.phone || '');
+                                                                    setValue('vendorEmail', vendor.email || '');
+                                                                    setValue('vendorAddress', vendor.address || '');
+                                                                    setValue('vendorWebsite', vendor.website || '');
+                                                                }
+                                                            }
+                                                        }}
+                                                    >
+                                                        <option value="">-- Choose from existing vendors --</option>
+                                                        {vendors.map(v => (
+                                                            <option key={v._id} value={v._id}>{v.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vendor Name</label>
+                                                    <input
+                                                        {...register('vendorName')}
+                                                        type="text"
+                                                        placeholder="e.g. Official Store"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vendor Website</label>
+                                                    <input
+                                                        {...register('vendorWebsite')}
+                                                        type="text"
+                                                        placeholder="e.g. https://store.com"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Invoice / Receipt Scan</label>
+                                                    <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-slate-50 dark:bg-slate-900 text-center relative hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*,.pdf"
+                                                            onChange={handleFileChange}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                        {invoiceFile ? (
+                                                            <div className="flex items-center justify-center gap-2 text-primary">
+                                                                <span className="material-symbols-outlined">description</span>
+                                                                <span className="text-sm font-medium truncate max-w-[200px]">{invoiceFile.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col items-center gap-1 text-slate-400">
+                                                                <span className="material-symbols-outlined text-2xl">upload_file</span>
+                                                                <span className="text-xs">Click to upload receipt (Img/PDF)</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contact Person / Phone</label>
+                                                    <input
+                                                        {...register('vendorContact')}
+                                                        type="text"
+                                                        placeholder="Name or Phone number"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Warranty Expiration</label>
+                                                    <input
+                                                        {...register('warrantyExpiration')}
+                                                        type="date"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="mt-8 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-6">
                                         <button
                                             type="button"
@@ -241,9 +403,17 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/25 transition-all"
+                                            disabled={isUploading}
+                                            className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/25 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Add Asset
+                                            {isUploading ? (
+                                                <>
+                                                    <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                                                    {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Saving...'}
+                                                </>
+                                            ) : (
+                                                'Add Asset'
+                                            )}
                                         </button>
                                     </div>
                                 </form>

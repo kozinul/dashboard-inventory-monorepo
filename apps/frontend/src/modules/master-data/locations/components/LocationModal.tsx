@@ -45,7 +45,10 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
 
     useEffect(() => {
         if (!editingLocation && locationTypes.length > 0 && !formData.type) {
-            setFormData(prev => ({ ...prev, type: locationTypes[0] }));
+            const firstType = locationTypes[0];
+            if (firstType) {
+                setFormData(prev => ({ ...prev, type: firstType }));
+            }
         }
     }, [locationTypes, editingLocation]);
 

@@ -38,11 +38,14 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import { locationRoutes } from './routes/location.routes.js';
 import { locationTypeRoutes } from './routes/locationType.routes.js';
 import databaseRoutes from './routes/database.routes.js';
+import assetTemplateRoutes from './routes/assetTemplate.routes.js';
 
 // Routes
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+import vendorRoutes from './routes/vendor.routes.js';
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/departments', departmentRoutes);
@@ -55,6 +58,23 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/location-types', locationTypeRoutes);
 app.use('/api/v1/database', databaseRoutes);
+app.use('/api/v1/asset-templates', assetTemplateRoutes);
+app.use('/api/v1/vendors', vendorRoutes);
+
+import supplyRoutes from './routes/supply.routes.js';
+app.use('/api/v1/supplies', supplyRoutes);
+
+import unitRoutes from './routes/unit.routes.js';
+app.use('/api/v1/units', unitRoutes);
+
+import eventRoutes from './routes/event.routes.js';
+app.use('/api/v1/events', eventRoutes);
+
+import rentalRoutes from './routes/rental.routes.js';
+app.use('/api/v1/rentals', rentalRoutes);
+
+import assignmentRoutes from './routes/assignment.routes.js';
+app.use('/api/v1/assignments', assignmentRoutes);
 
 import uploadRoutes from './routes/upload.routes.js';
 import path from 'path';

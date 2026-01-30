@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import Swal from 'sweetalert2'
 import { UserRow } from "@/features/users/components/UserRow"
 import { StatsGrid } from "@/features/users/components/StatsGrid"
@@ -9,6 +10,7 @@ import { DepartmentManager } from "@/features/users/components/DepartmentManager
 import { JobTitleManager } from "@/features/users/components/JobTitleManager"
 
 export default function UserManagementPage() {
+    const navigate = useNavigate()
     const [users, setUsers] = useState<User[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -217,6 +219,7 @@ export default function UserManagementPage() {
                                                 user={user}
                                                 onEdit={openEditModal}
                                                 onDelete={handleDelete}
+                                                onView={() => navigate(`/users/${(user as any)._id || (user as any).id}`)}
                                             />
                                         ))
                                     )}

@@ -9,14 +9,17 @@ import { assetService, Asset } from "../../services/assetService";
 
 import { EditInventoryModal } from "../../features/inventory/components/EditInventoryModal";
 import { showSuccessToast, showErrorToast } from "@/utils/swal";
+import BookingHistoryTable from '@/features/rental/components/BookingHistoryTable';
+import { AssetAssignmentHistory } from "../../features/inventory/components/asset-details/AssetAssignmentHistory";
 
 // Simplified layout to allow document scroll
 export default function AssetDetailsPage() {
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
     const [asset, setAsset] = useState<Asset | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'details' | 'documents' | 'history' | 'price' | 'assignment'>('details');
 
     useEffect(() => {
         if (id) {
@@ -86,11 +89,7 @@ export default function AssetDetailsPage() {
             {/* Top Header */}
             <header className="h-16 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-between px-8 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Link to="/" className="text-xs font-medium text-slate-500 hover:text-primary transition-colors">Dashboard</Link>
-                    <ChevronRightIcon className="w-3 h-3 text-slate-400" />
-                    <Link to="/inventory" className="text-xs font-medium text-slate-500 hover:text-primary transition-colors">Inventory</Link>
-                    <ChevronRightIcon className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs font-medium text-slate-900 dark:text-white">{asset.name}</span>
+                    {/* Breadcrumbs removed to avoid duplication with global layout */}
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="relative">
@@ -110,8 +109,55 @@ export default function AssetDetailsPage() {
             <div className="px-8 py-6 space-y-8 flex-1 overflow-y-auto">
                 <AssetHero asset={asset} onEdit={() => setIsEditModalOpen(true)} />
                 <AssetGallery asset={asset} onUpdate={handleUpdateAsset} />
-                <AssetTabs asset={asset} />
-                <AssetDocuments asset={asset} />
+
+                {/* Tabs */}
+                <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button
+                            onClick={() => setActiveTab('details')}
+                            className={`${activeTab === 'details'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                        >
+                            Details
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('documents')}
+                            className={`${activeTab === 'documents'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                        >
+                            Documents
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('history')}
+                            className={`${activeTab === 'history'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                        >
+                            Rental History
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('assignment')}
+                            className={`${activeTab === 'assignment'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                        >
+                            Assignments
+                        </button>
+                    </nav>
+                </div>
+
+                <div className="min-h-[400px]">
+                    {activeTab === 'details' && <AssetTabs asset={asset} />}
+                    {activeTab === 'documents' && <AssetDocuments asset={asset} />}
+                    {activeTab === 'history' && id && <BookingHistoryTable assetId={id} />}
+                    {activeTab === 'assignment' && id && <AssetAssignmentHistory assetId={id} />}
+                </div>
             </div>
 
             <EditInventoryModal

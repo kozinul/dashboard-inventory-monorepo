@@ -12,6 +12,19 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Validate with Zod

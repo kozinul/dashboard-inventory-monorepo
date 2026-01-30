@@ -21,6 +21,30 @@ export interface Asset {
     updatedAt?: string;
     createdAt?: string;
     technicalSpecifications?: Record<string, string>;
+    rentalRates?: {
+        name: string;
+        rate: number;
+        unit: string;
+        notes?: string;
+    }[];
+    vendor?: {
+        name: string;
+        contact: string;
+        phone: string;
+        email: string;
+        address: string;
+        website: string;
+    };
+    invoice?: {
+        number: string;
+        url: string;
+        filename: string;
+        uploadDate: string;
+    };
+    warranty?: {
+        expirationDate: string;
+        details: string;
+    };
 }
 
 export const assetService = {

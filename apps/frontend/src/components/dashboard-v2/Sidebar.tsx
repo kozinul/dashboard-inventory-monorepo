@@ -13,6 +13,13 @@ export function Sidebar() {
         { name: 'History', href: '/history', icon: 'history' },
     ]
 
+    const masterDataItems = [
+        { name: 'Asset Templates', href: '/master-data/asset-templates', icon: 'inventory_2' },
+        { name: 'Categories', href: '/master-data/item-categories', icon: 'category' },
+        { name: 'Locations', href: '/master-data/locations', icon: 'location_on' },
+        { name: 'Vendors', href: '/master-data/vendors', icon: 'storefront' },
+    ]
+
     const systemItems = [
         { name: 'Laporan', href: '/reports', icon: 'description' },
         { name: 'Settings', href: '/settings', icon: 'settings' },
@@ -33,6 +40,29 @@ export function Sidebar() {
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.href
+                    return (
+                        <Link
+                            key={item.name}
+                            to={item.href}
+                            className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
+                                isActive
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
+                            )}
+                        >
+                            <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
+                            <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
+                                {item.name}
+                            </span>
+                        </Link>
+                    )
+                })}
+
+                <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">Master Data</div>
+
+                {masterDataItems.map((item) => {
+                    const isActive = location.pathname === item.href || location.pathname.startsWith(item.href)
                     return (
                         <Link
                             key={item.name}

@@ -1,4 +1,4 @@
-import { Asset } from '../data/mock-inventory';
+import { Asset } from '../../../services/assetService';
 import { cn } from '@/lib/utils';
 
 import { Link } from 'react-router-dom';
@@ -55,7 +55,7 @@ export function AssetStatusBadge({ status }: { status: Asset['status'] }) {
     );
 }
 
-export function AssetRowActions({ assetId, onEdit, onDelete }: { assetId: string, onEdit: (id: string) => void, onDelete: (id: string) => void }) {
+export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetId: string, onEdit: (id: string) => void, onDelete: (id: string) => void, onClone?: (id: string) => void }) {
     return (
         <div className="flex items-center gap-1 justify-end">
             <Link
@@ -70,6 +70,15 @@ export function AssetRowActions({ assetId, onEdit, onDelete }: { assetId: string
             >
                 <span className="material-symbols-outlined !text-[18px]">edit</span>
             </button>
+            {onClone && (
+                <button
+                    onClick={() => onClone(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-green-500 hover:bg-green-500/10 rounded transition-colors"
+                    title="Clone Asset"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">content_copy</span>
+                </button>
+            )}
             <button
                 onClick={() => onDelete(assetId)}
                 className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
@@ -79,3 +88,4 @@ export function AssetRowActions({ assetId, onEdit, onDelete }: { assetId: string
         </div>
     );
 }
+

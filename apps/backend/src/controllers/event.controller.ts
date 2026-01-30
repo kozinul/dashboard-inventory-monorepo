@@ -1,0 +1,150 @@
+import { Request, Response } from 'express';
+import Event from '../models/event.model';
+import { Supply } from '../models/supply.model';
+import { SupplyHistory } from '../models/supplyHistory.model';
+
+export const createEvent = async (req: Request, res: Response) => {
+    try {
+        const event = new Event(req.body);
+        await event.save();
+        res.status(201).json(event);
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating event', error });
+    }
+};
+
+export const getEvents = async (req: Request, res: Response) => {
+    try {
+        const events = await Event.find().sort({ startTime: 1 });
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching events', error });
+    }
+};
+
+export const getEventById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const event = await Event.findById(id)
+            .populate('rentedAssets.assetId')
+            .populate('planningSupplies.supplyId');
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+        res.status(200).json(event);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching event', error });
+    }
+};
+
+export const updateEvent = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const currentEvent = await Event.findById(id);
+
+        if (!currentEvent) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        const newStatus = req.body.status;
+        const oldStatus = currentEvent.status;
+
+        // Handle Supply Logic on Status Change
+        if (newStatus && newStatus !== oldStatus) {
+            // Planning -> Scheduled (Booking): Deduct Stock
+            if (oldStatus === 'planning' && newStatus === 'scheduled') {
+                for (const item of currentEvent.planningSupplies) {
+                    const supply = await Supply.findById(item.supplyId);
+                    if (supply) {
+                        const oldStock = supply.quantity;
+                        supply.quantity -= item.quantity;
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'USE',
+                            quantityChange: -item.quantity,
+                            previousStock: oldStock,
+                            newStock: supply.quantity,
+                            notes: `Used in event: ${currentEvent.name}`
+                        });
+                    }
+                }
+            }
+            // Scheduled -> Planning (Release): Revert Stock
+            else if (oldStatus === 'scheduled' && newStatus === 'planning') {
+                for (const item of currentEvent.planningSupplies) {
+                    const supply = await Supply.findById(item.supplyId);
+                    if (supply) {
+                        const oldStock = supply.quantity;
+                        supply.quantity += item.quantity;
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'RESTOCK',
+                            quantityChange: item.quantity,
+                            previousStock: oldStock,
+                            newStock: supply.quantity,
+                            notes: `Released from event: ${currentEvent.name}`
+                        });
+                    }
+                }
+            }
+            // Scheduled -> Cancelled (Cancel): Revert Stock
+            else if (oldStatus === 'scheduled' && newStatus === 'cancelled') {
+                for (const item of currentEvent.planningSupplies) {
+                    const supply = await Supply.findById(item.supplyId);
+                    if (supply) {
+                        const oldStock = supply.quantity;
+                        supply.quantity += item.quantity;
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'RESTOCK',
+                            quantityChange: item.quantity,
+                            previousStock: oldStock,
+                            newStock: supply.quantity,
+                            notes: `Event cancelled: ${currentEvent.name}`
+                        });
+                    }
+                }
+            }
+        }
+
+        const event = await Event.findByIdAndUpdate(id, req.body, { new: true })
+            .populate('rentedAssets.assetId')
+            .populate('planningSupplies.supplyId');
+
+        res.status(200).json(event);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating event', error });
+    }
+};
+
+
+export const getEventsByAsset = async (req: Request, res: Response) => {
+    try {
+        const { assetId } = req.params;
+        const events = await Event.find({ 'rentedAssets.assetId': assetId })
+            .sort({ startTime: -1 }) // Newest first
+            .populate('rentedAssets.assetId');
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching asset history', error });
+    }
+};
+
+export const deleteEvent = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const event = await Event.findByIdAndDelete(id);
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+        res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting event', error });
+    }
+};

@@ -153,6 +153,8 @@ export function AssetGallery({ asset, onUpdate }: AssetGalleryProps) {
 
     const handleEditCaption = async (idx: number) => {
         const img = images[idx];
+        if (!img) return;
+
         const { value: text } = await Swal.fire({
             title: 'Edit Caption',
             input: 'text',
@@ -168,14 +170,19 @@ export function AssetGallery({ asset, onUpdate }: AssetGalleryProps) {
 
         if (text !== undefined && onUpdate) {
             const updatedImages = [...images];
-            updatedImages[idx] = { ...updatedImages[idx], caption: text };
-            await onUpdate(asset.id || asset._id, { images: updatedImages });
-            showSuccessToast('Caption updated');
+            // Ensure the image object at idx exists before spreading
+            if (updatedImages[idx]) {
+                updatedImages[idx] = { ...updatedImages[idx], caption: text };
+                await onUpdate(asset.id || asset._id, { images: updatedImages });
+                showSuccessToast('Caption updated');
+            }
         }
     };
 
     const handleDeleteImage = async (idx: number) => {
         const img = images[idx];
+        if (!img) return;
+
         const result = await Swal.fire({
             title: 'Delete Photo?',
             text: "This will permanently remove the photo and delete the file.",

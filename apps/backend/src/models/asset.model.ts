@@ -44,7 +44,7 @@ const assetSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'maintenance', 'storage', 'retired'],
+        enum: ['active', 'maintenance', 'storage', 'retired', 'assigned'],
         default: 'active'
     },
     images: [{
@@ -61,6 +61,30 @@ const assetSchema = new mongoose.Schema({
         type: Map,
         of: String,
         default: {}
+    },
+    rentalRates: [{
+        name: { type: String, required: true },
+        rate: { type: Number, required: true },
+        unit: { type: String, required: true },
+        notes: String
+    }],
+    vendor: {
+        name: { type: String, trim: true },
+        contact: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        email: { type: String, trim: true },
+        address: { type: String, trim: true },
+        website: { type: String, trim: true }
+    },
+    invoice: {
+        number: { type: String, trim: true },
+        url: String,
+        filename: String,
+        uploadDate: Date
+    },
+    warranty: {
+        expirationDate: Date,
+        details: String
     }
 }, {
     timestamps: true

@@ -4,6 +4,7 @@ import { AssetTable } from '@/features/inventory/components/AssetTable';
 // import { inventoryStats, mockAssets, Asset } from '@/features/inventory/data/mock-inventory'; // REMOVED
 import { AddInventoryModal } from '@/features/inventory/components/AddInventoryModal';
 import { EditInventoryModal } from '@/features/inventory/components/EditInventoryModal';
+import { CloneAssetModal } from '@/features/inventory/components/CloneAssetModal';
 import { assetService, Asset } from '@/services/assetService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 
@@ -22,6 +23,11 @@ export default function InventoryPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
+    // Clone modal state
+    const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+    const [cloneAssetId, setCloneAssetId] = useState<string | null>(null);
+    const [cloneAssetName, setCloneAssetName] = useState('');
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -92,6 +98,15 @@ export default function InventoryPage() {
         }
     };
 
+    const openCloneModal = (id: string) => {
+        const asset = assets.find(a => (a.id || a._id) === id);
+        if (asset) {
+            setCloneAssetId(id);
+            setCloneAssetName(asset.name);
+            setIsCloneModalOpen(true);
+        }
+    };
+
     return (
         <div className="space-y-8">
             {/* Page Header */}
@@ -125,10 +140,10 @@ export default function InventoryPage() {
 
             {/* Stats */}
             <StatsGrid stats={[
-                { label: 'Total Assets', value: stats.totalAssets, icon: 'inventory_2', trend: '+12%', color: 'text-blue-500' },
-                { label: 'Total Value', value: formatIDR(stats.totalValue), icon: 'payments', trend: '+5%', color: 'text-emerald-500' },
-                { label: 'Low Stock', value: stats.lowStock, icon: 'warning', trend: '2 items', color: 'text-amber-500' },
-                { label: 'In Maintenance', value: stats.maintenanceCount, icon: 'build', trend: '-1', color: 'text-purple-500' }
+                { label: 'Total Assets', value: stats.totalAssets, icon: 'inventory_2', delta: '+12%', trend: 'success', iconColor: 'text-blue-500' },
+                { label: 'Total Value', value: formatIDR(stats.totalValue), icon: 'payments', delta: '+5%', trend: 'success', iconColor: 'text-emerald-500' },
+                { label: 'Low Stock', value: stats.lowStock, icon: 'warning', delta: '2 items', trend: 'warning', iconColor: 'text-amber-500' },
+                { label: 'In Maintenance', value: stats.maintenanceCount, icon: 'build', delta: '-1', trend: 'neutral', iconColor: 'text-purple-500' }
             ]} />
 
             {/* Table */}
@@ -141,6 +156,7 @@ export default function InventoryPage() {
                     assets={assets}
                     onEdit={openEditModal}
                     onDelete={handleDeleteAsset}
+                    onClone={openCloneModal}
                 />
             )}
 
@@ -161,6 +177,20 @@ export default function InventoryPage() {
                 onUpdate={handleUpdateAsset}
                 asset={selectedAsset}
             />
+
+            {/* Clone Modal */}
+            <CloneAssetModal
+                isOpen={isCloneModalOpen}
+                onClose={() => {
+                    setIsCloneModalOpen(false);
+                    setCloneAssetId(null);
+                    setCloneAssetName('');
+                }}
+                assetId={cloneAssetId}
+                assetName={cloneAssetName}
+                onSuccess={fetchData}
+            />
         </div>
     );
 }
+

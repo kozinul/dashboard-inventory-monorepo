@@ -2,22 +2,24 @@ import { useState } from 'react';
 import { Asset } from "@/services/assetService";
 import { TechnicalSpecsEditor } from './TechnicalSpecsEditor';
 import { AssetAssignmentTab } from './AssetAssignmentTab';
+import { AssetPurchasingTab } from './AssetPurchasingTab';
+import { RentalRatesTab } from './RentalRatesTab';
 
 interface AssetTabsProps {
     asset: Asset;
 }
 
 export function AssetTabs({ asset }: AssetTabsProps) {
-    const [activeTab, setActiveTab] = useState('technical');
+    const [activeTab, setActiveTab] = useState('purchasing'); // Default to purchasing for now to show feature? Or stick to technical.
 
     return (
         <section className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                {['Technical Info', 'Documents', 'Assignments', 'Usage History', 'Maintenance'].map((tab) => (
+            <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 overflow-x-auto">
+                {['Purchasing', 'Technical Info', 'Documents', 'Rental Rates', 'Assignments', 'Usage History', 'Maintenance'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab.toLowerCase())}
-                        className={`px-6 py-4 text-sm font-medium transition-colors ${activeTab === tab.toLowerCase()
+                        className={`px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.toLowerCase()
                             ? 'border-b-2 border-primary text-primary font-bold'
                             : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                             }`}
@@ -27,14 +29,20 @@ export function AssetTabs({ asset }: AssetTabsProps) {
                 ))}
             </div>
             <div className="p-8">
+                {activeTab === 'purchasing' && (
+                    <AssetPurchasingTab asset={asset} />
+                )}
                 {activeTab.includes('technical') && (
                     <TechnicalSpecsEditor asset={asset} />
+                )}
+                {activeTab.includes('rental') && (
+                    <RentalRatesTab asset={asset} />
                 )}
                 {activeTab.includes('assignments') && (
                     <AssetAssignmentTab asset={asset} />
                 )}
                 {/* Placeholders for other tabs */}
-                {!activeTab.includes('technical') && (
+                {!['purchasing', 'technical info', 'assignments', 'rental rates'].includes(activeTab) && (
                     <div className="flex items-center justify-center py-12 text-slate-400">
                         Content for {activeTab} is not implemented yet.
                     </div>

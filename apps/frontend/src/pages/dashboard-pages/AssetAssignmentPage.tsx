@@ -2,22 +2,26 @@ import { useState, useEffect } from 'react';
 import { AssetAssignmentTable } from '@/features/inventory/components/assignments/AssetAssignmentTable';
 import { assignmentService, Assignment } from '@/services/assignmentService';
 
+import { AssignmentModal } from '@/features/inventory/components/assignments/AssignmentModal';
+
 export default function AssetAssignmentPage() {
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const fetchAssignments = async () => {
+        setLoading(true);
+        try {
+            const data = await assignmentService.getAll();
+            setAssignments(data);
+        } catch (error) {
+            console.error("Failed to fetch assignments", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchAssignments = async () => {
-            try {
-                const data = await assignmentService.getAll();
-                setAssignments(data);
-            } catch (error) {
-                console.error("Failed to fetch assignments", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchAssignments();
     }, []);
 
@@ -42,7 +46,9 @@ export default function AssetAssignmentPage() {
                             <option>Returned</option>
                         </select>
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20">
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20">
                         <span className="material-symbols-outlined text-sm">add</span>
                         New Assignment
                     </button>
@@ -57,6 +63,12 @@ export default function AssetAssignmentPage() {
             ) : (
                 <AssetAssignmentTable assignments={assignments} />
             )}
+
+            <AssignmentModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={fetchAssignments}
+            />
         </div>
     );
 }
