@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        VITE_API_URL: /api
+    container_name: dashboard-frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - dashboard-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: dashboard-backend
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/inventory
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads-data:/app/uploads
+      - backups-data:/app/backups
+    networks:
+      - dashboard-network
+    depends_on:
+      mongo:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  mongo:
+    image: mongo:6.0
+    container_name: dashboard-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - dashboard-network
+    command: mongod --quiet --logpath /dev/null
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  mongo-data:
+    driver: local
+  uploads-data:
+    driver: local
+  backups-data:
+    driver: local
+
+networks:
+  dashboard-network:
+    driver: bridge
