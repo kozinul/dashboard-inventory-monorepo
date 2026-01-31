@@ -31,7 +31,6 @@ const mainNavigation = [
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
     { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
-    { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
