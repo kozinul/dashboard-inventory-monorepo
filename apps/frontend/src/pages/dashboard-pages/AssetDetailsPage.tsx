@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ChevronRightIcon, MagnifyingGlassIcon, BellIcon } from "@heroicons/react/24/outline";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useBreadcrumb } from "../../context/BreadcrumbContext";
+import { MagnifyingGlassIcon, BellIcon } from "@heroicons/react/24/outline";
 import { AssetHero } from "../../features/inventory/components/asset-details/AssetHero";
 import { AssetGallery } from "../../features/inventory/components/asset-details/AssetGallery";
-import { AssetTabs } from "../../features/inventory/components/asset-details/AssetTabs";
+import { TechnicalSpecsEditor } from "../../features/inventory/components/asset-details/TechnicalSpecsEditor";
+import { AssetPurchasingTab } from "../../features/inventory/components/asset-details/AssetPurchasingTab";
+import { RentalRatesTab } from "../../features/inventory/components/asset-details/RentalRatesTab";
+import { AssetAssignmentTab } from "../../features/inventory/components/asset-details/AssetAssignmentTab";
+import { AssetServiceTab } from "../../features/inventory/components/asset-details/AssetServiceTab";
 import { AssetDocuments } from "../../features/inventory/components/asset-details/AssetDocuments";
 import { assetService, Asset } from "../../services/assetService";
 
 import { EditInventoryModal } from "../../features/inventory/components/EditInventoryModal";
 import { showSuccessToast, showErrorToast } from "@/utils/swal";
 import BookingHistoryTable from '@/features/rental/components/BookingHistoryTable';
-import { AssetAssignmentHistory } from "../../features/inventory/components/asset-details/AssetAssignmentHistory";
 
 // Simplified layout to allow document scroll
 export default function AssetDetailsPage() {
@@ -19,13 +23,22 @@ export default function AssetDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'details' | 'documents' | 'history' | 'price' | 'assignment'>('details');
+    const [activeTab, setActiveTab] = useState<'technical_info' | 'purchasing' | 'documents' | 'rental_rates' | 'assignments' | 'rental_history' | 'external_services' | 'maintenance'>('technical_info');
+
+    const { setBreadcrumb } = useBreadcrumb();
+    const location = useLocation();
 
     useEffect(() => {
         if (id) {
             loadAsset(id);
         }
     }, [id]);
+
+    useEffect(() => {
+        if (asset && asset.name) {
+            setBreadcrumb(location.pathname, asset.name);
+        }
+    }, [asset, location.pathname, setBreadcrumb]);
 
     const loadAsset = (assetId: string) => {
         setLoading(true);
@@ -111,52 +124,46 @@ export default function AssetDetailsPage() {
                 <AssetGallery asset={asset} onUpdate={handleUpdateAsset} />
 
                 {/* Tabs */}
-                <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-                    <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button
-                            onClick={() => setActiveTab('details')}
-                            className={`${activeTab === 'details'
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
-                        >
-                            Details
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('documents')}
-                            className={`${activeTab === 'documents'
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
-                        >
-                            Documents
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('history')}
-                            className={`${activeTab === 'history'
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
-                        >
-                            Rental History
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('assignment')}
-                            className={`${activeTab === 'assignment'
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
-                        >
-                            Assignments
-                        </button>
+                <div className="border-b border-gray-200 dark:border-gray-700 mb-6 bg-white dark:bg-slate-800 rounded-t-xl">
+                    <nav className="-mb-px flex overflow-x-auto" aria-label="Tabs">
+                        {[
+                            { id: 'technical_info', label: 'Technical Info' },
+                            { id: 'purchasing', label: 'Purchasing' },
+                            { id: 'documents', label: 'Documents' },
+                            { id: 'rental_rates', label: 'Rental Rates' },
+                            { id: 'assignments', label: 'Assignments' },
+                            { id: 'rental_history', label: 'Rental History' },
+                            { id: 'external_services', label: 'External Services' },
+                            { id: 'maintenance', label: 'Maintenance' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`${activeTab === tab.id
+                                    ? 'border-primary text-primary'
+                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300'
+                                    } whitespace-nowrap border-b-2 py-4 px-6 text-sm font-medium transition-colors`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </nav>
                 </div>
 
-                <div className="min-h-[400px]">
-                    {activeTab === 'details' && <AssetTabs asset={asset} />}
+                <div className="min-h-[400px] bg-white dark:bg-slate-800 rounded-b-xl p-6 border-x border-b border-gray-200 dark:border-gray-700">
+                    {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} />}
+                    {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} />}
                     {activeTab === 'documents' && <AssetDocuments asset={asset} />}
-                    {activeTab === 'history' && id && <BookingHistoryTable assetId={id} />}
-                    {activeTab === 'assignment' && id && <AssetAssignmentHistory assetId={id} />}
+                    {activeTab === 'rental_rates' && <RentalRatesTab asset={asset} />}
+                    {activeTab === 'assignments' && <AssetAssignmentTab asset={asset} />}
+                    {activeTab === 'rental_history' && id && <BookingHistoryTable assetId={id} />}
+                    {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}
+
+                    {activeTab === 'maintenance' && (
+                        <div className="flex items-center justify-center py-12 text-slate-400">
+                            Maintenance content is not implemented yet.
+                        </div>
+                    )}
                 </div>
             </div>
 

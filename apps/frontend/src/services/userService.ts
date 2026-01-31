@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { User } from '@dashboard/schemas'; // Type import
+export type { User };
 
 const API_URL = '/api/v1/users';
 

@@ -7,17 +7,53 @@ const API_URL = '/api/v1/assignments';
 export interface Assignment {
     _id: string;
     assetId: Asset;
-    userId: User;
+    userId?: User; // Optional because it might be a manual assignment
+    assignedTo?: string; // Manual name
+    assignedToTitle?: string; // Manual title
     assignedDate: string;
     returnedDate?: string;
-    status: 'assigned' | 'returned';
+    status: 'assigned' | 'returned' | 'overdue' | 'active' | 'due-today';
     notes?: string;
+    locationId?: any; // Populated Location object or ID
 }
 
+// Mock data store removed
 export const assignmentService = {
-    // Create new assignment
-    create: async (data: { assetId: string; userId: string; notes?: string; assignedDate?: Date }) => {
+    create: async (data: {
+        assetId: string;
+        assignedTo?: string;
+        assignedToTitle?: string;
+        locationId?: string;
+        notes?: string;
+        assignedDate?: Date
+    }) => {
         const response = await axios.post(API_URL, data);
+        return response.data;
+    },
+
+    update: async (id: string, data: {
+        assignedTo?: string;
+        assignedToTitle?: string;
+        locationId?: string;
+        notes?: string;
+        assignedDate?: Date
+    }) => {
+        const response = await axios.put(`${API_URL}/${id}`, data);
+        return response.data;
+    },
+
+    bulkUpdateRecipient: async (data: {
+        currentName: string;
+        newName?: string;
+        newTitle?: string;
+        newLocationId?: string;
+    }) => {
+        const response = await axios.post(`${API_URL}/bulk-update`, data);
+        return response.data;
+    },
+
+    bulkDeleteRecipient: async (currentName: string) => {
+        const response = await axios.post(`${API_URL}/bulk-delete`, { currentName });
         return response.data;
     },
 
@@ -40,9 +76,12 @@ export const assignmentService = {
     },
 
     getAll: async () => {
-        // Current UI might call this, let's return empty or implement if needed. 
-        // For user-based flow, we likely don't need all assignments at once unless for admin view.
-        // Let's leave it as TODO or return empty array to prevent break.
-        return [];
+        const response = await axios.get<Assignment[]>(API_URL);
+        return response.data;
+    },
+
+    delete: async (id: string) => {
+        await axios.delete(`${API_URL}/${id}`);
+        return true;
     }
 };

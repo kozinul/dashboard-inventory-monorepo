@@ -10,6 +10,7 @@ export function Sidebar() {
         { name: 'Barang Masuk', href: '/incoming', icon: 'input' },
         { name: 'Transfer', href: '/transfer', icon: 'move_item' },
         { name: 'Maintenance', href: '/maintenance', icon: 'build' },
+        { name: 'Services', href: '/services', icon: 'medical_services' },
         { name: 'History', href: '/history', icon: 'history' },
     ]
 

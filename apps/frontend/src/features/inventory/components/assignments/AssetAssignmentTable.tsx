@@ -2,9 +2,12 @@ import { Assignment } from "@/services/assignmentService";
 
 interface AssetAssignmentTableProps {
     assignments: Assignment[];
+    onReturn?: (id: string) => void;
+    onDelete?: (id: string) => void;
+    onEdit?: (assignment: Assignment) => void;
 }
 
-export function AssetAssignmentTable({ assignments }: AssetAssignmentTableProps) {
+export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }: AssetAssignmentTableProps) {
     return (
         <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto custom-scrollbar">
@@ -15,78 +18,111 @@ export function AssetAssignmentTable({ assignments }: AssetAssignmentTableProps)
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Details</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Assigned To</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Location</th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Return Date</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Assigned Date</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {assignments.map((assignment) => (
-                            <tr key={assignment.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                                <td className="px-6 py-4">
-                                    <div className="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
-                                        {assignment.assetImage ? (
-                                            <img
-                                                alt={assignment.assetName}
-                                                className="object-cover size-full"
-                                                src={assignment.assetImage}
-                                            />
-                                        ) : (
-                                            <span className="material-symbols-outlined text-slate-400">
-                                                {assignment.category === 'Laptop' ? 'laptop_mac' :
-                                                    assignment.category === 'Camera' ? 'videocam' :
-                                                        'devices'}
-                                            </span>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{assignment.assetName}</p>
-                                        <p className="text-[11px] text-slate-500 font-mono">{assignment.serialNumber}</p>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        {assignment.assignedTo.avatar ? (
-                                            <div
-                                                className="size-8 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700"
-                                                style={{ backgroundImage: `url('${assignment.assignedTo.avatar}')` }}
-                                            ></div>
-                                        ) : (
-                                            <div className={`size-8 rounded-full ${assignment.assignedTo.color || 'bg-primary'} flex items-center justify-center text-xs font-bold text-white shadow-sm`}>
-                                                {assignment.assignedTo.initials}
-                                            </div>
-                                        )}
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{assignment.assignedTo.name}</p>
-                                            <p className="text-[11px] text-slate-500">{assignment.assignedTo.department || 'Employee'}</p>
+                        {assignments.map((assignment) => {
+                            // Helper to get user details (either from object or manual fields)
+                            const userName = assignment.assignedTo || 'Unknown';
+                            const userRole = assignment.assignedToTitle || 'Staff';
+                            const userAvatar = undefined; // No avatar for manual assignments
+                            const userInitials = userName.substring(0, 2).toUpperCase();
+                            const assetName = assignment.assetId?.name || 'Unknown Asset';
+                            const assetSerial = assignment.assetId?.serial || '-';
+                            const assetImage = (assignment.assetId as any)?.image; // Cast if type mismatch
+                            const locationName = (assignment.assetId as any)?.locationId?.name || 'General';
+
+
+                            return (
+                                <tr key={assignment._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
+                                            {assetImage ? (
+                                                <img
+                                                    alt={assetName}
+                                                    className="object-cover size-full"
+                                                    src={assetImage}
+                                                />
+                                            ) : (
+                                                <span className="material-symbols-outlined text-slate-400">devices</span>
+                                            )}
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">location_on</span>
-                                        <span className="text-sm">{assignment.location}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-sm font-medium ${assignment.status === 'overdue' ? 'text-rose-500' :
-                                            assignment.status === 'due-today' ? 'text-amber-500' : 'text-slate-600 dark:text-slate-400'
-                                        }`}>
-                                        {assignment.expectedReturn}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <StatusBadge status={assignment.status} />
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-primary transition-colors">
-                                        <span className="material-symbols-outlined text-[20px]">more_vert</span>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{assetName}</p>
+                                            <p className="text-[11px] text-slate-500 font-mono">{assetSerial}</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            {userAvatar ? (
+                                                <div
+                                                    className="size-8 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700"
+                                                    style={{ backgroundImage: `url('${userAvatar}')` }}
+                                                ></div>
+                                            ) : (
+                                                <div className={`size-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white shadow-sm`}>
+                                                    {userInitials}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{userName}</p>
+                                                <p className="text-[11px] text-slate-500">{userRole}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                                            <span className="material-symbols-outlined text-sm text-slate-400">location_on</span>
+                                            <span className="text-sm">{locationName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                            {new Date(assignment.assignedDate).toLocaleDateString()}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <StatusBadge status={assignment.status} />
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {assignment.status === 'assigned' && onEdit && (
+                                                <button
+                                                    onClick={() => onEdit(assignment)}
+                                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-blue-500 transition-colors"
+                                                    title="Edit Assignment"
+                                                >
+                                                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                </button>
+                                            )}
+                                            {assignment.status === 'assigned' && onReturn && (
+                                                <button
+                                                    onClick={() => onReturn(assignment._id)}
+                                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-amber-500 transition-colors"
+                                                    title="Return Asset"
+                                                >
+                                                    <span className="material-symbols-outlined text-[20px]">assignment_return</span>
+                                                </button>
+                                            )}
+                                            {onDelete && (
+                                                <button
+                                                    onClick={() => onDelete(assignment._id)}
+                                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+                                                    title="Delete Assignment"
+                                                >
+                                                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
@@ -122,6 +158,13 @@ function StatusBadge({ status }: { status: Assignment['status'] }) {
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/10">
                     <span className="material-symbols-outlined text-[14px]">schedule</span>
                     Due Today
+                </span>
+            );
+        case 'returned':
+            return (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/10">
+                    <span className="material-symbols-outlined text-[14px]">assignment_turned_in</span>
+                    Returned
                 </span>
             );
         default:

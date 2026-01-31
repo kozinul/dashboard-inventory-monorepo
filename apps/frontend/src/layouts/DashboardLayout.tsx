@@ -23,6 +23,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
+import { BreadcrumbProvider } from '../context/BreadcrumbContext'
 
 // Main app navigation
 const mainNavigation = [
@@ -30,7 +31,9 @@ const mainNavigation = [
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
     { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
+    { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
+    { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
@@ -68,7 +71,17 @@ function classNames(...classes: string[]) {
     return twMerge(clsx(classes))
 }
 
-export default function DashboardLayout() {
+
+
+export default function DashboardLayoutWrapper() {
+    return (
+        <BreadcrumbProvider>
+            <DashboardLayout />
+        </BreadcrumbProvider>
+    )
+}
+
+function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
 

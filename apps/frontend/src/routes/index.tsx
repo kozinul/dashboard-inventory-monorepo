@@ -13,6 +13,7 @@ import InventoryPage from '../pages/dashboard-pages/InventoryPage';
 import AssetDetailsPage from '../pages/dashboard-pages/AssetDetailsPage';
 import AssetAssignmentPage from '@/pages/dashboard-pages/AssetAssignmentPage';
 import MaintenancePage from '../pages/dashboard-pages/MaintenancePage';
+import ServicePage from '../pages/dashboard-pages/ServicePage';
 import ReportsPage from '../pages/dashboard-pages/ReportsPage';
 import DisposalPage from '../pages/dashboard-pages/DisposalPage';
 import UserManagementPage from '../pages/dashboard-pages/UserManagement';
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
             {
                 path: 'maintenance',
                 element: <MaintenancePage />,
+            },
+            {
+                path: 'services',
+                element: <ServicePage />,
             },
             {
                 path: 'assignments',

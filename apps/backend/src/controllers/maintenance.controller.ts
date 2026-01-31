@@ -3,9 +3,18 @@ import { MaintenanceRecord } from '../models/maintenance.model.js';
 
 export const getMaintenanceRecords = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const records = await MaintenanceRecord.find()
+        const filter: any = {};
+        if (req.query.serviceProviderType) {
+            filter.serviceProviderType = req.query.serviceProviderType;
+        }
+        if (req.query.asset) {
+            filter.asset = req.query.asset;
+        }
+
+        const records = await MaintenanceRecord.find(filter)
             .populate('asset', 'name serial')
             .populate('technician', 'name avatar')
+            .populate('vendor', 'name')
             .sort({ createdAt: -1 });
         res.json(records);
     } catch (error) {

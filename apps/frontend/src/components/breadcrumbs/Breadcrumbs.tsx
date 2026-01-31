@@ -22,7 +22,10 @@ const routeNameMap: Record<string, string> = {
     'events': 'Events',
 };
 
+import { useBreadcrumb } from '../../context/BreadcrumbContext';
+
 export function Breadcrumbs() {
+    const { getBreadcrumb } = useBreadcrumb();
     const location = useLocation();
     const pathnames = location.pathname.split('/').filter((x) => x);
 
@@ -45,7 +48,11 @@ export function Breadcrumbs() {
                     // If it looks like an ID (long string with numbers/dashes), maybe shorten or show "Details"
                     // For now, check map or title case it
                     let name = routeNameMap[value];
-                    if (!name) {
+                    const customLabel = getBreadcrumb(to);
+
+                    if (customLabel) {
+                        name = customLabel;
+                    } else if (!name) {
                         // Simple fallback: capitalize or keep as is if it looks like an ID
                         // Check if valid Mongo ID or UUID (rough check)
                         if (value.length > 20 || /\d/.test(value)) {

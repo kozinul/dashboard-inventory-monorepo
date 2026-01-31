@@ -10,7 +10,20 @@ const assignmentSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false
+    },
+    assignedTo: {
+        type: String,
+        required: function (this: any) { return !this.userId; }, // Required if userId is not present
+        trim: true
+    },
+    assignedToTitle: {
+        type: String,
+        trim: true
+    },
+    locationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location'
     },
     assignedDate: {
         type: Date,
@@ -26,7 +39,11 @@ const assignmentSchema = new mongoose.Schema({
         default: 'assigned',
         required: true
     },
-    notes: String
+    notes: String,
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true
 });
