@@ -3,12 +3,13 @@ import { AssetImageCell, AssetNameCell, AssetMetaCell, AssetStatusBadge, AssetRo
 
 interface AssetTableProps {
     assets: Asset[];
-    onEdit: (id: string) => void;
-    onDelete: (id: string) => void;
+    onEdit?: (id: string) => void;
+    onDelete?: (id: string) => void;
     onClone?: (id: string) => void;
+    onSelect?: (asset: Asset) => void;
 }
 
-export function AssetTable({ assets, onEdit, onDelete, onClone }: AssetTableProps) {
+export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect }: AssetTableProps) {
     return (
         <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto custom-scrollbar">
@@ -19,7 +20,7 @@ export function AssetTable({ assets, onEdit, onDelete, onClone }: AssetTableProp
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Asset Details</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Identity</th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Department</th>
+                            {!onSelect && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Department</th>}
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
                         </tr>
@@ -41,22 +42,33 @@ export function AssetTable({ assets, onEdit, onDelete, onClone }: AssetTableProp
                                 <td className="px-6 py-4">
                                     <AssetMetaCell title={asset.id || asset._id} subtitle={asset.serial} />
                                 </td>
-                                <td className="px-6 py-4">
-                                    <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm text-muted-foreground">business</span>
-                                        {asset.department || 'Unassigned'}
-                                    </p>
-                                </td>
+                                {!onSelect && (
+                                    <td className="px-6 py-4">
+                                        <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-sm text-muted-foreground">business</span>
+                                            {asset.department || 'Unassigned'}
+                                        </p>
+                                    </td>
+                                )}
                                 <td className="px-6 py-4">
                                     <AssetStatusBadge status={asset.status} />
                                 </td>
-                                <td className="px-6 py-3">
-                                    <AssetRowActions
-                                        assetId={asset.id || asset._id}
-                                        onEdit={onEdit}
-                                        onDelete={onDelete}
-                                        onClone={onClone}
-                                    />
+                                <td className="px-6 py-3 text-right">
+                                    {onSelect ? (
+                                        <button
+                                            onClick={() => onSelect(asset)}
+                                            className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-md text-xs font-bold transition-all"
+                                        >
+                                            Select
+                                        </button>
+                                    ) : (
+                                        <AssetRowActions
+                                            assetId={asset.id || asset._id}
+                                            onEdit={onEdit!}
+                                            onDelete={onDelete!}
+                                            onClone={onClone}
+                                        />
+                                    )}
                                 </td>
                             </tr>
                         ))}

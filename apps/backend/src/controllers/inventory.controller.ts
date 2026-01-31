@@ -8,6 +8,24 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         const skip = (page - 1) * limit;
 
         const filters: any = {};
+
+        // RBAC / Department Filtering
+        // req.user is populated by authMiddleware
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'admin') {
+            if (req.user.departmentId) {
+                filters.departmentId = req.user.departmentId;
+            } else {
+                // If user has no department assigned, they shouldn't see assets restricted to departments
+                // Or maybe they see assets with NO department? 
+                // For now, let's strictly restrict if they have no department.
+                // But to be safe, maybe we return nothing or just generic ones?
+                // Plan said: "Strictly filtered by departmentId".
+                // So if no departmentId, we can't filter by it.
+                // Let's assume for now they see nothing if they are not admin/superuser and have no department.
+                filters.departmentId = "non-existent-id"; // Hack to return empty
+            }
+        }
+
         if (req.query.category) filters.category = req.query.category;
         if (req.query.status) filters.status = req.query.status;
         if (req.query.locationId) filters.locationId = req.query.locationId;

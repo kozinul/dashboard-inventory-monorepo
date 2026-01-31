@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
 
 export function Sidebar() {
     const location = useLocation()
+    const { user } = useAuthStore()
 
     const navItems = [
         { name: 'Dashboard', href: '/', icon: 'dashboard' },
@@ -19,12 +21,24 @@ export function Sidebar() {
         { name: 'Categories', href: '/master-data/item-categories', icon: 'category' },
         { name: 'Locations', href: '/master-data/locations', icon: 'location_on' },
         { name: 'Vendors', href: '/master-data/vendors', icon: 'storefront' },
+        { name: 'Roles', href: '/master-data/roles', icon: 'shield_person' },
     ]
 
     const systemItems = [
         { name: 'Laporan', href: '/reports', icon: 'description' },
         { name: 'Settings', href: '/settings', icon: 'settings' },
+        { name: 'User Management', href: '/users', icon: 'group' },
     ]
+
+    // Helper to check permissions
+    const hasPermission = (resource: string) => {
+        // Fallback for admins/superusers who might not have dynamic permissions yet
+        if (isAdmin && (!user?.permissions || user.permissions.length === 0)) return true;
+
+        // Check dynamic permissions
+        const permission = user?.permissions?.find(p => p.resource === resource);
+        return permission?.actions?.view === true;
+    };
 
     return (
         <aside className="w-64 border-r border-slate-200 dark:border-border-dark flex flex-col bg-white dark:bg-background-dark z-20 flex-shrink-0 h-screen transition-all duration-300 ease-in-out">
@@ -41,6 +55,27 @@ export function Sidebar() {
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.href
+                    // Check individual nav items (legacy items, assume they map to resources with same name lowercased, or 'inventory' etc)
+                    // For now, these main items are visible to all or we map them:
+                    // Dashboard -> dashboard
+                    // Master Barang -> inventory
+                    // Barang Masuk -> incoming
+                    // Transfer -> transfer
+                    // Maintenance -> maintenance
+                    // Services -> services
+                    // History -> history
+
+                    let resourceKey = '';
+                    if (item.href === '/') resourceKey = 'dashboard';
+                    else if (item.href === '/inventory') resourceKey = 'inventory';
+                    else if (item.href === '/incoming') resourceKey = 'incoming';
+                    else if (item.href === '/transfer') resourceKey = 'transfer';
+                    else if (item.href === '/maintenance') resourceKey = 'maintenance';
+                    else if (item.href === '/services') resourceKey = 'services';
+                    else if (item.href === '/history') resourceKey = 'history';
+
+                    if (resourceKey && !hasPermission(resourceKey) && !isAdmin) return null; // Fallback to isAdmin if no permission system
+
                     return (
                         <Link
                             key={item.name}
@@ -60,9 +95,19 @@ export function Sidebar() {
                     )
                 })}
 
+                {/* Master Data Section - Replaced hardcoded isAdmin with specific permission checks */}
                 <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">Master Data</div>
-
                 {masterDataItems.map((item) => {
+                    // Check permission for master data items
+                    // We can map them generally to 'master_data' permission OR specific resources if we want granularity
+                    // For now, let's assume 'master_data' covers most, OR check specific 'roles', 'users' etc.
+
+                    let resourceKey = 'master_data';
+                    if (item.name === 'Roles') resourceKey = 'roles';
+                    // if (item.name === 'Vendors') resourceKey = 'vendors'; // If we have granular keys
+
+                    if (!hasPermission(resourceKey) && !hasPermission('master_data')) return null;
+
                     const isActive = location.pathname === item.href || location.pathname.startsWith(item.href)
                     return (
                         <Link
@@ -83,9 +128,17 @@ export function Sidebar() {
                     )
                 })}
 
+
                 <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">System</div>
 
                 {systemItems.map((item) => {
+                    let resourceKey = '';
+                    if (item.name === 'Settings') resourceKey = 'settings';
+                    if (item.name === 'User Management') resourceKey = 'users';
+                    if (item.name === 'Laporan') resourceKey = 'reports';
+
+                    if (resourceKey && !hasPermission(resourceKey)) return null;
+
                     const isActive = location.pathname === item.href
                     return (
                         <Link
@@ -108,10 +161,22 @@ export function Sidebar() {
             </nav>
 
             <div className="p-4 mt-auto border-t border-slate-200 dark:border-border-dark">
-                <button className="w-full flex items-center justify-center gap-2 tech-gradient text-white rounded-lg py-2.5 text-sm font-bold subtle-depth hover:opacity-90 transition-opacity">
-                    <span className="material-symbols-outlined !text-[18px]">add</span>
-                    Quick Add
-                </button>
+                <div className="flex items-center gap-3 px-2 py-2">
+                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        {user?.name?.charAt(0) || 'U'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate text-slate-700 dark:text-slate-200">{user?.name || 'User'}</p>
+                        <p className="text-xs text-slate-500 truncate">{user?.role || 'Guest'}</p>
+                    </div>
+                    <button
+                        onClick={() => useAuthStore.getState().logout()}
+                        className="text-slate-400 hover:text-red-500 transition-colors"
+                        title="Logout"
+                    >
+                        <span className="material-symbols-outlined">logout</span>
+                    </button>
+                </div>
             </div>
         </aside>
     )

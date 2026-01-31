@@ -22,10 +22,20 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
     }
 };
 
+import { Asset } from '../models/asset.model.js';
+
 export const createMaintenanceRecord = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        if (req.body.technician === '') delete req.body.technician;
+        if (req.body.vendor === '') delete req.body.vendor;
+
         const record = new MaintenanceRecord(req.body);
         await record.save();
+
+        if (req.body.asset) {
+            await Asset.findByIdAndUpdate(req.body.asset, { status: 'request maintenance' });
+        }
+
         res.status(201).json(record);
     } catch (error) {
         next(error);
@@ -55,6 +65,18 @@ export const getMaintenanceStats = async (req: Request, res: Response, next: Nex
             pending,
             completed
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteMaintenanceRecord = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const record = await MaintenanceRecord.findByIdAndDelete(req.params.id);
+        if (!record) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+        res.json({ message: 'Record deleted successfully' });
     } catch (error) {
         next(error);
     }

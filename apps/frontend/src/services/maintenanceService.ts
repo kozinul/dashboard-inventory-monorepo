@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/api/maintenance';
+const API_URL = '/api/v1/maintenance';
 
 export const maintenanceService = {
     getAll: async (params?: any) => {

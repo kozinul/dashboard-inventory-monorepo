@@ -1,8 +1,7 @@
-import { MaintenanceStat } from '../data/mock-maintenance';
 import { cn } from '@/lib/utils';
 
 interface MaintenanceStatsProps {
-    stats: MaintenanceStat[];
+    stats: any[];
 }
 
 export function MaintenanceStats({ stats }: MaintenanceStatsProps) {

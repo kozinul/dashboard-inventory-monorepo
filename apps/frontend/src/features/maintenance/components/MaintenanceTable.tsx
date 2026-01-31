@@ -1,7 +1,12 @@
-import { mockTasks } from '../data/mock-maintenance';
 import { AssetInfoCell, TechnicianCell, MaintenanceTypeBadge, MaintenanceStatusBadge, VisualProofCell } from './MaintenanceTableParts';
 
-export function MaintenanceTable() {
+interface MaintenanceTableProps {
+    tasks: any[];
+    onEdit: (task: any) => void;
+    onDelete: (id: string) => void;
+}
+
+export function MaintenanceTable({ tasks, onEdit, onDelete }: MaintenanceTableProps) {
     return (
         <div className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden shadow-sm">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-border-dark flex justify-between items-center bg-white dark:bg-card-dark">
@@ -29,34 +34,57 @@ export function MaintenanceTable() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
-                        {mockTasks.map((task) => (
-                            <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
-                                <td className="px-6 py-4">
-                                    <AssetInfoCell task={task} />
-                                </td>
-                                <td className="px-6 py-4">
-                                    <TechnicianCell technician={task.technician} />
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                    <MaintenanceTypeBadge type={task.type} />
-                                </td>
-                                <td className="px-6 py-4">
-                                    <MaintenanceStatusBadge status={task.status} />
-                                </td>
-                                <td className="px-6 py-4">
-                                    <VisualProofCell task={task} />
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button className="text-slate-400 hover:text-primary transition-colors font-bold text-sm">Details</button>
+                        {tasks.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                                    No maintenance records found
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            tasks.map((task) => (
+                                <tr key={task._id || task.id} className="hover:bg-slate-50 dark:hover:bg-background-dark/30 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <AssetInfoCell task={task} />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <TechnicianCell technician={task.technician} />
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <MaintenanceTypeBadge type={task.type} />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <MaintenanceStatusBadge status={task.status} />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <VisualProofCell task={task} />
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => onEdit(task)}
+                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                title="Edit"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+                                            <button
+                                                onClick={() => onDelete(task._id || task.id)}
+                                                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                title="Delete"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
 
             <div className="px-6 py-4 border-t border-slate-200 dark:border-border-dark flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest bg-white dark:bg-card-dark">
-                <span>Showing 1-12 of 64 tasks</span>
+                <span>Showing {tasks.length} tasks</span>
                 <div className="flex gap-4">
                     <button className="hover:text-primary transition-colors">Previous</button>
                     <button className="hover:text-primary text-primary transition-colors">Next</button>

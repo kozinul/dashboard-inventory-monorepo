@@ -6,10 +6,17 @@ const maintenanceRecordSchema = new mongoose.Schema({
         ref: 'Asset',
         required: true
     },
+    title: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String
+    },
     technician: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: function () { return this.serviceProviderType === 'Internal'; }
+        required: false
     },
     serviceProviderType: {
         type: String,

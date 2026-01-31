@@ -44,7 +44,7 @@ const assetSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'maintenance', 'storage', 'retired', 'assigned'],
+        enum: ['active', 'maintenance', 'storage', 'retired', 'assigned', 'request maintenance'],
         default: 'active'
     },
     images: [{

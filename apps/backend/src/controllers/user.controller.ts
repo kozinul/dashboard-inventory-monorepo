@@ -58,13 +58,33 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('User not found');
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        ).select('-password');
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        user.department = req.body.department || user.department;
+        user.departmentId = req.body.departmentId || user.departmentId;
+        user.designation = req.body.designation || user.designation;
+        user.status = req.body.status || user.status;
+        user.role = req.body.role || user.role;
+        user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
 
-        res.json(updatedUser);
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        const updatedUser = await user.save();
+
+        // Return user without password
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            department: updatedUser.department,
+            departmentId: updatedUser.departmentId,
+            designation: updatedUser.designation,
+            status: updatedUser.status,
+            avatarUrl: updatedUser.avatarUrl,
+        });
     } catch (error) {
         next(error);
     }

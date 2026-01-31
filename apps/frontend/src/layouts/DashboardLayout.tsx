@@ -24,6 +24,7 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
 import { BreadcrumbProvider } from '../context/BreadcrumbContext'
+import { useAuthStore } from '@/store/authStore'
 
 // Main app navigation
 const mainNavigation = [
@@ -49,6 +50,7 @@ const masterDataNavigation = [
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
+    { name: 'Roles', href: '/master-data/roles', icon: UserGroupIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
@@ -83,6 +85,7 @@ export default function DashboardLayoutWrapper() {
 function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
+    const { user } = useAuthStore()
 
     return (
         <>
@@ -346,7 +349,7 @@ function DashboardLayout() {
                                         />
                                         <span className="hidden lg:flex lg:items-center">
                                             <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
-                                                Tom Cook
+                                                {user?.name || 'User'}
                                             </span>
                                             <ChevronDownIcon className="ml-2 h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </span>
@@ -361,21 +364,34 @@ function DashboardLayout() {
                                         leaveTo="transform opacity-0 scale-95"
                                     >
                                         <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                                            {[{ name: 'Your Profile', href: '#' }, { name: 'Sign out', href: '#' }].map((item) => (
-                                                <Menu.Item key={item.name}>
+                                            <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                                                <Menu.Item>
                                                     {({ active }) => (
-                                                        <a
-                                                            href={item.href}
+                                                        <Link
+                                                            to="/settings"
                                                             className={classNames(
                                                                 active ? 'bg-gray-50' : '',
                                                                 'block px-3 py-1 text-sm leading-6 text-gray-900'
                                                             )}
                                                         >
-                                                            {item.name}
-                                                        </a>
+                                                            Your Profile
+                                                        </Link>
                                                     )}
                                                 </Menu.Item>
-                                            ))}
+                                                <Menu.Item>
+                                                    {({ active }) => (
+                                                        <button
+                                                            onClick={() => useAuthStore.getState().logout()}
+                                                            className={classNames(
+                                                                active ? 'bg-gray-50' : '',
+                                                                'block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900'
+                                                            )}
+                                                        >
+                                                            Sign out
+                                                        </button>
+                                                    )}
+                                                </Menu.Item>
+                                            </Menu.Items>
                                         </Menu.Items>
                                     </Transition>
                                 </Menu>

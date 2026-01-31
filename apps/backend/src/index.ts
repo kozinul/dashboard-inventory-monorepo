@@ -47,6 +47,9 @@ app.get('/health', (req, res) => {
 
 import vendorRoutes from './routes/vendor.routes.js';
 
+import authRoutes from './routes/auth.routes.js';
+app.use('/api/v1/auth', authRoutes);
+
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/departments', departmentRoutes);
 app.use('/api/v1/job-titles', jobTitleRoutes);
@@ -75,6 +78,9 @@ app.use('/api/v1/rentals', rentalRoutes);
 
 import assignmentRoutes from './routes/assignment.routes.js';
 app.use('/api/v1/assignments', assignmentRoutes);
+
+import roleRoutes from './routes/role.routes.js';
+app.use('/api/v1/roles', roleRoutes);
 
 import uploadRoutes from './routes/upload.routes.js';
 import path from 'path';

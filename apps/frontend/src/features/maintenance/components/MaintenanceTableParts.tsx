@@ -1,25 +1,27 @@
-import { MaintenanceTask } from '../data/mock-maintenance';
 import { cn } from '@/lib/utils';
 
-export function AssetInfoCell({ task }: { task: MaintenanceTask }) {
+export function AssetInfoCell({ task }: { task: any }) {
     return (
         <div className="flex flex-col">
-            <span className="font-bold text-sm dark:text-white">{task.assetName}</span>
-            <span className="text-xs text-slate-500 font-medium tracking-tight">ID: {task.assetId}</span>
+            <span className="font-bold text-sm dark:text-white">{task.title || task.asset?.name || 'Unknown Asset'}</span>
+            <span className="text-xs text-slate-500 font-medium tracking-tight">ID: {task.asset?.serial || task.asset?._id || 'N/A'}</span>
         </div>
     );
 }
 
-export function TechnicianCell({ technician }: { technician: MaintenanceTask['technician'] }) {
+export function TechnicianCell({ technician }: { technician: any }) {
+    if (!technician) {
+        return <span className="text-slate-400 text-xs italic">Unassigned</span>;
+    }
     return (
         <div className="flex items-center gap-2">
-            <img src={technician.avatar} alt="Technician" className="w-6 h-6 rounded-full object-cover" />
-            <span className="text-sm font-medium dark:text-slate-200">{technician.name}</span>
+            <img src={technician.avatar || 'https://ui-avatars.com/api/?name=Tech&background=random'} alt="Technician" className="w-6 h-6 rounded-full object-cover" />
+            <span className="text-sm font-medium dark:text-slate-200">{technician.name || 'Unknown'}</span>
         </div>
     );
 }
 
-export function MaintenanceTypeBadge({ type }: { type: MaintenanceTask['type'] }) {
+export function MaintenanceTypeBadge({ type }: { type: any }) {
     const styles = {
         Repair: "bg-rose-500/10 text-rose-500 border-rose-500/20",
         Routine: "bg-primary/10 text-primary border-primary/20",
@@ -29,7 +31,7 @@ export function MaintenanceTypeBadge({ type }: { type: MaintenanceTask['type'] }
         Installation: "bg-purple-500/10 text-purple-500 border-purple-500/20",
         Maintenance: "bg-amber-500/10 text-amber-500 border-amber-500/20"
     };
-    const styleClass = styles[type] || styles.Maintenance;
+    const styleClass = styles[type as keyof typeof styles] || styles.Maintenance;
 
     return (
         <span className={cn("px-2 py-0.5 rounded font-bold uppercase border text-[10px]", styleClass)}>
@@ -38,7 +40,7 @@ export function MaintenanceTypeBadge({ type }: { type: MaintenanceTask['type'] }
     );
 }
 
-export function MaintenanceStatusBadge({ status }: { status: MaintenanceTask['status'] }) {
+export function MaintenanceStatusBadge({ status }: { status: any }) {
     if (status === 'In Progress') {
         return (
             <div className="flex items-center gap-2">
@@ -64,7 +66,7 @@ export function MaintenanceStatusBadge({ status }: { status: MaintenanceTask['st
     );
 }
 
-export function VisualProofCell({ task }: { task: MaintenanceTask }) {
+export function VisualProofCell({ task }: { task: any }) {
     const images = task.visualProof;
     if (!images || images.length === 0) {
         return <span className="text-slate-500 italic text-[10px]">No visual proof</span>;
@@ -72,7 +74,7 @@ export function VisualProofCell({ task }: { task: MaintenanceTask }) {
 
     return (
         <div className="flex -space-x-2">
-            {images.map((img, idx) => (
+            {images.map((img: string, idx: number) => (
                 <div key={idx} className="w-10 h-10 rounded border-2 border-slate-900 overflow-hidden relative group cursor-zoom-in z-0 hover:z-10">
                     <img
                         src={img}
