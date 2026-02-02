@@ -106,3 +106,32 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 };
+
+// @desc    Update user custom permissions
+// @route   PUT /api/users/:id/permissions
+// @access  Private (Admin/Superuser)
+export const updateUserPermissions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        const { useCustomPermissions, customPermissions } = req.body;
+
+        (user as any).useCustomPermissions = useCustomPermissions ?? false;
+        (user as any).customPermissions = customPermissions ?? [];
+
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            useCustomPermissions: (user as any).useCustomPermissions,
+            customPermissions: (user as any).customPermissions
+        });
+    } catch (error) {
+        next(error);
+    }
+};

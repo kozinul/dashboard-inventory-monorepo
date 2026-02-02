@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
-const API_URL = '/api/v1/units';
+const API_URL = '/units';
 
 export interface Unit {
     _id?: string;

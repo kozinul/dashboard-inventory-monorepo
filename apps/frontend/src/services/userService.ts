@@ -1,19 +1,20 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { User } from '@dashboard/schemas'; // Type import
 export type { User };
 
-const API_URL = '/api/v1/users';
+const API_URL = '/users';
 
 export interface CreateUserDto {
+    username: string;
     email: string;
     name: string;
     role: string;
     department?: string;
     departmentId?: string;
     designation?: string;
-    status: 'Active' | 'Offline' | 'Away' | 'Inactive'; // Added Inactive which was missing in frontend type but present in backend
+    status: 'Active' | 'Offline' | 'Away' | 'Inactive';
     avatarUrl?: string;
-    password?: string; // Optional because we might auto-generate or set default
+    password?: string;
 }
 
 export const userService = {

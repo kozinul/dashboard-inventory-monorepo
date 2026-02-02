@@ -8,6 +8,7 @@ import { User } from "@dashboard/schemas"
 import { UserModal } from "@/features/users/components/UserModal"
 import { DepartmentManager } from "@/features/users/components/DepartmentManager"
 import { JobTitleManager } from "@/features/users/components/JobTitleManager"
+import { RoleManager } from "@/features/users/components/RoleManager"
 
 export default function UserManagementPage() {
     const navigate = useNavigate()
@@ -15,7 +16,7 @@ export default function UserManagementPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingUser, setEditingUser] = useState<User | null>(null)
-    const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'jobtitles'>('users')
+    const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'jobtitles' | 'roles'>('users')
 
     const fetchUsers = async () => {
         try {
@@ -108,6 +109,43 @@ export default function UserManagementPage() {
         setIsModalOpen(true)
     }
 
+    const handleCopyRole = async (sourceUser: User) => {
+        // Create options for users dropdown (exclude source user)
+        const otherUsers = users.filter(u =>
+            ((u as any)._id || (u as any).id) !== ((sourceUser as any)._id || (sourceUser as any).id)
+        );
+
+        if (otherUsers.length === 0) {
+            Swal.fire('No Users', 'No other users available to copy role to.', 'info');
+            return;
+        }
+
+        const { value: selectedUserId } = await Swal.fire({
+            title: `Copy role "${sourceUser.role}" to:`,
+            input: 'select',
+            inputOptions: Object.fromEntries(
+                otherUsers.map(u => [((u as any)._id || (u as any).id), u.name])
+            ),
+            inputPlaceholder: 'Select a user',
+            showCancelButton: true,
+            confirmButtonText: 'Copy Role',
+            inputValidator: (value) => {
+                if (!value) return 'Please select a user';
+                return null;
+            }
+        });
+
+        if (selectedUserId) {
+            try {
+                await userService.update(selectedUserId, { role: sourceUser.role });
+                Swal.fire('Copied!', `Role has been copied successfully.`, 'success');
+                fetchUsers();
+            } catch (error) {
+                Swal.fire('Error', 'Failed to copy role.', 'error');
+            }
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Page Heading Section */}
@@ -158,6 +196,15 @@ export default function UserManagementPage() {
                 >
                     Job Titles
                 </button>
+                <button
+                    onClick={() => setActiveTab('roles')}
+                    className={`px-8 py-3 rounded-t-xl text-sm font-medium border-b-2 transition-all ${activeTab === 'roles'
+                        ? 'border-primary text-primary bg-primary/5 font-bold'
+                        : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                >
+                    Roles
+                </button>
             </div>
 
             {activeTab === 'users' && (
@@ -199,6 +246,7 @@ export default function UserManagementPage() {
                                         <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</th>
                                         <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Department</th>
                                         <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Designation</th>
+                                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Role</th>
                                         <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Status</th>
                                         <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                                     </tr>
@@ -220,6 +268,7 @@ export default function UserManagementPage() {
                                                 onEdit={openEditModal}
                                                 onDelete={handleDelete}
                                                 onView={() => navigate(`/users/${(user as any)._id || (user as any).id}`)}
+                                                onCopyRole={handleCopyRole}
                                             />
                                         ))
                                     )}
@@ -246,6 +295,8 @@ export default function UserManagementPage() {
             {activeTab === 'departments' && <DepartmentManager />}
 
             {activeTab === 'jobtitles' && <JobTitleManager />}
+
+            {activeTab === 'roles' && <RoleManager />}
 
             <UserModal
                 isOpen={isModalOpen}

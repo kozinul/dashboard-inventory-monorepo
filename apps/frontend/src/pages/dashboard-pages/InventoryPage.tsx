@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { StatsGrid } from '@/features/inventory/components/StatsGrid';
 import { AssetTable } from '@/features/inventory/components/AssetTable';
 // import { inventoryStats, mockAssets, Asset } from '@/features/inventory/data/mock-inventory'; // REMOVED
@@ -107,6 +108,9 @@ export default function InventoryPage() {
         }
     };
 
+    const { user } = useAuthStore.getState();
+    const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager';
+
     return (
         <div className="space-y-8">
             {/* Page Header */}
@@ -128,13 +132,15 @@ export default function InventoryPage() {
                             <option>Furniture</option>
                         </select>
                     </div>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-                    >
-                        <span className="material-symbols-outlined text-sm">add</span>
-                        Add New Asset
-                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+                        >
+                            <span className="material-symbols-outlined text-sm">add</span>
+                            Add New Asset
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -154,9 +160,9 @@ export default function InventoryPage() {
             ) : (
                 <AssetTable
                     assets={assets}
-                    onEdit={openEditModal}
-                    onDelete={handleDeleteAsset}
-                    onClone={openCloneModal}
+                    onEdit={canEdit ? openEditModal : undefined}
+                    onDelete={canEdit ? handleDeleteAsset : undefined}
+                    onClone={canEdit ? openCloneModal : undefined}
                 />
             )}
 

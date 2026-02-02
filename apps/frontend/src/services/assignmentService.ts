@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { Asset } from './assetService';
 import { User } from './userService';
 
-const API_URL = '/api/v1/assignments';
+const API_URL = '/assignments';
 
 export interface Assignment {
     _id: string;

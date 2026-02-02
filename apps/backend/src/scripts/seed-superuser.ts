@@ -9,8 +9,8 @@ const createSuperUser = async () => {
     try {
         await connectDB();
 
-        const superUserEmail = 'superuser@example.com';
-        const existingUser = await User.findOne({ email: superUserEmail });
+        const superUsername = 'superuser';
+        const existingUser = await User.findOne({ username: superUsername });
 
         if (existingUser) {
             console.log('Super User already exists');
@@ -18,17 +18,17 @@ const createSuperUser = async () => {
         }
 
         const superUser = await User.create({
+            username: superUsername,
             name: 'Super User',
-            email: superUserEmail,
+            email: 'superuser@example.com',
             password: 'password123', // Will be hashed by pre-save hook
             role: 'superuser',
             status: 'Active',
             designation: 'System Administrator',
             department: 'IT',
-            // departmentId: null - Super users might not need a department or belong to a special one
         });
 
-        console.log(`Super User created: ${superUser.email}`);
+        console.log(`Super User created: ${(superUser as any).username}`);
         process.exit(0);
     } catch (error) {
         console.error('Error creating super user:', error);

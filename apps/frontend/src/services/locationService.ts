@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
 // Ensure this matches the backend route prefix: /api/v1/locations
-const API_URL = '/api/v1/locations';
+const API_URL = '/locations';
 
 export interface BoxLocation {
     _id: string;

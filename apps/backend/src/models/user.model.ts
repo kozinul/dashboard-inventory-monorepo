@@ -1,6 +1,13 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
+    },
     email: {
         type: String,
         required: true,
@@ -31,9 +38,26 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['superuser', 'admin', 'manager', 'user', 'auditor'],
+        enum: ['superuser', 'admin', 'manager', 'technician', 'user', 'auditor'],
         default: 'user'
-    }
+    },
+    // Custom permissions that override default role permissions
+    useCustomPermissions: {
+        type: Boolean,
+        default: false
+    },
+    customPermissions: [{
+        resource: {
+            type: String,
+            required: true
+        },
+        actions: {
+            view: { type: Boolean, default: false },
+            create: { type: Boolean, default: false },
+            edit: { type: Boolean, default: false },
+            delete: { type: Boolean, default: false }
+        }
+    }]
 }, {
     timestamps: true
 });

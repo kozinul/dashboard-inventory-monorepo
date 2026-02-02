@@ -1,4 +1,5 @@
 import express from 'express';
+import { protect } from '../middleware/auth.middleware.js';
 import {
     getAssets,
     getAssetById,
@@ -10,6 +11,9 @@ import {
 import { cloneAsset } from '../controllers/assetTemplate.controller.js';
 
 const router = express.Router();
+
+// Apply auth middleware to all routes
+router.use(protect);
 
 router.get('/items', getAssets);
 router.get('/items/:id', getAssetById);

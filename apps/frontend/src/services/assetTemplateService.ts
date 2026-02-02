@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
-const API_URL = '/api/v1/asset-templates';
+const API_URL = '/asset-templates';
 
 export interface AssetTemplate {
     _id: string;

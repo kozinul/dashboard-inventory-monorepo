@@ -6,39 +6,56 @@ export function Sidebar() {
     const location = useLocation()
     const { user } = useAuthStore()
 
+    // Check if user has permission for a resource
+    const hasPermission = (resource: string) => {
+        // Superuser and admin have access to everything
+        if (user?.role === 'superuser' || user?.role === 'admin') return true;
+
+        // Technician permissions
+        if (user?.role === 'technician') {
+            return ['dashboard', 'assigned_tickets', 'my_tickets'].includes(resource);
+        }
+
+        // Standard User permissions
+        if (user?.role === 'user') {
+            return ['dashboard', 'my_tickets'].includes(resource);
+        }
+
+        // Fallback for custom permissions
+        if (!user?.permissions || user.permissions.length === 0) return false;
+        const perm = user.permissions.find(p => p.resource === resource);
+        return perm?.actions?.['view'] === true;
+    };
+
     const navItems = [
-        { name: 'Dashboard', href: '/', icon: 'dashboard' },
-        { name: 'Master Barang', href: '/inventory', icon: 'package_2' },
-        { name: 'Barang Masuk', href: '/incoming', icon: 'input' },
-        { name: 'Transfer', href: '/transfer', icon: 'move_item' },
-        { name: 'Maintenance', href: '/maintenance', icon: 'build' },
-        { name: 'Services', href: '/services', icon: 'medical_services' },
-        { name: 'History', href: '/history', icon: 'history' },
+        { name: 'Dashboard', href: '/', icon: 'dashboard', resource: 'dashboard' },
+        { name: 'Master Barang', href: '/inventory', icon: 'package_2', resource: 'inventory' },
+        { name: 'Barang Masuk', href: '/incoming', icon: 'input', resource: 'incoming' },
+        { name: 'Transfer', href: '/transfer', icon: 'move_item', resource: 'transfer' },
+        { name: 'Maintenance', href: '/maintenance', icon: 'build', resource: 'maintenance' },
+        { name: 'My Tickets', href: '/my-tickets', icon: 'confirmation_number', resource: 'my_tickets' },
+        { name: 'My Assignments', href: '/assigned-tickets', icon: 'engineering', resource: 'assigned_tickets' },
+        { name: 'Services', href: '/services', icon: 'medical_services', resource: 'services' },
+        { name: 'History', href: '/history', icon: 'history', resource: 'history' },
     ]
 
     const masterDataItems = [
-        { name: 'Asset Templates', href: '/master-data/asset-templates', icon: 'inventory_2' },
-        { name: 'Categories', href: '/master-data/item-categories', icon: 'category' },
-        { name: 'Locations', href: '/master-data/locations', icon: 'location_on' },
-        { name: 'Vendors', href: '/master-data/vendors', icon: 'storefront' },
-        { name: 'Roles', href: '/master-data/roles', icon: 'shield_person' },
+        { name: 'Asset Templates', href: '/master-data/asset-templates', icon: 'inventory_2', resource: 'asset_templates' },
+        { name: 'Categories', href: '/master-data/item-categories', icon: 'category', resource: 'categories' },
+        { name: 'Locations', href: '/master-data/locations', icon: 'location_on', resource: 'locations' },
+        { name: 'Vendors', href: '/master-data/vendors', icon: 'storefront', resource: 'vendors' },
     ]
 
     const systemItems = [
-        { name: 'Laporan', href: '/reports', icon: 'description' },
-        { name: 'Settings', href: '/settings', icon: 'settings' },
-        { name: 'User Management', href: '/users', icon: 'group' },
+        { name: 'Laporan', href: '/reports', icon: 'description', resource: 'reports' },
+        { name: 'Settings', href: '/settings', icon: 'settings', resource: 'settings' },
+        { name: 'User Management', href: '/users', icon: 'group', resource: 'users' },
     ]
 
-    // Helper to check permissions
-    const hasPermission = (resource: string) => {
-        // Fallback for admins/superusers who might not have dynamic permissions yet
-        if (isAdmin && (!user?.permissions || user.permissions.length === 0)) return true;
-
-        // Check dynamic permissions
-        const permission = user?.permissions?.find(p => p.resource === resource);
-        return permission?.actions?.view === true;
-    };
+    // Filter items based on permissions
+    const filteredNavItems = navItems.filter(item => hasPermission(item.resource));
+    const filteredMasterDataItems = masterDataItems.filter(item => hasPermission(item.resource));
+    const filteredSystemItems = systemItems.filter(item => hasPermission(item.resource));
 
     return (
         <aside className="w-64 border-r border-slate-200 dark:border-border-dark flex flex-col bg-white dark:bg-background-dark z-20 flex-shrink-0 h-screen transition-all duration-300 ease-in-out">
@@ -53,92 +70,7 @@ export function Sidebar() {
             </div>
 
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-                {navItems.map((item) => {
-                    const isActive = location.pathname === item.href
-                    // Check individual nav items (legacy items, assume they map to resources with same name lowercased, or 'inventory' etc)
-                    // For now, these main items are visible to all or we map them:
-                    // Dashboard -> dashboard
-                    // Master Barang -> inventory
-                    // Barang Masuk -> incoming
-                    // Transfer -> transfer
-                    // Maintenance -> maintenance
-                    // Services -> services
-                    // History -> history
-
-                    let resourceKey = '';
-                    if (item.href === '/') resourceKey = 'dashboard';
-                    else if (item.href === '/inventory') resourceKey = 'inventory';
-                    else if (item.href === '/incoming') resourceKey = 'incoming';
-                    else if (item.href === '/transfer') resourceKey = 'transfer';
-                    else if (item.href === '/maintenance') resourceKey = 'maintenance';
-                    else if (item.href === '/services') resourceKey = 'services';
-                    else if (item.href === '/history') resourceKey = 'history';
-
-                    if (resourceKey && !hasPermission(resourceKey) && !isAdmin) return null; // Fallback to isAdmin if no permission system
-
-                    return (
-                        <Link
-                            key={item.name}
-                            to={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
-                                isActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
-                            )}
-                        >
-                            <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
-                            <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
-                                {item.name}
-                            </span>
-                        </Link>
-                    )
-                })}
-
-                {/* Master Data Section - Replaced hardcoded isAdmin with specific permission checks */}
-                <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">Master Data</div>
-                {masterDataItems.map((item) => {
-                    // Check permission for master data items
-                    // We can map them generally to 'master_data' permission OR specific resources if we want granularity
-                    // For now, let's assume 'master_data' covers most, OR check specific 'roles', 'users' etc.
-
-                    let resourceKey = 'master_data';
-                    if (item.name === 'Roles') resourceKey = 'roles';
-                    // if (item.name === 'Vendors') resourceKey = 'vendors'; // If we have granular keys
-
-                    if (!hasPermission(resourceKey) && !hasPermission('master_data')) return null;
-
-                    const isActive = location.pathname === item.href || location.pathname.startsWith(item.href)
-                    return (
-                        <Link
-                            key={item.name}
-                            to={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
-                                isActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
-                            )}
-                        >
-                            <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
-                            <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
-                                {item.name}
-                            </span>
-                        </Link>
-                    )
-                })}
-
-
-                <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">System</div>
-
-                {systemItems.map((item) => {
-                    let resourceKey = '';
-                    if (item.name === 'Settings') resourceKey = 'settings';
-                    if (item.name === 'User Management') resourceKey = 'users';
-                    if (item.name === 'Laporan') resourceKey = 'reports';
-
-                    if (resourceKey && !hasPermission(resourceKey)) return null;
-
+                {filteredNavItems.map((item) => {
                     const isActive = location.pathname === item.href
                     return (
                         <Link
@@ -158,6 +90,58 @@ export function Sidebar() {
                         </Link>
                     )
                 })}
+
+                {filteredMasterDataItems.length > 0 && (
+                    <>
+                        <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">Master Data</div>
+                        {filteredMasterDataItems.map((item) => {
+                            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href)
+                            return (
+                                <Link
+                                    key={item.name}
+                                    to={item.href}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
+                                        isActive
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
+                                    )}
+                                >
+                                    <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
+                                    <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
+                                        {item.name}
+                                    </span>
+                                </Link>
+                            )
+                        })}
+                    </>
+                )}
+
+                {filteredSystemItems.length > 0 && (
+                    <>
+                        <div className="pt-4 pb-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest px-3">System</div>
+                        {filteredSystemItems.map((item) => {
+                            const isActive = location.pathname === item.href
+                            return (
+                                <Link
+                                    key={item.name}
+                                    to={item.href}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
+                                        isActive
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
+                                    )}
+                                >
+                                    <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
+                                    <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
+                                        {item.name}
+                                    </span>
+                                </Link>
+                            )
+                        })}
+                    </>
+                )}
             </nav>
 
             <div className="p-4 mt-auto border-t border-slate-200 dark:border-border-dark">

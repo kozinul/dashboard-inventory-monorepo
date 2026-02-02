@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
-const API_URL = '/api/v1/supplies';
+const API_URL = '/supplies';
 
 export interface Supply {
     _id?: string;

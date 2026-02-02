@@ -85,7 +85,14 @@ const assetSchema = new mongoose.Schema({
     warranty: {
         expirationDate: Date,
         details: String
-    }
+    },
+    maintenanceHistory: [{
+        ticketNumber: String,
+        description: String,
+        completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        cost: Number,
+        completedAt: Date
+    }]
 }, {
     timestamps: true
 });

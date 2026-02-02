@@ -4,14 +4,20 @@ import { StatusBadge } from "@/components/common/StatusBadge"
 import { DepartmentBadge } from "./DepartmentBadge"
 import { User } from "@dashboard/schemas"
 
+import { useRoleStore } from "@/store/roleStore";
+
 interface UserRowProps {
     user: User;
     onEdit: (user: User) => void;
     onDelete: (user: User) => void;
     onView?: (user: User) => void;
+    onCopyRole?: (user: User) => void;
 }
 
-export function UserRow({ user, onEdit, onDelete, onView }: UserRowProps) {
+export function UserRow({ user, onEdit, onDelete, onView, onCopyRole }: UserRowProps) {
+    const getRoleBySlug = useRoleStore(state => state.getRoleBySlug);
+    const role = getRoleBySlug(user.role);
+
     return (
         <tr
             onClick={() => onView && onView(user)}
@@ -32,6 +38,17 @@ export function UserRow({ user, onEdit, onDelete, onView }: UserRowProps) {
                 <DepartmentBadge department={user.department} />
             </td>
             <td className="px-6 py-4 font-medium italic text-muted-foreground">{user.designation}</td>
+            <td className="px-6 py-4">
+                <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    style={{
+                        backgroundColor: `${role?.color}20`,
+                        color: role?.color || '#64748b'
+                    }}
+                >
+                    {role?.name || user.role}
+                </span>
+            </td>
             <td className="px-6 py-4 text-center">
                 <StatusBadge status={user.status as any} />
             </td>
@@ -49,7 +66,7 @@ export function UserRow({ user, onEdit, onDelete, onView }: UserRowProps) {
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                     >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                             <div className="py-1">
                                 <Menu.Item>
                                     {({ active }) => (
@@ -62,6 +79,19 @@ export function UserRow({ user, onEdit, onDelete, onView }: UserRowProps) {
                                         </button>
                                     )}
                                 </Menu.Item>
+                                {onCopyRole && (
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={() => onCopyRole(user)}
+                                                className={`${active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                                    } block w-full px-4 py-2 text-sm text-left`}
+                                            >
+                                                Copy Role To...
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                )}
                                 <Menu.Item>
                                     {({ active }) => (
                                         <button

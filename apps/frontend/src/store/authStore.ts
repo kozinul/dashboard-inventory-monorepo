@@ -1,17 +1,25 @@
 import { create } from 'zustand';
 import axios from '../lib/axios';
 
+interface Permission {
+    resource: string;
+    actions: {
+        view: boolean;
+        create: boolean;
+        edit: boolean;
+        delete: boolean;
+    };
+}
+
 interface User {
     _id: string;
+    username: string;
     email: string;
     name: string;
     role: string;
     department?: string;
     departmentId?: string;
-    permissions?: {
-        resource: string;
-        actions: { [key: string]: boolean };
-    }[];
+    permissions?: Permission[];
 }
 
 interface AuthState {
@@ -19,7 +27,7 @@ interface AuthState {
     token: string | null;
     isLoading: boolean;
     error: string | null;
-    login: (email: string, password: string) => Promise<void>;
+    login: (username: string, password: string) => Promise<void>;
     logout: () => void;
     initialize: () => Promise<void>;
 }
@@ -40,11 +48,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     isLoading: false,
     error: null,
 
-    login: async (email, password) => {
+    login: async (username, password) => {
         set({ isLoading: true, error: null });
         try {
             // Must use direct axios import or fetch to avoid circular dependency if axios.ts imports store
-            const response = await axios.post('/auth/login', { email, password });
+            const response = await axios.post('/auth/login', { username, password });
             const { token, ...user } = response.data;
 
             localStorage.setItem('token', token);

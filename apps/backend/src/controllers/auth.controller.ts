@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
+import { getMergedPermissions } from '../config/rolePermissions.config.js';
 
 const generateToken = (id: string) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'default_secret', {
@@ -8,29 +9,22 @@ const generateToken = (id: string) => {
     });
 };
 
-import { Role } from '../models/role.model.js';
-
 export const login = async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ username: username.toLowerCase() });
 
         if (user && (await (user as any).matchPassword(password))) {
-            // Fetch dynamic permissions
-            const roleDoc = await Role.findOne({ slug: user.role });
-            let permissions = roleDoc ? roleDoc.permissions : [];
-
-            // Fallback for legacy static roles/superuser if no dynamic role exists yet
-            if (!roleDoc && (user.role === 'superuser' || user.role === 'admin')) {
-                // Return a special flag or wildcard permissions?
-                // For now, let's assume frontend handles "if no permissions but role is admin, allow all"
-                // OR we can construct full permissions here.
-                // Let's rely on Sidebar falling back to "isAdmin" check if permissions array is empty but role is admin
-            }
+            // Get merged permissions based on role and custom permissions
+            const permissions = getMergedPermissions(
+                user.role,
+                (user as any).useCustomPermissions ? (user as any).customPermissions : undefined
+            );
 
             res.json({
                 _id: user._id,
+                username: (user as any).username,
                 name: user.name,
                 email: user.email,
                 role: user.role,
@@ -41,7 +35,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             });
         } else {
             res.status(401);
-            throw new Error('Invalid email or password');
+            throw new Error('Invalid username or password');
         }
     } catch (error) {
         next(error);
@@ -52,12 +46,15 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
     try {
         const user = await User.findById(req.user._id);
         if (user) {
-            // Fetch dynamic permissions
-            const roleDoc = await Role.findOne({ slug: user.role });
-            let permissions = roleDoc ? roleDoc.permissions : [];
+            // Get merged permissions based on role and custom permissions
+            const permissions = getMergedPermissions(
+                user.role,
+                (user as any).useCustomPermissions ? (user as any).customPermissions : undefined
+            );
 
             res.json({
                 _id: user._id,
+                username: (user as any).username,
                 name: user.name,
                 email: user.email,
                 role: user.role,

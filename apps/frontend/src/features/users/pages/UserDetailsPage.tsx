@@ -6,6 +6,7 @@ import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
 import { User } from '@dashboard/schemas';
 import Swal from 'sweetalert2';
+import UserPermissionEditor from '../components/UserPermissionEditor';
 
 export default function UserDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -13,10 +14,11 @@ export default function UserDetailsPage() {
     const [user, setUser] = useState<User | null>(null);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'info' | 'assignments' | 'logs'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'assignments' | 'permissions' | 'logs'>('info');
 
     // Edit Form State
     const [editFormData, setEditFormData] = useState({
+        username: '',
         name: '',
         email: '',
         department: '',
@@ -53,6 +55,7 @@ export default function UserDetailsPage() {
 
             // Initialize edit form
             setEditFormData({
+                username: (userData as any).username || '',
                 name: userData.name,
                 email: userData.email,
                 department: userData.department || '',
@@ -164,6 +167,15 @@ export default function UserDetailsPage() {
                                 Assigned Assets
                             </button>
                             <button
+                                onClick={() => setActiveTab('permissions')}
+                                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'permissions'
+                                    ? 'border-primary text-primary'
+                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                    }`}
+                            >
+                                Permissions
+                            </button>
+                            <button
                                 onClick={() => setActiveTab('logs')}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'logs'
                                     ? 'border-primary text-primary'
@@ -180,6 +192,17 @@ export default function UserDetailsPage() {
                         <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-slate-200 dark:border-border-dark p-6">
                             <form onSubmit={handleUpdateUser} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Username */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Username</label>
+                                        <input
+                                            type="text"
+                                            className="w-full p-2.5 border rounded-lg dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-primary/20 transition-all"
+                                            value={editFormData.username}
+                                            onChange={e => setEditFormData({ ...editFormData, username: e.target.value })}
+                                            required
+                                        />
+                                    </div>
                                     {/* Name */}
                                     <div>
                                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Name</label>
@@ -372,6 +395,14 @@ export default function UserDetailsPage() {
                             </div>
                             <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">No Activity Logs</h3>
                             <p className="text-slate-500">There are no activity logs available for this user yet.</p>
+                        </div>
+                    )}
+
+                    {/* Content: Permissions */}
+                    {activeTab === 'permissions' && id && (
+                        <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-slate-200 dark:border-border-dark p-6">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">User Permissions</h3>
+                            <UserPermissionEditor userId={id} userRole={user.role} />
                         </div>
                     )}
                 </div>

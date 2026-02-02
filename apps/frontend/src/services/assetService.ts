@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from '@/lib/axios';
 
-// Ensure this matches the backend route prefix: /api/v1/inventory
-const API_URL = '/api/v1/inventory';
+// Ensure this matches the backend route prefix relative to axios baseURL
+const API_URL = '/inventory';
 
 export interface Asset {
     _id: string; // Backend uses _id
@@ -45,6 +45,13 @@ export interface Asset {
         expirationDate: string;
         details: string;
     };
+    maintenanceHistory?: {
+        ticketNumber: string;
+        description: string;
+        completedBy: string;
+        cost: number;
+        completedAt: string;
+    }[];
 }
 
 export const assetService = {

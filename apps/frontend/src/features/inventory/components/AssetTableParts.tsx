@@ -55,7 +55,7 @@ export function AssetStatusBadge({ status }: { status: Asset['status'] }) {
     );
 }
 
-export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetId: string, onEdit: (id: string) => void, onDelete: (id: string) => void, onClone?: (id: string) => void }) {
+export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetId: string, onEdit?: (id: string) => void, onDelete?: (id: string) => void, onClone?: (id: string) => void }) {
     return (
         <div className="flex items-center gap-1 justify-end">
             <Link
@@ -64,12 +64,14 @@ export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetI
             >
                 <span className="material-symbols-outlined !text-[18px]">visibility</span>
             </Link>
-            <button
-                onClick={() => onEdit(assetId)}
-                className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors"
-            >
-                <span className="material-symbols-outlined !text-[18px]">edit</span>
-            </button>
+            {onEdit && (
+                <button
+                    onClick={() => onEdit(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">edit</span>
+                </button>
+            )}
             {onClone && (
                 <button
                     onClick={() => onClone(assetId)}
@@ -79,12 +81,14 @@ export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetI
                     <span className="material-symbols-outlined !text-[18px]">content_copy</span>
                 </button>
             )}
-            <button
-                onClick={() => onDelete(assetId)}
-                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
-            >
-                <span className="material-symbols-outlined !text-[18px]">delete</span>
-            </button>
+            {onDelete && (
+                <button
+                    onClick={() => onDelete(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">delete</span>
+                </button>
+            )}
         </div>
     );
 }

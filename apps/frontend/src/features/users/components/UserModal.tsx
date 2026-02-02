@@ -6,12 +6,13 @@ import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
 import { User } from '@dashboard/schemas';
 import { z } from 'zod';
+import { useRoleStore } from '@/store/roleStore';
 
 const userSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
-    role: z.enum(['user', 'admin', 'manager', 'auditor']),
+    role: z.enum(['user', 'admin', 'manager', 'auditor', 'technician', 'superuser']),
     department: z.string().optional(),
     designation: z.string().optional(),
     status: z.enum(['Active', 'Offline', 'Away']),
@@ -35,7 +36,9 @@ interface UserModalProps {
 
 export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalProps) {
     const [showPassword, setShowPassword] = useState(false);
+    const roles = useRoleStore(state => state.roles);
     const [formData, setFormData] = useState<CreateUserDto>({
+        username: '',
         name: '',
         email: '',
         role: 'user',
@@ -65,6 +68,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
 
         if (editingUser) {
             setFormData({
+                username: (editingUser as any).username || '',
                 name: editingUser.name,
                 email: editingUser.email,
                 role: editingUser.role,
@@ -75,9 +79,10 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
             });
         } else {
             setFormData({
+                username: '',
                 name: '',
                 email: '',
-                password: 'password123', // Default for now
+                password: 'password123',
                 role: 'user',
                 department: '',
                 designation: '',
@@ -173,6 +178,18 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                         </Dialog.Title>
                                         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                                             <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:text-white p-2 border"
+                                                    value={formData.username}
+                                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                                    placeholder="e.g. john_doe"
+                                                />
+                                                {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+                                            </div>
+                                            <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                                                 <input
                                                     type="text"
@@ -228,10 +245,11 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                                         value={formData.role}
                                                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                                                     >
-                                                        <option value="user">User</option>
-                                                        <option value="admin">Admin</option>
-                                                        <option value="manager">Manager</option>
-                                                        <option value="auditor">Auditor</option>
+                                                        {roles.map(role => (
+                                                            <option key={role.id} value={role.slug}>
+                                                                {role.name}
+                                                            </option>
+                                                        ))}
                                                     </select>
                                                 </div>
                                                 <div>

@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import {
     Bars3Icon,
@@ -31,7 +31,10 @@ const mainNavigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
     { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
+    { name: 'My Assets', href: '/my-assets', icon: BriefcaseIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
+    { name: 'My Tickets', href: '/my-tickets', icon: WrenchScrewdriverIcon },
+    { name: 'Dept. Tickets', href: '/department-tickets', icon: WrenchScrewdriverIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
@@ -50,7 +53,6 @@ const masterDataNavigation = [
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
-    { name: 'Roles', href: '/master-data/roles', icon: UserGroupIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
@@ -86,6 +88,69 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
+
+    // Check if user has permission for a resource
+    const hasPermission = (item: any) => {
+        // Superuser and admin have access to everything
+        if (user?.role === 'superuser' || user?.role === 'admin') return true;
+
+        const resourceMap: Record<string, string> = {
+            'Dashboard': 'dashboard',
+            'Inventory': 'inventory',
+            'Supplies': 'inventory', // grouped
+            'Assignments': 'assignments',
+            'My Tickets': 'my_tickets',
+            'Dept. Tickets': 'dept_tickets',
+            'Maintenance': 'maintenance',
+            'Services': 'services',
+            'Reports': 'reports',
+            'Rental': 'rental', // grouped with events
+            'Disposal': 'disposal',
+            'Users': 'users',
+            'Settings': 'settings',
+            'My Assets': 'my_assets',
+            'Master Data': 'master_data'
+        };
+
+        const resource = resourceMap[item.name];
+
+        // Technician permissions
+        if (user?.role === 'technician') {
+            return ['dashboard', 'inventory', 'my_tickets', 'assignments', 'my_assets'].includes(resource || '');
+        }
+
+        // Standard User permissions
+        if (user?.role === 'user') {
+            return ['dashboard', 'inventory', 'my_tickets', 'my_assets'].includes(resource || '');
+        }
+
+        // Fallback or explicit deny if no role matches above
+        return false;
+    };
+
+    const filteredNavigation = navigation.map(item => {
+        if (item.children) {
+            const filteredChildren = item.children.filter(child => hasPermission(child));
+            if (filteredChildren.length > 0) {
+                return { ...item, children: filteredChildren };
+            }
+            return null;
+        }
+        return hasPermission(item) ? item : null;
+    }).filter(Boolean) as NavigationItem[];
+
+    // Redirect unauthorized access
+    useEffect(() => {
+        if (location.pathname === '/maintenance') {
+            // Access denied for technician if not in permitted list (which strict logic above implies it isn't)
+            if (user?.role === 'technician') {
+                // Double check why technician might be here?
+                // If sidebar hides it, they shouldn't be here.
+                // Force redirect to dashboard
+                window.location.href = '/';
+            }
+        }
+    }, [user, location.pathname]);
 
     return (
         <>
@@ -144,7 +209,7 @@ function DashboardLayout() {
                                             <ul role="list" className="flex flex-1 flex-col gap-y-7">
                                                 <li>
                                                     <ul role="list" className="-mx-2 space-y-1">
-                                                        {navigation.map((item) => (
+                                                        {filteredNavigation.map((item) => (
                                                             <li key={item.name}>
                                                                 {!item.children ? (
                                                                     <Link
@@ -230,7 +295,7 @@ function DashboardLayout() {
                             <ul role="list" className="flex flex-1 flex-col gap-y-7">
                                 <li>
                                     <ul role="list" className="-mx-2 space-y-1">
-                                        {navigation.map((item) => (
+                                        {filteredNavigation.map((item) => (
                                             <li key={item.name}>
                                                 {!item.children ? (
                                                     <Link

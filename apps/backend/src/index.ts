@@ -79,9 +79,6 @@ app.use('/api/v1/rentals', rentalRoutes);
 import assignmentRoutes from './routes/assignment.routes.js';
 app.use('/api/v1/assignments', assignmentRoutes);
 
-import roleRoutes from './routes/role.routes.js';
-app.use('/api/v1/roles', roleRoutes);
-
 import uploadRoutes from './routes/upload.routes.js';
 import path from 'path';
 

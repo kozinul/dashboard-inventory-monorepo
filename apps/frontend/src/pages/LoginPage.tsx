@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
     const { login, isLoading, error } = useAuthStore();
@@ -11,7 +11,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login(email, password);
+            await login(username, password);
             navigate('/');
         } catch (err) {
             // Error is handled in store
@@ -45,18 +45,18 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Email Address
+                            Username
                         </label>
                         <div className="relative">
                             <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pl-10"
-                                placeholder="name@company.com"
+                                placeholder="Enter your username"
                                 required
                             />
-                            <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">mail</span>
+                            <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">person</span>
                         </div>
                     </div>
 
@@ -94,7 +94,7 @@ export default function LoginPage() {
 
                     <div className="text-center mt-4">
                         <p className="text-xs text-slate-400">
-                            Default Superuser: superuser@example.com / password123
+                            Default Superuser: superuser / password123
                         </p>
                     </div>
                 </form>

@@ -1,6 +1,23 @@
 import mongoose from 'mongoose';
 
+// Helper to generate ticket number
+const generateTicketNumber = async () => {
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const count = await mongoose.model('MaintenanceRecord').countDocuments({
+        createdAt: {
+            $gte: new Date(today.setHours(0, 0, 0, 0)),
+            $lt: new Date(today.setHours(23, 59, 59, 999))
+        }
+    });
+    return `MT-${dateStr}-${String(count + 1).padStart(3, '0')}`;
+};
+
 const maintenanceRecordSchema = new mongoose.Schema({
+    ticketNumber: {
+        type: String,
+        unique: true
+    },
     asset: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Asset',
@@ -11,6 +28,27 @@ const maintenanceRecordSchema = new mongoose.Schema({
         required: true
     },
     description: {
+        type: String
+    },
+    // Who requested the maintenance (user who owns the asset)
+    requestedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    requestedAt: {
+        type: Date,
+        default: Date.now
+    },
+    // Who processed the ticket (department manager)
+    processedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    processedAt: {
+        type: Date
+    },
+    rejectionReason: {
         type: String
     },
     technician: {
@@ -27,7 +65,7 @@ const maintenanceRecordSchema = new mongoose.Schema({
     vendor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
-        required: function () { return this.serviceProviderType === 'Vendor'; }
+        required: function () { return (this as any).serviceProviderType === 'Vendor'; }
     },
     cost: {
         type: Number,
@@ -43,12 +81,26 @@ const maintenanceRecordSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['In Progress', 'Done', 'Pending'],
-        default: 'Pending'
+        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled'],
+        default: 'Draft'
     },
-    visualProof: [String]
+    visualProof: [String],
+    history: [{
+        status: { type: String, required: true },
+        changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        changedAt: { type: Date, default: Date.now },
+        notes: String
+    }]
 }, {
     timestamps: true
+});
+
+// Pre-save hook to generate ticket number
+maintenanceRecordSchema.pre('save', async function (next) {
+    if (this.isNew && !this.ticketNumber) {
+        this.ticketNumber = await generateTicketNumber();
+    }
+    next();
 });
 
 export const MaintenanceRecord = mongoose.model('MaintenanceRecord', maintenanceRecordSchema);

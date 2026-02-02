@@ -11,10 +11,14 @@ import InventoryPage from '../pages/dashboard-pages/InventoryPage';
 import AssetDetailsPage from '../pages/dashboard-pages/AssetDetailsPage';
 import AssetAssignmentPage from '@/pages/dashboard-pages/AssetAssignmentPage';
 import MaintenancePage from '../pages/dashboard-pages/MaintenancePage';
+import MyMaintenanceTicketsPage from '../pages/dashboard-pages/MyMaintenanceTicketsPage';
+import DepartmentTicketsPage from '../pages/dashboard-pages/DepartmentTicketsPage';
+import AssignedTicketsPage from '../pages/dashboard-pages/AssignedTicketsPage';
 import ServicePage from '../pages/dashboard-pages/ServicePage';
 import ReportsPage from '../pages/dashboard-pages/ReportsPage';
 import DisposalPage from '../pages/dashboard-pages/DisposalPage';
 import UserManagementPage from '../pages/dashboard-pages/UserManagement';
+import MyAssetsPage from '../pages/dashboard-pages/MyAssetsPage';
 import AccountSettingsPage from '../pages/dashboard-pages/AccountSettingsPage';
 import IncomingGoodsPage from '../pages/dashboard-pages/IncomingGoodsPage';
 import TransferPage from '../pages/dashboard-pages/TransferPage';
@@ -28,8 +32,7 @@ import CategoryManagement from '../pages/master-data/CategoryManagement';
 import AssetTemplatesPage from '../pages/master-data/AssetTemplatesPage';
 import VendorManagementPage from '../pages/master-data/VendorManagementPage';
 import UnitManagementPage from '../pages/master-data/UnitManagementPage';
-import RoleManagementPage from '../features/roles/pages/RoleManagementPage';
-import RoleEditorPage from '../features/roles/pages/RoleEditorPage';
+
 import SuppliesPage from '../features/inventory/pages/SuppliesPage';
 import SupplyDetailsPage from '../features/inventory/pages/SupplyDetailsPage';
 import EventDetailsPage from '../pages/dashboard-pages/EventDetailsPage';
@@ -95,6 +98,22 @@ export const router = createBrowserRouter([
                             {
                                 path: 'maintenance',
                                 element: <MaintenancePage />,
+                            },
+                            {
+                                path: 'my-tickets',
+                                element: <MyMaintenanceTicketsPage />,
+                            },
+                            {
+                                path: 'department-tickets',
+                                element: <DepartmentTicketsPage />,
+                            },
+                            {
+                                path: 'assigned-tickets',
+                                element: <AssignedTicketsPage />,
+                            },
+                            {
+                                path: 'my-assets',
+                                element: <MyAssetsPage />,
                             },
                             {
                                 path: 'services',
@@ -188,18 +207,7 @@ export const router = createBrowserRouter([
                                 path: 'master-data/database',
                                 element: <DatabaseManagement />,
                             },
-                            {
-                                path: 'master-data/roles',
-                                element: <RoleManagementPage />,
-                            },
-                            {
-                                path: 'master-data/roles/create',
-                                element: <RoleEditorPage />,
-                            },
-                            {
-                                path: 'master-data/roles/:id/edit',
-                                element: <RoleEditorPage />,
-                            }
+
                         ],
                     },
                 ]

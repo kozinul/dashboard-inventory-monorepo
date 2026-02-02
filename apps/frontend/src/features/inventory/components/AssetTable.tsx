@@ -64,8 +64,8 @@ export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect }: Asse
                                     ) : (
                                         <AssetRowActions
                                             assetId={asset.id || asset._id}
-                                            onEdit={onEdit!}
-                                            onDelete={onDelete!}
+                                            onEdit={onEdit}
+                                            onDelete={onDelete}
                                             onClone={onClone}
                                         />
                                     )}

@@ -3,38 +3,62 @@ import { Asset } from '../models/asset.model.js';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        res.header('Cache-Control', 'no-store');
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
         const filters: any = {};
+        const andConditions: any[] = [];
 
         // RBAC / Department Filtering
         // req.user is populated by authMiddleware
-        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'admin') {
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            console.log('DEBUG FILTER: User:', req.user.username, 'Role:', req.user.role, 'DeptID:', req.user.departmentId);
+            const deptConditions = [];
+
             if (req.user.departmentId) {
-                filters.departmentId = req.user.departmentId;
+                deptConditions.push({ departmentId: req.user.departmentId });
+            }
+            // Fallback to string match if department ID is verified but data might be legacy
+            if (req.user.department) {
+                deptConditions.push({ department: req.user.department });
+            }
+
+            if (deptConditions.length > 0) {
+                andConditions.push({ $or: deptConditions });
             } else {
-                // If user has no department assigned, they shouldn't see assets restricted to departments
-                // Or maybe they see assets with NO department? 
-                // For now, let's strictly restrict if they have no department.
-                // But to be safe, maybe we return nothing or just generic ones?
-                // Plan said: "Strictly filtered by departmentId".
-                // So if no departmentId, we can't filter by it.
-                // Let's assume for now they see nothing if they are not admin/superuser and have no department.
-                filters.departmentId = "non-existent-id"; // Hack to return empty
+                // User has no department assigned, explicit deny for assets
+                return res.json({
+                    data: [],
+                    pagination: {
+                        page,
+                        limit,
+                        total: 0,
+                        pages: 0
+                    }
+                });
             }
         }
 
         if (req.query.category) filters.category = req.query.category;
         if (req.query.status) filters.status = req.query.status;
         if (req.query.locationId) filters.locationId = req.query.locationId;
+
         if (req.query.search) {
-            filters.$or = [
-                { name: { $regex: req.query.search, $options: 'i' } },
-                { serial: { $regex: req.query.search, $options: 'i' } }
-            ];
+            andConditions.push({
+                $or: [
+                    { name: { $regex: req.query.search, $options: 'i' } },
+                    { serial: { $regex: req.query.search, $options: 'i' } },
+                    { model: { $regex: req.query.search, $options: 'i' } }
+                ]
+            });
         }
+
+        if (andConditions.length > 0) {
+            filters.$and = andConditions;
+        }
+        console.log('DEBUG FILTER QUERY:', JSON.stringify(filters));
 
         const assets = await Asset.find(filters)
             .sort({ createdAt: -1 })

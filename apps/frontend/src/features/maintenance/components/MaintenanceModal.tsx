@@ -3,23 +3,27 @@ import { maintenanceService } from '@/services/maintenanceService';
 import { assetService, Asset } from '@/services/assetService';
 import { AssetTable } from '@/features/inventory/components/AssetTable';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
+import { useAuthStore } from '@/store/authStore';
 
 interface MaintenanceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: () => void;
     initialData?: any;
+    mode?: 'create' | 'request';
+    availableAssets?: Asset[]; // Assets to show in selection
 }
 
-export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: MaintenanceModalProps) {
+export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode = 'create', availableAssets }: MaintenanceModalProps) {
+    const { user } = useAuthStore();
     const [formData, setFormData] = useState({
         title: '',
         asset: '',
         type: 'Routine',
         description: '',
-        status: 'Pending',
+        status: 'Sent', // Default to Sent/Pending
         serviceProviderType: 'Internal',
-        technician: '', // Ideal: Select from users
+        technician: '',
         cost: 0
     });
     const [loading, setLoading] = useState(false);
@@ -34,7 +38,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
                 asset: initialData.asset?._id || initialData.asset || '',
                 type: initialData.type || 'Routine',
                 description: initialData.description || '',
-                status: initialData.status || 'Pending',
+                status: initialData.status || 'Sent',
                 serviceProviderType: initialData.serviceProviderType || 'Internal',
                 technician: initialData.technician?._id || initialData.technician || '',
                 cost: initialData.cost || 0
@@ -46,7 +50,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
                 asset: '',
                 type: 'Routine',
                 description: '',
-                status: 'Pending',
+                status: 'Sent',
                 serviceProviderType: 'Internal',
                 technician: '',
                 cost: 0
@@ -56,12 +60,19 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
     }, [initialData, isOpen]);
 
     useEffect(() => {
-        if (showAssetSelector && assets.length === 0) {
-            assetService.getAll().then((res) => {
-                setAssets(res.data || []);
-            });
+        if (showAssetSelector) {
+            if (availableAssets) {
+                setAssets(availableAssets);
+            } else if (assets.length === 0) {
+                assetService.getAll().then((res) => {
+                    const filtered = (res.data || []).filter((a: any) =>
+                        a.status !== 'maintenance' && a.status !== 'under maintenance' && a.status !== 'request maintenance'
+                    );
+                    setAssets(filtered);
+                });
+            }
         }
-    }, [showAssetSelector]);
+    }, [showAssetSelector, availableAssets]);
 
     if (!isOpen) return null;
 
@@ -74,14 +85,29 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
                 await maintenanceService.update(initialData._id || initialData.id, formData);
                 showSuccessToast('Maintenance record updated successfully');
             } else {
-                await maintenanceService.create(formData);
-                showSuccessToast('Maintenance record created successfully');
+                if (mode === 'request') {
+                    // Use createTicket for drafts/user requests
+                    await maintenanceService.createTicket({
+                        asset: formData.asset,
+                        title: formData.title,
+                        description: formData.description,
+                        type: formData.type
+                    });
+                    showSuccessToast('Draft ticket created successfully');
+                } else {
+                    // Use create for admin direct creation
+                    await maintenanceService.create({
+                        ...formData,
+                        requestedBy: user?._id
+                    });
+                    showSuccessToast('Maintenance record created successfully');
+                }
             }
             if (onSuccess) onSuccess();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save record:', error);
-            showErrorToast('Failed to save record');
+            showErrorToast(error.response?.data?.message || 'Failed to save record');
         } finally {
             setLoading(false);
         }
@@ -99,66 +125,69 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background-dark/80 backdrop-blur-sm px-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-in fade-in duration-200">
             {/* Backdrop click handler */}
             <div className="absolute inset-0" onClick={onClose}></div>
 
-            <div className="bg-white dark:bg-card-dark w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shrink-0">
-                    <h3 className="text-xl font-bold tracking-tight dark:text-white">
-                        {showAssetSelector ? 'Select Asset' : (initialData ? 'Edit Maintenance Record' : 'Log New Maintenance')}
+            <div className="bg-[#0f172a] w-full max-w-lg rounded-xl border border-slate-700 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center shrink-0">
+                    <h3 className="text-lg font-bold tracking-tight text-white">
+                        {showAssetSelector ? 'Select Asset' : (initialData ? 'Edit Maintenance Record' : 'New Maintenance Request')}
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500"
+                        className="p-1 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-white"
                     >
-                        <span className="material-symbols-outlined">close</span>
+                        <span className="material-symbols-outlined text-xl">close</span>
                     </button>
                 </div>
 
                 {showAssetSelector ? (
-                    <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+                    <div className="flex-1 overflow-auto p-4 custom-scrollbar bg-[#0f172a]">
                         <div className="mb-4 flex items-center gap-2">
                             <button
                                 onClick={() => setShowAssetSelector(false)}
-                                className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                                className="text-sm text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-sm">arrow_back</span>
                                 Back to Form
                             </button>
                         </div>
-                        <AssetTable
-                            assets={assets}
-                            onSelect={handleAssetSelect}
-                        />
+                        {/* We might need to style AssetTable to match dark theme better, but passing container styles helps */}
+                        <div className="dark text-white">
+                            <AssetTable
+                                assets={assets}
+                                onSelect={handleAssetSelect}
+                            />
+                        </div>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+                    <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Title</label>
+                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Title</label>
                             <input
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:text-white px-3 py-2"
+                                className="w-full bg-[#1e293b] border border-slate-700 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder:text-slate-500 px-4 py-3 transition-all"
                                 placeholder="Maintenance Title"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Asset</label>
+                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Asset</label>
                             {selectedAsset ? (
-                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-[#1e293b] border border-slate-700 rounded-lg group hover:border-indigo-500/50 transition-colors">
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-bold dark:text-white">{selectedAsset.name}</span>
+                                        <span className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{selectedAsset.name}</span>
                                         <span className="text-xs text-slate-500">SN: {selectedAsset.serial}</span>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setShowAssetSelector(true)}
-                                        className="text-xs text-primary font-bold hover:underline"
+                                        className="text-xs text-indigo-400 font-bold hover:text-indigo-300 px-3 py-1 rounded hover:bg-indigo-500/10 transition-colors"
                                     >
                                         Change
                                     </button>
@@ -167,9 +196,9 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
                                 <button
                                     type="button"
                                     onClick={() => setShowAssetSelector(true)}
-                                    className="w-full py-2.5 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg text-slate-500 hover:border-primary hover:text-primary transition-all text-sm font-bold flex items-center justify-center gap-2"
+                                    className="w-full py-6 border-2 border-dashed border-slate-700 rounded-lg text-slate-400 hover:border-indigo-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all text-sm font-bold flex flex-col items-center justify-center gap-2"
                                 >
-                                    <span className="material-symbols-outlined text-lg">add_circle</span>
+                                    <span className="material-symbols-outlined text-2xl">add_circle</span>
                                     Select Asset
                                 </button>
                             )}
@@ -178,12 +207,12 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
 
                         {initialData && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</label>
+                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Status</label>
                                 <select
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:text-white px-3 py-2"
+                                    className="w-full bg-[#1e293b] border border-slate-700 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white px-4 py-3"
                                 >
                                     <option value="Pending">Pending</option>
                                     <option value="In Progress">In Progress</option>
@@ -193,28 +222,28 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData }: Ma
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Issue Description</label>
+                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Issue Description</label>
                             <textarea
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-slate-500 dark:text-white px-3 py-2"
+                                className="w-full bg-[#1e293b] border border-slate-700 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white placeholder:text-slate-500 px-4 py-3 min-h-[120px]"
                                 placeholder="Briefly describe the maintenance performed..."
-                                rows={3}
+                                required
                             ></textarea>
                         </div>
 
-                        <div className="pt-4 flex justify-end gap-3">
+                        <div className="pt-2 flex justify-end gap-3">
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                className="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors"
                                 type="button"
                             >
                                 Cancel
                             </button>
                             <button
                                 disabled={loading || !formData.asset}
-                                className="bg-primary hover:bg-primary/90 text-background-dark px-8 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 type="submit"
                             >
                                 {loading ? 'Submitting...' : 'Submit Entry'}
