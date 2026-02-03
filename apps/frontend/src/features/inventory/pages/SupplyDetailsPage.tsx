@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import clsx from 'clsx';
-import { Supply, getSupplyById, updateSupply, getSupplyHistory } from '../../../services/supplyService';
+import { Supply, supplyService } from '../../../services/supplyService';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import { useForm } from 'react-hook-form';
 
@@ -23,8 +23,8 @@ export default function SupplyDetailsPage() {
         setLoading(true);
         try {
             const [supplyData, historyData] = await Promise.all([
-                getSupplyById(id),
-                getSupplyHistory(id)
+                supplyService.getById(id),
+                supplyService.getHistory(id)
             ]);
             setSupply(supplyData);
             setHistory(historyData);
@@ -48,7 +48,7 @@ export default function SupplyDetailsPage() {
                 ? supply.quantity - quantityChange
                 : supply.quantity + quantityChange;
 
-            await updateSupply(id, {
+            await supplyService.update(id, {
                 quantity: finalQuantity,
                 reason: data.reason
             });

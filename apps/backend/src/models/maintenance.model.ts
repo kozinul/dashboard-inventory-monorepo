@@ -81,9 +81,18 @@ const maintenanceRecordSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled'],
+        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled', 'On Hold', 'External Service'],
         default: 'Draft'
     },
+    beforePhotos: [String],
+    afterPhotos: [String],
+    suppliesUsed: [{
+        supply: { type: mongoose.Schema.Types.ObjectId, ref: 'Supply' },
+        quantity: Number,
+        name: String,
+        cost: Number
+    }],
+    pendingNote: String,
     visualProof: [String],
     history: [{
         status: { type: String, required: true },

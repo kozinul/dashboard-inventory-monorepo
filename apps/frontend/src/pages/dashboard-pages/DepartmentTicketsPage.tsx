@@ -3,6 +3,7 @@ import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceSer
 import { userService, User } from '@/services/userService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import Swal from 'sweetalert2';
+import { DepartmentTicketActionModal } from '@/features/maintenance/components/DepartmentTicketActionModal';
 
 const statusColors: Record<string, string> = {
     'Draft': 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
@@ -22,12 +23,8 @@ export default function DepartmentTicketsPage() {
     const [filter, setFilter] = useState<string>('all');
 
     // Assign Modal State
-    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState<MaintenanceTicket | null>(null);
-    const [assignData, setAssignData] = useState({
-        technicianId: '',
-        type: ''
-    });
 
     useEffect(() => {
         fetchData();
@@ -57,26 +54,20 @@ export default function DepartmentTicketsPage() {
         }
     };
 
-    const openAssignModal = (ticket: MaintenanceTicket) => {
+    const handleView = (ticket: MaintenanceTicket) => {
         setSelectedTicket(ticket);
-        setAssignData({
-            technicianId: '',
-            type: ticket.type
-        });
-        setIsAssignModalOpen(true);
+        setIsViewModalOpen(true);
     };
 
-    const handleAcceptTicket = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedTicket || !assignData.technicianId) return;
-
+    const handleAcceptTicket = async (ticketId: string, technicianId: string, type: string) => {
         try {
-            await maintenanceService.acceptTicket(selectedTicket._id, assignData.technicianId, assignData.type);
+            await maintenanceService.acceptTicket(ticketId, technicianId, type);
             showSuccessToast('Ticket accepted and technician assigned');
-            setIsAssignModalOpen(false);
+            setIsViewModalOpen(false);
             fetchData();
         } catch (error: any) {
             showErrorToast(error.response?.data?.message || 'Failed to accept ticket');
+            throw error;
         }
     };
 
@@ -100,6 +91,7 @@ export default function DepartmentTicketsPage() {
                 fetchData();
             } catch (error: any) {
                 showErrorToast(error.response?.data?.message || 'Failed to reject');
+                throw error;
             }
         }
     };
@@ -223,31 +215,12 @@ export default function DepartmentTicketsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {ticket.status === 'Sent' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => openAssignModal(ticket)}
-                                                        className="px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700"
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleReject(ticket._id)}
-                                                        className="px-3 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                </>
-                                            )}
-                                            {/* Managers can also complete tickets if needed */}
-                                            {ticket.status === 'In Progress' && (
-                                                <button
-                                                    onClick={() => handleComplete(ticket._id)}
-                                                    className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
-                                                >
-                                                    Complete
-                                                </button>
-                                            )}
+                                            <button
+                                                onClick={() => handleView(ticket)}
+                                                className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                                            >
+                                                View
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -257,70 +230,15 @@ export default function DepartmentTicketsPage() {
                 </table>
             </div>
 
-            {/* Assign Modal */}
-            {isAssignModalOpen && selectedTicket && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-card-dark rounded-xl p-6 w-full max-w-md">
-                        <h3 className="text-lg font-bold mb-1">Accept & Assign Technician</h3>
-                        <p className="text-sm text-slate-500 mb-4">Ticket {selectedTicket.ticketNumber}</p>
-
-                        <form onSubmit={handleAcceptTicket} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Ticket Type</label>
-                                <select
-                                    className="w-full p-2.5 border rounded-lg dark:bg-slate-800 dark:border-slate-700"
-                                    value={assignData.type}
-                                    onChange={(e) => setAssignData({ ...assignData, type: e.target.value })}
-                                    required
-                                >
-                                    <option value="Repair">Repair</option>
-                                    <option value="Maintenance">Maintenance</option>
-                                    <option value="Emergency">Emergency</option>
-                                    <option value="Inspection">Inspection</option>
-                                    <option value="Installation">Installation</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Assign Technician</label>
-                                <select
-                                    className="w-full p-2.5 border rounded-lg dark:bg-slate-800 dark:border-slate-700"
-                                    value={assignData.technicianId}
-                                    onChange={(e) => setAssignData({ ...assignData, technicianId: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Technician</option>
-                                    {technicians.map((tech) => (
-                                        <option key={tech._id || tech.id} value={tech._id || tech.id}>
-                                            {tech.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {technicians.length === 0 && (
-                                    <p className="text-xs text-amber-600 mt-1">No technicians found. Please add users with 'Technician' role.</p>
-                                )}
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAssignModalOpen(false)}
-                                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-primary text-white rounded-lg font-medium"
-                                    disabled={!assignData.technicianId}
-                                >
-                                    Accept & Assign
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {/* View/Action Modal */}
+            <DepartmentTicketActionModal
+                isOpen={isViewModalOpen}
+                onClose={() => setIsViewModalOpen(false)}
+                ticket={selectedTicket}
+                technicians={technicians}
+                onAccept={handleAcceptTicket}
+                onReject={handleReject}
+            />
         </div>
     );
 }

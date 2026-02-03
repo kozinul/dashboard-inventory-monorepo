@@ -25,6 +25,7 @@ import { twMerge } from 'tailwind-merge'
 import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
 import { BreadcrumbProvider } from '../context/BreadcrumbContext'
 import { useAuthStore } from '@/store/authStore'
+import { maintenanceService } from '@/services/maintenanceService'
 
 // Main app navigation
 const mainNavigation = [
@@ -63,6 +64,7 @@ type NavigationItem = {
     icon: any;
     children?: { name: string; href: string; icon: any }[];
     current?: boolean;
+    badge?: number;
 }
 
 const navigation: NavigationItem[] = [
@@ -88,6 +90,39 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
+    const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0 });
+
+    useEffect(() => {
+        const fetchCounts = async () => {
+            if (user) {
+                try {
+                    const data = await maintenanceService.getNavCounts();
+                    setCounts({
+                        dept: data.pendingDeptTickets || 0,
+                        assigned: data.assignedTickets || 0,
+                        active: data.activeTickets || 0
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch nav counts', error);
+                }
+            }
+        };
+
+        fetchCounts();
+        // Poll every minute
+        const interval = setInterval(fetchCounts, 60000);
+        return () => clearInterval(interval);
+    }, [user, location.pathname]); // Re-fetch on navigation too
+
+    // Helper to inject badges
+    const getBadge = (name: string) => {
+        if (name === 'Dept. Tickets') return counts.dept;
+        if (name === 'Maintenance') {
+            if (user?.role === 'technician') return counts.assigned;
+            if (user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager') return counts.active;
+        }
+        return 0;
+    };
 
     // Check if user has permission for a resource
     const hasPermission = (item: any) => {
@@ -100,6 +135,7 @@ function DashboardLayout() {
             'Supplies': 'inventory', // grouped
             'Assignments': 'assignments',
             'My Tickets': 'my_tickets',
+            'Assigned Jobs': 'assigned_jobs',
             'Dept. Tickets': 'dept_tickets',
             'Maintenance': 'maintenance',
             'Services': 'services',
@@ -116,7 +152,7 @@ function DashboardLayout() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'my_tickets', 'assignments', 'my_assets'].includes(resource || '');
+            return ['dashboard', 'inventory', 'my_tickets', 'department_tickets', 'maintenance', 'assignments', 'my_assets'].includes(resource || '');
         }
 
         // Standard User permissions
@@ -223,6 +259,11 @@ function DashboardLayout() {
                                                                     >
                                                                         <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                                                                         {item.name}
+                                                                        {getBadge(item.name) > 0 && (
+                                                                            <span className="ml-auto w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                                                                                {getBadge(item.name)}
+                                                                            </span>
+                                                                        )}
                                                                     </Link>
                                                                 ) : (
                                                                     <Disclosure as="div">
@@ -309,6 +350,11 @@ function DashboardLayout() {
                                                     >
                                                         <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                                                         {item.name}
+                                                        {getBadge(item.name) > 0 && (
+                                                            <span className="ml-auto w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                                                                {getBadge(item.name)}
+                                                            </span>
+                                                        )}
                                                     </Link>
                                                 ) : (
                                                     <Disclosure as="div">

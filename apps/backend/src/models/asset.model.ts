@@ -87,6 +87,7 @@ const assetSchema = new mongoose.Schema({
         details: String
     },
     maintenanceHistory: [{
+        ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'MaintenanceRecord' },
         ticketNumber: String,
         description: String,
         completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

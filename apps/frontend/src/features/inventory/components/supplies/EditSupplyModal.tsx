@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
-import { Supply, updateSupply } from '../../../../services/supplyService';
+import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
 import axios from 'axios';
 
@@ -56,7 +56,7 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
         if (!supply?._id) return;
         try {
             setIsSubmitting(true);
-            await updateSupply(supply._id, data);
+            await supplyService.update(supply._id, data);
             onUpdate();
             onClose();
         } catch (error) {

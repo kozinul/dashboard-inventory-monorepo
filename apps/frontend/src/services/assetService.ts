@@ -46,6 +46,7 @@ export interface Asset {
         details: string;
     };
     maintenanceHistory?: {
+        ticketId?: string;
         ticketNumber: string;
         description: string;
         completedBy: string;

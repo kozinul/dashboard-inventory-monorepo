@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getSupplies, deleteSupply, Supply } from '../../../services/supplyService';
+import { supplyService, Supply } from '../../../services/supplyService';
 import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import Swal from 'sweetalert2';
@@ -16,7 +16,7 @@ export default function SuppliesPage() {
     const fetchSupplies = async () => {
         setLoading(true);
         try {
-            const data = await getSupplies({ search: searchTerm });
+            const data = await supplyService.getAll({ search: searchTerm });
             setSupplies(data);
         } catch (error) {
             console.error('Error fetching supplies:', error);
@@ -51,7 +51,7 @@ export default function SuppliesPage() {
 
         if (result.isConfirmed) {
             try {
-                await deleteSupply(id);
+                await supplyService.delete(id);
                 fetchSupplies();
                 Swal.fire('Deleted!', 'Supply item has been deleted.', 'success');
             } catch (error) {

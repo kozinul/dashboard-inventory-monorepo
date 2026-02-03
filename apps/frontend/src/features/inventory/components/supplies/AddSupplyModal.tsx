@@ -1,7 +1,7 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
-import { Supply, createSupply } from '../../../../services/supplyService';
+import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
 import axios from 'axios';
 
@@ -51,7 +51,7 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
     const onSubmit = async (data: Supply) => {
         try {
             setIsSubmitting(true);
-            await createSupply(data);
+            await supplyService.create(data);
             onAdd();
             reset();
             onClose();

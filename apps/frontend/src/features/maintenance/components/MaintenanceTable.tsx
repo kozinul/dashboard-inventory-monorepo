@@ -4,9 +4,11 @@ interface MaintenanceTableProps {
     tasks: any[];
     onEdit: (task: any) => void;
     onDelete: (id: string) => void;
+    userRole?: string;
 }
 
-export function MaintenanceTable({ tasks, onEdit, onDelete }: MaintenanceTableProps) {
+export function MaintenanceTable({ tasks, onEdit, onDelete, userRole }: MaintenanceTableProps) {
+    const isAdmin = userRole === 'superuser' || userRole === 'admin' || userRole === 'administrator';
     return (
         <div className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden shadow-sm">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-border-dark flex justify-between items-center bg-white dark:bg-card-dark">
@@ -61,19 +63,32 @@ export function MaintenanceTable({ tasks, onEdit, onDelete }: MaintenanceTablePr
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={() => onEdit(task)}
-                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
-                                                title="Edit"
+                                                onClick={() => window.location.href = `/maintenance/${task._id || task.id}`}
+                                                className="p-1 text-slate-400 hover:text-blue-500 transition-colors"
+                                                title="View Details"
                                             >
-                                                <span className="material-symbols-outlined text-lg">edit</span>
+                                                <span className="material-symbols-outlined text-lg">visibility</span>
                                             </button>
-                                            <button
-                                                onClick={() => onDelete(task._id || task.id)}
-                                                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                                                title="Delete"
-                                            >
-                                                <span className="material-symbols-outlined text-lg">delete</span>
-                                            </button>
+
+                                            {/* Only show actions if ticket is NOT done, OR if user is admin/superuser */}
+                                            {(task.status !== 'Done' || isAdmin) && (
+                                                <>
+                                                    <button
+                                                        onClick={() => onEdit(task)}
+                                                        className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">edit</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => onDelete(task._id || task.id)}
+                                                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">delete</span>
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

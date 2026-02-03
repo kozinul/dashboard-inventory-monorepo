@@ -218,12 +218,7 @@ export default function MyMaintenanceTicketsPage() {
                                         >
                                             View
                                         </button>
-                                        <button
-                                            onClick={() => handleCancelTicket(ticket._id)}
-                                            className="text-red-600 hover:text-red-800 text-sm"
-                                        >
-                                            Cancel
-                                        </button>
+
                                     </td>
                                 </tr>
                             ))
@@ -284,9 +279,9 @@ export default function MyMaintenanceTicketsPage() {
                                         {previewTicket.history.map((item, index) => (
                                             <div key={index} className="relative">
                                                 <div className={`absolute -left-[21px] top-1 size-3 rounded-full border-2 border-white dark:border-slate-800 ${item.status === 'Done' ? 'bg-green-500' :
-                                                        item.status === 'Rejected' ? 'bg-red-500' :
-                                                            item.status === 'In Progress' ? 'bg-blue-500' :
-                                                                'bg-slate-400'
+                                                    item.status === 'Rejected' ? 'bg-red-500' :
+                                                        item.status === 'In Progress' ? 'bg-blue-500' :
+                                                            'bg-slate-400'
                                                     }`}></div>
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2">

@@ -30,6 +30,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
     const [showAssetSelector, setShowAssetSelector] = useState(false);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<any>(null);
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     useEffect(() => {
         if (initialData) {
@@ -59,6 +60,11 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
         }
     }, [initialData, isOpen]);
 
+    // Reset files when modal opens/closes
+    useEffect(() => {
+        if (!isOpen) setSelectedFiles(null);
+    }, [isOpen]);
+
     useEffect(() => {
         if (showAssetSelector) {
             if (availableAssets) {
@@ -87,12 +93,19 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
             } else {
                 if (mode === 'request') {
                     // Use createTicket for drafts/user requests
-                    await maintenanceService.createTicket({
-                        asset: formData.asset,
-                        title: formData.title,
-                        description: formData.description,
-                        type: formData.type
-                    });
+                    const requestData = new FormData();
+                    requestData.append('asset', formData.asset);
+                    requestData.append('title', formData.title);
+                    requestData.append('description', formData.description);
+                    requestData.append('type', formData.type);
+
+                    if (selectedFiles) {
+                        for (let i = 0; i < selectedFiles.length; i++) {
+                            requestData.append('images', selectedFiles[i]);
+                        }
+                    }
+
+                    await maintenanceService.createTicket(requestData);
                     showSuccessToast('Draft ticket created successfully');
                 } else {
                     // Use create for admin direct creation
@@ -122,6 +135,13 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
         setFormData(prev => ({ ...prev, asset: asset._id || asset.id! }));
         setSelectedAsset(asset);
         setShowAssetSelector(false);
+        setShowAssetSelector(false);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedFiles(e.target.files);
+        }
     };
 
     return (
@@ -233,6 +253,25 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                             ></textarea>
                         </div>
 
+                        {mode === 'request' && (
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Attach Images (Optional)</label>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-slate-800 dark:file:text-indigo-400"
+                                />
+                                {selectedFiles && (
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        {selectedFiles.length} file(s) selected
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+
                         <div className="pt-2 flex justify-end gap-3">
                             <button
                                 onClick={onClose}
@@ -252,6 +291,6 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                     </form>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

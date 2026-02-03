@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { getSupplies, Supply } from '@/services/supplyService';
+import { supplyService, Supply } from '@/services/supplyService';
 import { eventService } from '@/services/eventService';
 
 interface AddEventSupplyModalProps {
@@ -21,7 +21,7 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
     const loadSupplies = async () => {
         setLoading(true);
         try {
-            const data = await getSupplies();
+            const data = await supplyService.getAll();
             setSupplies(data);
         } catch (error) {
             console.error('Failed to fetch supplies:', error);

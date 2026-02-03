@@ -13,7 +13,8 @@ import AssetAssignmentPage from '@/pages/dashboard-pages/AssetAssignmentPage';
 import MaintenancePage from '../pages/dashboard-pages/MaintenancePage';
 import MyMaintenanceTicketsPage from '../pages/dashboard-pages/MyMaintenanceTicketsPage';
 import DepartmentTicketsPage from '../pages/dashboard-pages/DepartmentTicketsPage';
-import AssignedTicketsPage from '../pages/dashboard-pages/AssignedTicketsPage';
+import MaintenanceDetailPage from '../pages/dashboard-pages/MaintenanceDetailPage';
+
 import ServicePage from '../pages/dashboard-pages/ServicePage';
 import ReportsPage from '../pages/dashboard-pages/ReportsPage';
 import DisposalPage from '../pages/dashboard-pages/DisposalPage';
@@ -100,6 +101,10 @@ export const router = createBrowserRouter([
                                 element: <MaintenancePage />,
                             },
                             {
+                                path: 'maintenance/:id',
+                                element: <MaintenanceDetailPage />,
+                            },
+                            {
                                 path: 'my-tickets',
                                 element: <MyMaintenanceTicketsPage />,
                             },
@@ -107,10 +112,7 @@ export const router = createBrowserRouter([
                                 path: 'department-tickets',
                                 element: <DepartmentTicketsPage />,
                             },
-                            {
-                                path: 'assigned-tickets',
-                                element: <AssignedTicketsPage />,
-                            },
+
                             {
                                 path: 'my-assets',
                                 element: <MyAssetsPage />,

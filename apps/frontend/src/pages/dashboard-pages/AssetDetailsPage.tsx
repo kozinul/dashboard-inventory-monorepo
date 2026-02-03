@@ -10,6 +10,7 @@ import { RentalRatesTab } from "../../features/inventory/components/asset-detail
 import { AssetAssignmentTab } from "../../features/inventory/components/asset-details/AssetAssignmentTab";
 import { AssetServiceTab } from "../../features/inventory/components/asset-details/AssetServiceTab";
 import { AssetDocuments } from "../../features/inventory/components/asset-details/AssetDocuments";
+import { AssetMaintenanceTab } from "../../features/inventory/components/asset-details/AssetMaintenanceTab";
 import { assetService, Asset } from "../../services/assetService";
 
 import { EditInventoryModal } from "../../features/inventory/components/EditInventoryModal";
@@ -159,11 +160,8 @@ export default function AssetDetailsPage() {
                     {activeTab === 'rental_history' && id && <BookingHistoryTable assetId={id} />}
                     {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}
 
-                    {activeTab === 'maintenance' && (
-                        <div className="flex items-center justify-center py-12 text-slate-400">
-                            Maintenance content is not implemented yet.
-                        </div>
-                    )}
+                    {activeTab === 'maintenance' && <AssetMaintenanceTab asset={asset} />}
+
                 </div>
             </div>
 

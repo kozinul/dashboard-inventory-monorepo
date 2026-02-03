@@ -38,32 +38,34 @@ export interface Supply {
     updatedAt?: string;
 }
 
-export const getSupplies = async (params?: { search?: string; category?: string; lowStock?: boolean }) => {
-    const response = await axios.get(API_URL, { params });
-    return response.data;
-};
+export const supplyService = {
+    getAll: async (params?: { search?: string; category?: string; lowStock?: boolean }) => {
+        const response = await axios.get(API_URL, { params });
+        return response.data;
+    },
 
-export const getSupplyById = async (id: string) => {
-    const response = await axios.get(`${API_URL}/${id}`);
-    return response.data;
-};
+    getById: async (id: string) => {
+        const response = await axios.get(`${API_URL}/${id}`);
+        return response.data;
+    },
 
-export const createSupply = async (data: Supply) => {
-    const response = await axios.post(API_URL, data);
-    return response.data;
-};
+    create: async (data: Supply) => {
+        const response = await axios.post(API_URL, data);
+        return response.data;
+    },
 
-export const updateSupply = async (id: string, supply: Partial<Supply> & { reason?: string }) => {
-    const response = await axios.patch(`${API_URL}/${id}`, supply);
-    return response.data;
-};
+    update: async (id: string, supply: Partial<Supply> & { reason?: string }) => {
+        const response = await axios.patch(`${API_URL}/${id}`, supply);
+        return response.data;
+    },
 
-export const deleteSupply = async (id: string) => {
-    const response = await axios.delete(`${API_URL}/${id}`);
-    return response.data;
-};
+    delete: async (id: string) => {
+        const response = await axios.delete(`${API_URL}/${id}`);
+        return response.data;
+    },
 
-export const getSupplyHistory = async (id: string) => {
-    const response = await axios.get(`${API_URL}/${id}/history`);
-    return response.data;
+    getHistory: async (id: string) => {
+        const response = await axios.get(`${API_URL}/${id}/history`);
+        return response.data;
+    }
 };

@@ -3,6 +3,7 @@ import { MaintenanceRecord } from '../models/maintenance.model.js';
 import { Asset } from '../models/asset.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { User } from '../models/user.model.js';
+import { Supply } from '../models/supply.model.js';
 
 // Get all maintenance records (for admin/managers)
 export const getMaintenanceRecords = async (req: Request, res: Response, next: NextFunction) => {
@@ -17,9 +18,14 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         if (req.query.status) {
             filter.status = req.query.status;
         }
+        // Filtering unassigned tickets for non-admin users
+        const userRole = req.user.role;
+        if (userRole !== 'superuser' && userRole !== 'admin') {
+            filter.technician = { $exists: true, $ne: null };
+        }
 
         const records = await MaintenanceRecord.find(filter)
-            .populate('asset', 'name serial')
+            .populate('asset', 'name serial department departmentId')
             .populate('technician', 'name avatar')
             .populate('vendor', 'name')
             .populate('requestedBy', 'name email department')
@@ -36,7 +42,7 @@ export const getMyTickets = async (req: Request, res: Response, next: NextFuncti
     try {
         const userId = req.user._id;
         const records = await MaintenanceRecord.find({ requestedBy: userId })
-            .populate('asset', 'name serial')
+            .populate('asset', 'name serial department departmentId')
             .populate('processedBy', 'name')
             .populate({
                 path: 'history.changedBy',
@@ -54,7 +60,7 @@ export const getAssignedTickets = async (req: Request, res: Response, next: Next
     try {
         const userId = req.user._id;
         const records = await MaintenanceRecord.find({ technician: userId })
-            .populate('asset', 'name serial')
+            .populate('asset', 'name serial department departmentId')
             .populate('requestedBy', 'name email department')
             .populate('processedBy', 'name')
             .populate({
@@ -83,9 +89,10 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
         // If user is admin/superuser without department, show all tickets
         if (!manager.departmentId && (manager.role === 'admin' || manager.role === 'superuser')) {
             records = await MaintenanceRecord.find({})
-                .populate('asset', 'name serial')
+                .populate('asset', 'name serial department departmentId')
                 .populate('requestedBy', 'name email department')
                 .populate('processedBy', 'name')
+                .populate('technician', 'name email')
                 .populate({
                     path: 'history.changedBy',
                     select: 'name avatar'
@@ -98,9 +105,10 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
 
             // Get tickets from those users
             records = await MaintenanceRecord.find({ requestedBy: { $in: userIds } })
-                .populate('asset', 'name serial')
+                .populate('asset', 'name serial department departmentId')
                 .populate('requestedBy', 'name email')
                 .populate('processedBy', 'name')
+                .populate('technician', 'name email')
                 .populate({
                     path: 'history.changedBy',
                     select: 'name avatar'
@@ -141,6 +149,12 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
             }
         }
 
+        // Handle file uploads
+        let beforePhotos: string[] = [];
+        if (req.files && Array.isArray(req.files)) {
+            beforePhotos = (req.files as Express.Multer.File[]).map(file => file.path);
+        }
+
         if (req.body.technician === '') delete req.body.technician;
         if (req.body.vendor === '') delete req.body.vendor;
 
@@ -149,6 +163,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
             requestedBy: userId,
             requestedAt: new Date(),
             status: 'Draft',
+            beforePhotos: beforePhotos,
             history: [{
                 status: 'Draft',
                 changedBy: userId,
@@ -371,6 +386,7 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
             status: 'active',
             $push: {
                 maintenanceHistory: {
+                    ticketId: record._id,
                     ticketNumber: record.ticketNumber,
                     description: record.title + (record.description ? `: ${record.description}` : ''),
                     completedBy: managerId,
@@ -506,6 +522,190 @@ export const deleteMaintenanceRecord = async (req: Request, res: Response, next:
             return res.status(404).json({ message: 'Record not found' });
         }
         res.json({ message: 'Record deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get navigation counts for badges
+export const getNavCounts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        let pendingDeptTickets = 0;
+        let assignedTickets = 0;
+        let activeTickets = 0;
+
+        // Count pending department tickets (Sent status)
+        if (user.role === 'admin' || user.role === 'superuser') {
+            // Admins see all sent tickets
+            pendingDeptTickets = await MaintenanceRecord.countDocuments({ status: 'Sent' });
+
+            // Active tickets for admins (Accepted + In Progress)
+            activeTickets = await MaintenanceRecord.countDocuments({
+                status: { $in: ['Accepted', 'In Progress'] }
+            });
+        } else if (user.departmentId && (user.role === 'manager' || user.role === 'technician')) {
+            // Managers/Technicians see tickets from their department
+            const departmentUsers = await User.find({ departmentId: user.departmentId }).select('_id');
+            const userIds = departmentUsers.map(u => u._id);
+            pendingDeptTickets = await MaintenanceRecord.countDocuments({
+                status: 'Sent',
+                requestedBy: { $in: userIds }
+            });
+
+            // Active tickets for managers (Accepted + In Progress for their dept)
+            if (user.role === 'manager') {
+                activeTickets = await MaintenanceRecord.countDocuments({
+                    status: { $in: ['Accepted', 'In Progress'] },
+                    requestedBy: { $in: userIds }
+                });
+            }
+        }
+
+        // Count assigned tickets for technicians (Accepted status, ready to work)
+        if (user.role === 'technician') {
+            assignedTickets = await MaintenanceRecord.countDocuments({
+                technician: userId,
+                status: { $in: ['Accepted'] } // Count 'Accepted' as new/actionable.
+            });
+        }
+
+        res.json({
+            pendingDeptTickets,
+            assignedTickets,
+            activeTickets
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update ticket work details (technician)
+export const updateTicketWork = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const technicianId = req.user._id;
+        const { status, beforePhotos, afterPhotos, suppliesUsed, pendingNote, notes } = req.body;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        // Allow manager/admin to update as well, or just the assigned technician
+        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || (req.user.departmentId && req.user.role === 'manager');
+        if (record.technician?.toString() !== technicianId.toString() && !isManager) {
+            return res.status(403).json({ message: 'You are not assigned to this ticket' });
+        }
+
+        // Update fields if provided
+        if (beforePhotos) record.beforePhotos = beforePhotos;
+        if (afterPhotos) record.afterPhotos = afterPhotos;
+        if (pendingNote) record.pendingNote = pendingNote;
+
+        // Handle supplies
+        if (suppliesUsed && Array.isArray(suppliesUsed)) {
+            // Revert previous supplies if we are replacing the list (or handle differential updates - here we assume we append or replace via UI logic. 
+            // For simplicity in this iteration, let's assume we are receiving the *new* supplies to add, or the full list.
+            // A safer approach for stock management is to handle "adding" supplies specifically.
+            // Let's assume the UI sends the NEW items to add to the existing list to avoid complex diffing on the backend for this iteration, 
+            // OR we can just loop through and reduce stock for *newly added* items.
+
+            // BETTER APPROACH: The UI should send the supplies to ADD. 
+            // But if we want to support full form submission:
+            // We will loop through the incoming suppliesUsed. match with existing. 
+            // If it's a new entry (no ID check, but just structurally), deduct stock.
+            // To keep it robust, let's assume the frontend sends the "delta" or we just append.
+
+            // For this Implementation: We will APPEND the new supplies sent in the body to the existing array.
+            // so req.body.suppliesUsed should contain ONLY the new supplies to add.
+
+            for (const item of suppliesUsed) {
+                const supply = await Supply.findById(item.supply);
+                if (supply) {
+                    if (supply.quantity < item.quantity) {
+                        return res.status(400).json({ message: `Insufficient stock for ${supply.name}` });
+                    }
+                    // Deduct stock
+                    supply.quantity -= item.quantity;
+                    await supply.save();
+
+                    // Add to record
+                    record.suppliesUsed.push({
+                        supply: item.supply,
+                        quantity: item.quantity,
+                        name: supply.name,
+                        cost: supply.cost
+                    });
+                    // Update total cost
+                    record.cost = (record.cost || 0) + (supply.cost * item.quantity);
+                }
+            }
+        }
+
+        // Handle Status Changes
+        if (status && status !== record.status) {
+            record.status = status;
+
+            const historyEntry: any = {
+                status: status,
+                changedBy: technicianId,
+                changedAt: new Date(),
+                notes: notes || `Status updated to ${status}`
+            };
+
+            if (status === 'Pending' && pendingNote) {
+                historyEntry.notes = `Pending: ${pendingNote}`;
+            } else if (status === 'External Service') {
+                historyEntry.notes = 'Requested external service';
+            } else if (status === 'Done') {
+                historyEntry.notes = 'Work completed';
+                // Ensure processedBy is set if not already
+                if (!record.processedBy) record.processedBy = technicianId;
+            }
+
+            record.history.push(historyEntry);
+        }
+
+        await record.save();
+
+        const populated = await MaintenanceRecord.findById(record._id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email')
+            .populate('technician', 'name email')
+            .populate('suppliesUsed.supply', 'name unit partNumber');
+
+        res.json(populated);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get single ticket by ID
+export const getMaintenanceTicket = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const record = await MaintenanceRecord.findById(req.params.id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email department')
+            .populate('technician', 'name email')
+            .populate('processedBy', 'name')
+            .populate('suppliesUsed.supply', 'name unit partNumber')
+            .populate({
+                path: 'history.changedBy',
+                select: 'name avatar'
+            });
+
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        res.json(record);
     } catch (error) {
         next(error);
     }
