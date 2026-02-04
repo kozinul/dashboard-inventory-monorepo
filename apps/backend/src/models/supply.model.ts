@@ -76,7 +76,6 @@ const supplySchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for efficient searching by part number
-supplySchema.index({ partNumber: 1 });
+
 
 export const Supply = mongoose.model('Supply', supplySchema);

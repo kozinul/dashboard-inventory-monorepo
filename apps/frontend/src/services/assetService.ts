@@ -62,6 +62,11 @@ export const assetService = {
         return response.data;
     },
 
+    getAvailable: async (params: { startTime: string; endTime: string; excludeEventId?: string }) => {
+        const response = await axios.get<Asset[]>(`${API_URL}/items/available`, { params });
+        return response.data;
+    },
+
     getById: async (id: string) => {
         const response = await axios.get<Asset>(`${API_URL}/items/${id}`);
         return response.data;

@@ -4,6 +4,7 @@ import { eventService, Event } from '@/services/eventService';
 import { format } from 'date-fns';
 import AddEventAssetModal from '@/features/events/components/AddEventAssetModal';
 import AddEventSupplyModal from '@/features/events/components/AddEventSupplyModal';
+import Swal from 'sweetalert2';
 
 export default function EventDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -33,7 +34,18 @@ export default function EventDetailsPage() {
 
     const handleRemoveAsset = async (assetIndex: number) => {
         if (!event || !id) return;
-        if (!confirm('Are you sure you want to remove this asset?')) return;
+
+        const result = await Swal.fire({
+            title: 'Remove Asset?',
+            text: "Are you sure you want to remove this asset?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3b82f6',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             const updatedAssets = [...(event.rentedAssets || [])];
@@ -52,15 +64,34 @@ export default function EventDetailsPage() {
             }));
 
             await eventService.update(id, { rentedAssets: payloadAssets });
+            await Swal.fire({
+                title: 'Removed!',
+                text: 'Asset has been removed.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
             fetchEvent();
         } catch (error) {
             console.error('Failed to remove asset:', error);
+            Swal.fire('Error', 'Failed to remove asset', 'error');
         }
     };
 
     const handleRemoveSupply = async (supplyIndex: number) => {
         if (!event || !id) return;
-        if (!confirm('Are you sure you want to remove this supply?')) return;
+
+        const result = await Swal.fire({
+            title: 'Remove Supply?',
+            text: "Are you sure you want to remove this supply?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3b82f6',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             const updatedSupplies = [...(event.planningSupplies || [])];
@@ -73,9 +104,17 @@ export default function EventDetailsPage() {
             }));
 
             await eventService.update(id, { planningSupplies: payloadSupplies });
+            await Swal.fire({
+                title: 'Removed!',
+                text: 'Supply has been removed.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
             fetchEvent();
         } catch (error) {
             console.error('Failed to remove supply:', error);
+            Swal.fire('Error', 'Failed to remove supply', 'error');
         }
     };
 
@@ -126,22 +165,78 @@ export default function EventDetailsPage() {
                     </span>
 
                     {event.status === 'planning' && (
-                        <button
-                            onClick={async () => {
-                                if (!id) return;
-                                if (confirm('Are you sure you want to book these resources? This will mark the event as scheduled.')) {
-                                    try {
-                                        await eventService.update(id, { status: 'scheduled' });
-                                        fetchEvent();
-                                    } catch (error) {
-                                        console.error('Failed to book event:', error);
+                        <>
+                            <button
+                                onClick={async () => {
+                                    if (!id) return;
+
+                                    const hasItems = (event.rentedAssets && event.rentedAssets.length > 0) ||
+                                        (event.planningSupplies && event.planningSupplies.length > 0);
+
+                                    if (hasItems) {
+                                        Swal.fire({
+                                            title: 'Cannot Delete',
+                                            text: 'Please remove all rented assets and planned supplies before deleting the event.',
+                                            icon: 'warning'
+                                        });
+                                        return;
                                     }
-                                }
-                            }}
-                            className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-                        >
-                            Book Resources
-                        </button>
+
+                                    const result = await Swal.fire({
+                                        title: 'Are you sure?',
+                                        text: "You won't be able to revert this!",
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#ef4444',
+                                        cancelButtonColor: '#3b82f6',
+                                        confirmButtonText: 'Yes, delete it!'
+                                    });
+
+                                    if (result.isConfirmed) {
+                                        try {
+                                            await eventService.delete(id);
+                                            await Swal.fire({
+                                                title: 'Deleted!',
+                                                text: 'The event has been deleted.',
+                                                icon: 'success'
+                                            });
+                                            navigate('/rental');
+                                        } catch (error: any) {
+                                            console.error('Failed to delete event:', error);
+                                            Swal.fire({
+                                                title: 'Error!',
+                                                text: error.response?.data?.message || 'Failed to delete event',
+                                                icon: 'error'
+                                            });
+                                        }
+                                    }
+                                }}
+                                disabled={(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)}
+                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)
+                                        ? 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
+                                        : 'text-red-600 bg-red-50 border border-red-200 hover:bg-red-100'
+                                    }`}
+                                title={((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)) ? "Remove all assets and supplies first" : "Delete Event"}
+                            >
+                                Delete
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (!id) return;
+                                    if (confirm('Are you sure you want to book these resources? This will mark the event as scheduled.')) {
+                                        try {
+                                            await eventService.update(id, { status: 'scheduled' });
+                                            fetchEvent();
+                                        } catch (error) {
+                                            console.error('Failed to book event:', error);
+                                        }
+                                    }
+                                }}
+                                className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                            >
+                                Book Resources
+                            </button>
+                        </>
                     )}
 
                     {event.status === 'scheduled' && (
@@ -203,8 +298,8 @@ export default function EventDetailsPage() {
                         <button
                             onClick={() => setIsAssetModalOpen(true)}
                             className="px-3 py-1.5 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 flex items-center gap-1 shadow-sm shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={event.status !== 'planning'}
-                            title={event.status !== 'planning' ? "Switch to Planning mode to add assets" : "Add Asset"}
+                            disabled={event.status !== 'planning' && event.status !== 'scheduled'}
+                            title={event.status !== 'planning' && event.status !== 'scheduled' ? "Switch to Planning or Booked mode to add assets" : "Add Asset"}
                         >
                             <span className="material-symbols-outlined text-[16px]">add</span>
                             Add Asset
@@ -234,8 +329,8 @@ export default function EventDetailsPage() {
                                                 <button
                                                     onClick={() => handleRemoveAsset(idx)}
                                                     className="text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    disabled={event.status !== 'planning'}
-                                                    title={event.status !== 'planning' ? "Switch to Planning mode to remove assets" : "Remove asset"}
+                                                    disabled={event.status !== 'planning' && event.status !== 'scheduled'}
+                                                    title={event.status !== 'planning' && event.status !== 'scheduled' ? "Switch to Planning or Booked mode to remove assets" : "Remove asset"}
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">delete</span>
                                                 </button>

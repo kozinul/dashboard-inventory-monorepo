@@ -160,6 +160,11 @@ function DashboardLayout() {
             return ['dashboard', 'inventory', 'my_tickets', 'my_assets'].includes(resource || '');
         }
 
+        // Manager permissions
+        if (user?.role === 'manager') {
+            return ['dashboard', 'inventory', 'my_tickets', 'dept_tickets', 'maintenance', 'reports', 'users', 'my_assets', 'settings', 'assignments'].includes(resource || '');
+        }
+
         // Fallback or explicit deny if no role matches above
         return false;
     };

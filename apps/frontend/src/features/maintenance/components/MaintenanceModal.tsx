@@ -101,7 +101,10 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
 
                     if (selectedFiles) {
                         for (let i = 0; i < selectedFiles.length; i++) {
-                            requestData.append('images', selectedFiles[i]);
+                            const file = selectedFiles.item(i);
+                            if (file) {
+                                requestData.append('images', file);
+                            }
                         }
                     }
 
@@ -236,6 +239,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                                 >
                                     <option value="Pending">Pending</option>
                                     <option value="In Progress">In Progress</option>
+                                    <option value="Service">Service</option>
                                     <option value="Done">Done</option>
                                 </select>
                             </div>

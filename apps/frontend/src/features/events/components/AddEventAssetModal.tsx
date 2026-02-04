@@ -28,12 +28,21 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
     const fetchAssets = async () => {
         setLoading(true);
         try {
-            const response = await assetService.getAll();
-            // Filter assets that have rental rates
-            const rentalAssets = response.data.filter(asset => asset.rentalRates && asset.rentalRates.length > 0);
+            // Fetch event details first to get dates
+            const event = await eventService.getById(eventId);
+            if (!event) return;
+
+            const response = await assetService.getAvailable({
+                startTime: event.startTime.toString(),
+                endTime: event.endTime.toString(),
+                excludeEventId: eventId
+            });
+
+            // Filter assets that have rental rates (just in case backend doesn't filter perfectly or we want double safety)
+            const rentalAssets = response.filter(asset => asset.rentalRates && asset.rentalRates.length > 0);
             setAssets(rentalAssets);
         } catch (error) {
-            console.error('Failed to fetch assets:', error);
+            console.error('Failed to fetch available assets:', error);
         } finally {
             setLoading(false);
         }

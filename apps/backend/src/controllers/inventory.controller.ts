@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
+import Event from '../models/event.model.js';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -143,6 +144,43 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
             lowStock, // Placeholder logic
             maintenanceCount
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getAvailableAssetsForEvent = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { startTime, endTime, excludeEventId } = req.query;
+
+        if (!startTime || !endTime) {
+            return res.status(400).json({ message: 'startTime and endTime are required' });
+        }
+
+        const start = new Date(startTime as string);
+        const end = new Date(endTime as string);
+
+        // Find conflicting events
+        const conflictingEvents = await Event.find({
+            _id: { $ne: excludeEventId }, // Exclude current event if editing
+            status: { $ne: 'cancelled' },
+            $or: [
+                { startTime: { $lt: end }, endTime: { $gt: start } } // Overlap logic
+            ]
+        }).select('rentedAssets.assetId');
+
+        // Extract Asset IDs explicitly booked
+        const bookedAssetIds = conflictingEvents.flatMap(e => e.rentedAssets.map(ra => ra.assetId.toString()));
+
+        // Find assets not in booked list
+        const assets = await Asset.find({
+            _id: { $nin: bookedAssetIds },
+            status: { $ne: 'disposed' },
+            'rentalRates.0': { $exists: true }
+        });
+
+        res.json(assets);
+
     } catch (error) {
         next(error);
     }

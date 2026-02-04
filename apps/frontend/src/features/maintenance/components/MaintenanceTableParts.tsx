@@ -49,6 +49,14 @@ export function MaintenanceStatusBadge({ status }: { status: any }) {
             </div>
         );
     }
+    if (status === 'Service') {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span className="text-sm font-semibold text-indigo-500">Service</span>
+            </div>
+        );
+    }
     if (status === 'Done') {
         return (
             <div className="flex items-center gap-2">

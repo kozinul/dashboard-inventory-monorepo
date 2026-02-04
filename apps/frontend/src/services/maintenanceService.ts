@@ -15,7 +15,7 @@ export interface MaintenanceTicket {
     title: string;
     description?: string;
     type: string;
-    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed';
+    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Service' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed';
     requestedBy?: {
         _id: string;
         name: string;
@@ -54,6 +54,13 @@ export interface MaintenanceTicket {
         cost: number;
     }[];
     pendingNote?: string;
+    notes?: {
+        _id: string;
+        content: string;
+        addedBy: string | { _id: string; name: string; avatar?: string };
+        createdAt: string;
+        updatedAt?: string;
+    }[];
 }
 
 export interface CreateTicketDto {
@@ -148,6 +155,7 @@ export const maintenanceService = {
     },
 
     updateTicketWork: async (id: string, data: any): Promise<MaintenanceTicket> => {
+        // Axios automatically handles FormData content-type header
         const response = await axios.put(`${API_URL}/${id}/work`, data);
         return response.data;
     },
@@ -159,6 +167,36 @@ export const maintenanceService = {
 
     completeTicket: async (id: string): Promise<MaintenanceTicket> => {
         const response = await axios.put(`${API_URL}/${id}/complete`);
+        return response.data;
+    },
+
+    escalateTicket: async (id: string, departmentId: string, notes: string): Promise<MaintenanceTicket> => {
+        const response = await axios.put(`${API_URL}/${id}/escalate`, { departmentId, notes });
+        return response.data;
+    },
+
+    updateStatus: async (id: string, status: string, notes?: string): Promise<MaintenanceTicket> => {
+        const response = await axios.put(`${API_URL}/${id}/status`, { status, notes });
+        return response.data;
+    },
+
+    removeSupply: async (ticketId: string, supplyItemId: string): Promise<MaintenanceTicket> => {
+        const response = await axios.delete(`${API_URL}/${ticketId}/supplies/${supplyItemId}`);
+        return response.data;
+    },
+
+    addNote: async (ticketId: string, content: string): Promise<MaintenanceTicket> => {
+        const response = await axios.post(`${API_URL}/${ticketId}/notes`, { content });
+        return response.data;
+    },
+
+    deleteNote: async (ticketId: string, noteId: string): Promise<MaintenanceTicket> => {
+        const response = await axios.delete(`${API_URL}/${ticketId}/notes/${noteId}`);
+        return response.data;
+    },
+
+    updateNote: async (ticketId: string, noteId: string, content: string): Promise<MaintenanceTicket> => {
+        const response = await axios.put(`${API_URL}/${ticketId}/notes/${noteId}`, { content });
         return response.data;
     }
 };

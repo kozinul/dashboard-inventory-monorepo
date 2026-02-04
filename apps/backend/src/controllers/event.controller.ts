@@ -139,10 +139,27 @@ export const getEventsByAsset = async (req: Request, res: Response) => {
 export const deleteEvent = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const event = await Event.findByIdAndDelete(id);
-        if (!event) {
+        const eventToCheck = await Event.findById(id);
+
+        if (!eventToCheck) {
             return res.status(404).json({ message: 'Event not found' });
         }
+
+        // Allow deletion if:
+        // 1. No rented assets
+        // 2. OR Status is Planning (assets are just a wishlist, not blocked)
+        // 3. OR Status is Cancelled (resources already released)
+        const hasAssets = eventToCheck.rentedAssets && eventToCheck.rentedAssets.length > 0;
+        const isSafeStatus = eventToCheck.status === 'planning' || eventToCheck.status === 'cancelled';
+
+        if (hasAssets && !isSafeStatus) {
+            return res.status(400).json({ message: 'Cannot delete scheduled/ongoing event with assigned assets. Please release resources first.' });
+        }
+
+        // Also check supplies? The requirement specifically mentioned assets ("tidak ada asset disana").
+        // But logical to check supplies too or just let them go. I'll stick to assets as requested.
+
+        await Event.findByIdAndDelete(id);
         res.status(200).json({ message: 'Event deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting event', error });

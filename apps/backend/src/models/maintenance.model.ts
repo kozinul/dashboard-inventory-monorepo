@@ -79,9 +79,13 @@ const maintenanceRecordSchema = new mongoose.Schema({
         enum: ['Repair', 'Routine', 'Emergency', 'Firmware', 'Installation', 'Inspection', 'Maintenance'],
         required: true
     },
+    assignedDepartment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department'
+    },
     status: {
         type: String,
-        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled', 'On Hold', 'External Service'],
+        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled', 'On Hold', 'External Service', 'Pending', 'Escalated'],
         default: 'Draft'
     },
     beforePhotos: [String],
@@ -94,6 +98,12 @@ const maintenanceRecordSchema = new mongoose.Schema({
     }],
     pendingNote: String,
     visualProof: [String],
+    notes: [{
+        content: { type: String, required: true },
+        addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date }
+    }],
     history: [{
         status: { type: String, required: true },
         changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -5,6 +5,9 @@ import { showErrorToast, showConfirmDialog, showSuccessToast } from '@/utils/swa
 import { useAuthStore } from '@/store/authStore';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 import { TicketWorkModal } from '@/features/maintenance/components/TicketWorkModal';
+import { EscalateTicketModal } from '@/features/maintenance/components/EscalateTicketModal'; // Need to verify if file is indexed
+import { supplyService, Supply } from '@/services/supplyService';
+import Swal from 'sweetalert2';
 
 export default function MaintenanceDetailPage() {
     const { id } = useParams();
@@ -14,9 +17,121 @@ export default function MaintenanceDetailPage() {
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
+    const [isEscalateModalOpen, setIsEscalateModalOpen] = useState(false);
+
+    // Supply Management
+    const [availableSupplies, setAvailableSupplies] = useState<Supply[]>([]);
+    const [selectedSupply, setSelectedSupply] = useState('');
+    const [supplyQty, setSupplyQty] = useState(1);
 
     const isTechnician = user?.role === 'technician';
     const isAdmin = user?.role === 'superuser' || user?.role === 'admin' || user?.role === 'administrator';
+
+    // Load supplies when needed (e.g. status is In Progress)
+    useEffect(() => {
+        if (ticket?.status === 'In Progress') {
+            loadSupplies();
+        }
+    }, [ticket?.status]);
+
+    const loadSupplies = async () => {
+        try {
+            const data = await supplyService.getAll();
+            setAvailableSupplies(data);
+        } catch (error) {
+            console.error('Failed to load supplies', error);
+        }
+    };
+
+    const handleAddSupply = async () => {
+        if (!ticket || !selectedSupply || supplyQty <= 0) return;
+        const supply = availableSupplies.find(s => s._id === selectedSupply);
+        if (!supply) return;
+
+        try {
+            // We use updateTicketWork to add supplies incrementally. 
+            // Note: The backend logic for updateTicketWork usually REPLACES suppliesUsed array.
+            // So we need to send EXISTING + NEW.
+            // Let's check if we can reuse the same logic
+
+            const currentSupplies = ticket.suppliesUsed || [];
+            const newItem = {
+                supply: supply._id,
+                name: supply.name,
+                quantity: supplyQty,
+                cost: supply.cost
+            };
+
+            const updatedSupplies = [...currentSupplies, newItem];
+
+            // We need to send minimal data to updateTicketWork to just update supplies?
+            // updateTicketWork updates: status, beforePhotos, afterPhotos, suppliesUsed, logs notes.
+            // We should keep current status, photos, etc.
+
+            await maintenanceService.updateTicketWork(ticket._id!, {
+                status: ticket.status,
+                suppliesUsed: updatedSupplies,
+                notes: `Added supply: ${supply.name} x${supplyQty}`
+            });
+
+            showSuccessToast('Supply added');
+            setSelectedSupply('');
+            setSupplyQty(1);
+            fetchTicket(ticket._id!);
+        } catch (error) {
+            console.error(error);
+            showErrorToast('Failed to add supply');
+        }
+    };
+
+    const handleAction = async (action: 'Pending' | 'Service' | 'Done') => {
+        if (!ticket) return;
+
+        if (action === 'Pending') {
+            const { value: note } = await Swal.fire({
+                title: 'Set to Pending',
+                input: 'textarea',
+                inputLabel: 'Reason for Pending',
+                inputPlaceholder: 'Waiting for parts...',
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) return 'You need to write a reason!';
+                    return null;
+                }
+            });
+            if (note) {
+                try {
+                    await maintenanceService.updateStatus(ticket._id!, 'Pending', note);
+                    showSuccessToast('Status updated to Pending');
+                    fetchTicket(ticket._id!);
+                } catch (error) {
+                    showErrorToast('Failed to update status');
+                }
+            }
+        } else if (action === 'Service') {
+            try {
+                // Set external service
+                await maintenanceService.updateStatus(ticket._id!, 'External Service', 'Marked for External Service');
+                showSuccessToast('Marked for External Service');
+                navigate('/service'); // Redirect to service page
+            } catch (error) {
+                showErrorToast('Failed to update status');
+            }
+        } else if (action === 'Done') {
+            // Use completeTicket or done status
+            const result = await showConfirmDialog('Complete Maintenance?', 'Are you sure you developed a finish?');
+            if (!result.isConfirmed) return;
+
+            try {
+                // Check if photos/supplies are needed? Assume technician handled it.
+                await maintenanceService.updateStatus(ticket._id!, 'Done', 'Maintenance Completed');
+                showSuccessToast('Maintenance Completed');
+                fetchTicket(ticket._id!);
+            } catch (error: any) {
+                showErrorToast(error.response?.data?.message || 'Failed to complete');
+            }
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -98,8 +213,8 @@ export default function MaintenanceDetailPage() {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    {/* Technicians: Start Work */}
-                    {isTechnician && ticket.status === 'Accepted' && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id) && (
+                    {/* Technicians/Admins: Start Work */}
+                    {['Accepted', 'Pending', 'Draft', 'Sent'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
                         <button
                             onClick={async () => {
                                 try {
@@ -149,26 +264,59 @@ export default function MaintenanceDetailPage() {
                         </button>
                     )}
 
-                    {/* Actions based on role */}
-                    {(ticket.status !== 'Done' && ticket.status !== 'Closed' || isAdmin) && (
-                        <>
+                    {/* In Progress Actions */}
+                    {ticket.status === 'In Progress' && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                        <div className="flex gap-2">
                             <button
-                                onClick={handleEdit}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-all shadow-lg shadow-indigo-500/20"
+                                onClick={() => handleAction('Pending')}
+                                className="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-bold text-sm transition-all"
                             >
-                                <span className="material-symbols-outlined text-sm">edit</span>
-                                {isTechnician ? 'Update Work' : 'Edit Ticket'}
+                                <span className="material-symbols-outlined text-sm align-bottom mr-1">pending</span>
+                                Pending
                             </button>
-                            {isAdmin && (
-                                <button
-                                    onClick={handleDelete}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg font-bold text-sm transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-sm">delete</span>
-                                    Delete
-                                </button>
-                            )}
-                        </>
+                            <button
+                                onClick={() => setIsEscalateModalOpen(true)}
+                                className="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg font-bold text-sm transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm align-bottom mr-1">forward</span>
+                                Escalate
+                            </button>
+                            <button
+                                onClick={() => handleAction('Service')}
+                                className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg font-bold text-sm transition-all"
+                            >
+                                <span className="material-symbols-outlined text-sm align-bottom mr-1">design_services</span>
+                                Service
+                            </button>
+                            <button
+                                onClick={() => handleAction('Done')}
+                                className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm transition-all shadow-lg shadow-green-600/20"
+                            >
+                                <span className="material-symbols-outlined text-sm align-bottom mr-1">check_circle</span>
+                                Done
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Other Actions */}
+                    {(ticket.status === 'Draft' || ticket.status === 'Accepted') && (isAdmin || isTechnician) && (
+                        <button
+                            onClick={handleEdit}
+                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-all"
+                        >
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                            Edit
+                        </button>
+                    )}
+
+                    {isAdmin && (
+                        <button
+                            onClick={handleDelete}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg font-bold text-sm transition-all"
+                        >
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                            Delete
+                        </button>
                     )}
                 </div>
             </div>
@@ -214,9 +362,50 @@ export default function MaintenanceDetailPage() {
                 </div>
 
                 {/* Supplies Used Section */}
-                {ticket.suppliesUsed && ticket.suppliesUsed.length > 0 && (
-                    <div className="mt-8">
-                        <h3 className="text-sm font-semibold text-slate-500 uppercase mb-2">Supplies Used</h3>
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-slate-500 uppercase">Supplies Used</h3>
+                    </div>
+
+                    {/* Add Supply Form (Only when In Progress) */}
+                    {ticket.status === 'In Progress' && (
+                        <div className="mb-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg flex gap-2 items-end">
+                            <div className="flex-1">
+                                <label className="block text-xs font-bold text-slate-500 mb-1">Select Part/Supply</label>
+                                <select
+                                    value={selectedSupply}
+                                    onChange={(e) => setSelectedSupply(e.target.value)}
+                                    className="w-full text-sm p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                >
+                                    <option value="">Choose item...</option>
+                                    {availableSupplies.map(s => (
+                                        <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
+                                            {s.name} ({s.quantity} avail)
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="w-20">
+                                <label className="block text-xs font-bold text-slate-500 mb-1">Qty</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={supplyQty}
+                                    onChange={(e) => setSupplyQty(parseInt(e.target.value))}
+                                    className="w-full text-sm p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                />
+                            </div>
+                            <button
+                                onClick={handleAddSupply}
+                                disabled={!selectedSupply}
+                                className="px-4 py-2 bg-blue-600 text-white rounded font-bold text-sm hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                Add
+                            </button>
+                        </div>
+                    )}
+
+                    {ticket.suppliesUsed && ticket.suppliesUsed.length > 0 ? (
                         <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500">
@@ -227,13 +416,33 @@ export default function MaintenanceDetailPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-card-dark">
-                                    {ticket.suppliesUsed.map((item, idx) => (
+                                    {ticket.suppliesUsed.map((item: any, idx) => (
                                         <tr key={idx}>
                                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{item.name}</td>
                                             <td className="px-4 py-3 text-slate-500">{item.quantity}</td>
                                             <td className="px-4 py-3 text-right text-slate-500">
                                                 {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.cost * item.quantity)}
                                             </td>
+                                            {/* Delete Action (only if In Progress) */}
+                                            {ticket.status === 'In Progress' && (
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                await maintenanceService.removeSupply(ticket._id!, item._id);
+                                                                showSuccessToast('Supply removed');
+                                                                fetchTicket(ticket._id!);
+                                                            } catch (error) {
+                                                                showErrorToast('Failed to remove supply');
+                                                            }
+                                                        }}
+                                                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                        title="Remove supply"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                     <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
@@ -243,12 +452,116 @@ export default function MaintenanceDetailPage() {
                                                 ticket.suppliesUsed.reduce((acc, item) => acc + (item.cost * item.quantity), 0)
                                             )}
                                         </td>
+                                        {ticket.status === 'In Progress' && <td></td>}
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+                    ) : (
+                        <p className="text-sm text-slate-500 italic">No supplies used yet.</p>
+                    )}
+                </div>
+
+                {/* Technician Note Section */}
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-slate-500 uppercase">Technician Notes</h3>
+                        {ticket.status === 'In Progress' && (
+                            <button
+                                onClick={async () => {
+                                    const { value: text } = await Swal.fire({
+                                        title: 'Add Note',
+                                        input: 'textarea',
+                                        inputLabel: 'Note Content',
+                                        inputPlaceholder: 'Enter note...',
+                                        showCancelButton: true
+                                    });
+                                    if (text) {
+                                        try {
+                                            await maintenanceService.addNote(ticket._id!, text);
+                                            showSuccessToast('Note added');
+                                            fetchTicket(ticket._id!);
+                                        } catch (e) { showErrorToast('Failed to add note'); }
+                                    }
+                                }}
+                                className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 rounded flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-sm">add</span> Add Note
+                            </button>
+                        )}
                     </div>
-                )}
+
+                    <div className="space-y-2">
+                        {/* Display Pending Note if exists - kept separately as it is status related */}
+                        {ticket.pendingNote && (
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                                <span className="font-bold block mb-1">Pending/Hold Note:</span>
+                                {ticket.pendingNote}
+                            </div>
+                        )}
+
+                        {/* Display Editable Notes */}
+                        {ticket.notes && ticket.notes.length > 0 ? (
+                            ticket.notes.map((note: any) => (
+                                <div key={note._id} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-sm border border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors group">
+                                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                                        <span className="font-bold">{(note.addedBy as any)?.name || 'Unknown'}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>{new Date(note.createdAt).toLocaleString()}</span>
+                                            {/* Edit/Delete Actions */}
+                                            <div className="hidden group-hover:flex gap-1 ml-2">
+                                                <button
+                                                    onClick={async () => {
+                                                        const { value: text } = await Swal.fire({
+                                                            title: 'Edit Note',
+                                                            input: 'textarea',
+                                                            inputValue: note.content,
+                                                            showCancelButton: true
+                                                        });
+                                                        if (text) {
+                                                            try {
+                                                                await maintenanceService.updateNote(ticket._id!, note._id, text);
+                                                                showSuccessToast('Note updated');
+                                                                fetchTicket(ticket._id!);
+                                                            } catch (e) { showErrorToast('Failed to update note'); }
+                                                        }
+                                                    }}
+                                                    className="text-blue-500 hover:text-blue-700" title="Edit"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">edit</span>
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        const result = await Swal.fire({
+                                                            title: 'Delete Note?',
+                                                            text: 'This cannot be undone.',
+                                                            icon: 'warning',
+                                                            showCancelButton: true,
+                                                            confirmButtonText: 'Yes, delete it'
+                                                        });
+                                                        if (result.isConfirmed) {
+                                                            try {
+                                                                await maintenanceService.deleteNote(ticket._id!, note._id);
+                                                                showSuccessToast('Note deleted');
+                                                                fetchTicket(ticket._id!);
+                                                            } catch (e) { showErrorToast('Failed to delete note'); }
+                                                        }
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700" title="Delete"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{note.content}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-slate-500 italic">No notes added yet.</p>
+                        )}
+                    </div>
+                </div>
 
                 {ticket.visualProof && ticket.visualProof.length > 0 && (
                     <div className="mt-8">
@@ -291,6 +604,15 @@ export default function MaintenanceDetailPage() {
                 onSuccess={handleSuccess}
                 initialData={ticket}
             />
+
+            {ticket && (
+                <EscalateTicketModal
+                    isOpen={isEscalateModalOpen}
+                    onClose={() => setIsEscalateModalOpen(false)}
+                    onSuccess={handleSuccess}
+                    ticket={ticket}
+                />
+            )}
 
             {ticket && (
                 <TicketWorkModal

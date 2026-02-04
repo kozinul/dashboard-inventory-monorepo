@@ -20,7 +20,28 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         }
         // Filtering unassigned tickets for non-admin users
         const userRole = req.user.role;
-        if (userRole !== 'superuser' && userRole !== 'admin') {
+        const userId = req.user._id;
+
+        if (userRole === 'manager') {
+            const manager = await User.findById(userId);
+            if (manager && manager.departmentId) {
+                // Same logic as getDepartmentTickets
+                const departmentUsers = await User.find({ departmentId: manager.departmentId }).select('_id');
+                const userIds = departmentUsers.map(u => u._id);
+
+                const departmentAssets = await Asset.find({ departmentId: manager.departmentId }).select('_id');
+                const assetIds = departmentAssets.map(a => a._id);
+
+                filter.$or = [
+                    { requestedBy: { $in: userIds } },
+                    { assignedDepartment: manager.departmentId },
+                    { asset: { $in: assetIds } }
+                ];
+            } else {
+                // Manager with no department sees nothing (or empty list)
+                return res.json([]);
+            }
+        } else if (userRole !== 'superuser' && userRole !== 'admin') {
             filter.technician = { $exists: true, $ne: null };
         }
 
@@ -84,6 +105,8 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
             return res.status(403).json({ message: 'User not found' });
         }
 
+
+
         let records;
 
         // If user is admin/superuser without department, show all tickets
@@ -103,19 +126,32 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
             const departmentUsers = await User.find({ departmentId: manager.departmentId }).select('_id');
             const userIds = departmentUsers.map(u => u._id);
 
-            // Get tickets from those users
-            records = await MaintenanceRecord.find({ requestedBy: { $in: userIds } })
+            // Find all assets in the same department
+            const departmentAssets = await Asset.find({ departmentId: manager.departmentId }).select('_id');
+            const assetIds = departmentAssets.map(a => a._id);
+
+            // Get tickets from those users OR assigned to this department OR for assets in this department
+            records = await MaintenanceRecord.find({
+                $or: [
+                    { requestedBy: { $in: userIds } },
+                    { assignedDepartment: manager.departmentId },
+                    { asset: { $in: assetIds } }
+                ]
+            })
                 .populate('asset', 'name serial department departmentId')
                 .populate('requestedBy', 'name email')
                 .populate('processedBy', 'name')
                 .populate('technician', 'name email')
+                .populate('assignedDepartment', 'name')
                 .populate({
                     path: 'history.changedBy',
                     select: 'name avatar'
                 })
                 .sort({ createdAt: -1 });
         } else {
-            return res.status(403).json({ message: 'User is not assigned to a department' });
+            // If manager has no department assigned, return empty list instead of error
+            // This prevents UI errors for unassigned managers
+            records = [];
         }
 
         res.json(records);
@@ -232,13 +268,6 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
             return res.status(400).json({ message: 'Only sent tickets can be accepted' });
         }
 
-        record.status = 'Accepted';
-        record.technician = technicianId;
-        record.processedBy = managerId;
-        record.processedAt = new Date();
-        if (type) {
-            record.type = type;
-        }
         record.technician = technicianId;
         record.processedBy = managerId;
         record.processedAt = new Date();
@@ -281,15 +310,15 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        if (record.technician?.toString() !== technicianId.toString()) {
+        if (req.user.role !== 'admin' && req.user.role !== 'superuser' && record.technician?.toString() !== technicianId.toString()) {
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
 
-        if (record.status !== 'Accepted') {
-            return res.status(400).json({ message: 'Only accepted tickets can be started' });
+        const validStatuses = ['Accepted', 'Pending', 'Draft', 'Sent'];
+        if (!validStatuses.includes(record.status)) {
+            return res.status(400).json({ message: 'Ticket cannot be started from current status' });
         }
 
-        record.status = 'In Progress';
         record.status = 'In Progress';
 
         record.history.push({
@@ -301,6 +330,70 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
 
         await record.save();
 
+        res.json(record);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Escalate ticket to another department
+export const escalateTicket = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { departmentId, notes } = req.body;
+        const userId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        record.assignedDepartment = departmentId;
+        record.status = 'Escalated';
+        // Optional: clear technician if escalating moves it out of their queue, 
+        // but user might want to keep track. Let's keep it or clear it depending on logic.
+        // Usually escalation goes to a manager of that dept.
+        record.technician = undefined;
+
+        record.history.push({
+            status: 'Escalated',
+            changedBy: userId,
+            changedAt: new Date(),
+            notes: notes || 'Ticket escalated to another department'
+        });
+
+        await record.save();
+        res.json(record);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update ticket status (generic) including Pending/External Service
+export const updateTicketStatus = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { status, notes } = req.body;
+        const userId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        record.status = status;
+        if (notes) {
+            record.pendingNote = notes; // or just history note
+        }
+
+        record.history.push({
+            status: status,
+            changedBy: userId,
+            changedAt: new Date(),
+            notes: notes
+        });
+
+        await record.save();
         res.json(record);
     } catch (error) {
         next(error);
@@ -330,7 +423,6 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         record.status = 'Rejected';
         record.rejectionReason = reason;
         record.processedBy = managerId;
-        record.processedAt = new Date();
         record.processedAt = new Date();
 
         record.history.push({
@@ -461,7 +553,6 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
         }
 
         record.status = 'Sent';
-        record.status = 'Sent';
 
         record.history.push({
             status: 'Sent',
@@ -522,6 +613,175 @@ export const deleteMaintenanceRecord = async (req: Request, res: Response, next:
             return res.status(404).json({ message: 'Record not found' });
         }
         res.json({ message: 'Record deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Remove supply from ticket (technician/admin)
+export const removeSupplyFromTicket = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id, supplyItemId } = req.params;
+        const technicianId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        // Allow manager/admin/assigned technician
+        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || (req.user.departmentId && req.user.role === 'manager');
+        if (record.technician?.toString() !== technicianId.toString() && !isManager) {
+            return res.status(403).json({ message: 'You are not assigned to this ticket' });
+        }
+
+        // Find supply in record
+        const supplyEntryIndex = record.suppliesUsed.findIndex((s: any) => s._id.toString() === supplyItemId);
+        if (supplyEntryIndex === -1) {
+            return res.status(404).json({ message: 'Supply entry not found in ticket' });
+        }
+
+        const supplyEntry = record.suppliesUsed[supplyEntryIndex];
+
+        // Restore stock
+        const supply = await Supply.findById(supplyEntry.supply);
+        if (supply) {
+            supply.quantity += supplyEntry.quantity;
+            await supply.save();
+        }
+
+        // Remove from record
+        record.cost = (record.cost || 0) - (supplyEntry.cost * supplyEntry.quantity);
+        if (record.cost < 0) record.cost = 0;
+
+        record.suppliesUsed.splice(supplyEntryIndex, 1);
+
+        record.history.push({
+            status: record.status,
+            changedBy: technicianId,
+            changedAt: new Date(),
+            notes: `Removed supply: ${supplyEntry.name} x${supplyEntry.quantity}`
+        });
+
+        await record.save();
+
+        const populated = await MaintenanceRecord.findById(record._id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email')
+            .populate('technician', 'name email')
+            .populate('suppliesUsed.supply', 'name unit partNumber');
+
+        res.json(populated);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Add note to ticket
+export const addMaintenanceNote = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+        const userId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        record.notes.push({
+            content,
+            addedBy: userId,
+            createdAt: new Date()
+        });
+
+        await record.save();
+
+        const populated = await MaintenanceRecord.findById(record._id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email')
+            .populate('technician', 'name email')
+            .populate('suppliesUsed.supply', 'name unit partNumber')
+            .populate('notes.addedBy', 'name avatar');
+
+        res.json(populated);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Delete note from ticket
+export const deleteMaintenanceNote = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id, noteId } = req.params;
+        const userId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        const noteIndex = record.notes.findIndex((n: any) => n._id.toString() === noteId);
+        if (noteIndex === -1) {
+            return res.status(404).json({ message: 'Note not found' });
+        }
+
+        // Check ownership (only creator or admin can delete)
+        const note = record.notes[noteIndex];
+        if (note.addedBy.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+            return res.status(403).json({ message: 'Not authorized to delete this note' });
+        }
+
+        record.notes.splice(noteIndex, 1);
+        await record.save();
+
+        const populated = await MaintenanceRecord.findById(record._id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email')
+            .populate('technician', 'name email')
+            .populate('suppliesUsed.supply', 'name unit partNumber')
+            .populate('notes.addedBy', 'name avatar');
+
+        res.json(populated);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update note (optional, but good for completeness)
+export const updateMaintenanceNote = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id, noteId } = req.params;
+        const { content } = req.body;
+        const userId = req.user._id;
+
+        const record = await MaintenanceRecord.findById(id);
+        if (!record) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        const note = record.notes.find((n: any) => n._id.toString() === noteId);
+        if (!note) {
+            return res.status(404).json({ message: 'Note not found' });
+        }
+
+        if (note.addedBy.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+            return res.status(403).json({ message: 'Not authorized to update this note' });
+        }
+
+        note.content = content;
+        note.updatedAt = new Date();
+
+        await record.save();
+
+        const populated = await MaintenanceRecord.findById(record._id)
+            .populate('asset', 'name serial department departmentId')
+            .populate('requestedBy', 'name email')
+            .populate('technician', 'name email')
+            .populate('suppliesUsed.supply', 'name unit partNumber')
+            .populate('notes.addedBy', 'name avatar');
+
+        res.json(populated);
     } catch (error) {
         next(error);
     }
@@ -604,13 +864,42 @@ export const updateTicketWork = async (req: Request, res: Response, next: NextFu
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
 
-        // Update fields if provided
-        if (beforePhotos) record.beforePhotos = beforePhotos;
-        if (afterPhotos) record.afterPhotos = afterPhotos;
+        // Handle file uploads
+        if (req.files) {
+            const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+            if (files.beforePhotos) {
+                const newPhotos = files.beforePhotos.map(f => f.path);
+                // Append or replace? Usually append new ones. 
+                // But if we want to support removing old ones via UI, that logic is separate (usually separate delete call or passing list of kept URLs).
+                // For this modal which adds *new* photos, we append.
+                record.beforePhotos = [...(record.beforePhotos || []), ...newPhotos];
+            }
+
+            if (files.afterPhotos) {
+                const newPhotos = files.afterPhotos.map(f => f.path);
+                record.afterPhotos = [...(record.afterPhotos || []), ...newPhotos];
+            }
+        } else {
+            // If just sending URLs (legacy/mock) or reusing existing
+            if (beforePhotos && Array.isArray(beforePhotos)) record.beforePhotos = beforePhotos;
+            if (afterPhotos && Array.isArray(afterPhotos)) record.afterPhotos = afterPhotos;
+        }
+
         if (pendingNote) record.pendingNote = pendingNote;
 
         // Handle supplies
-        if (suppliesUsed && Array.isArray(suppliesUsed)) {
+        // Parse if string (multipary/form-data sends complex objects as strings)
+        let suppliesData = suppliesUsed;
+        if (typeof suppliesUsed === 'string') {
+            try {
+                suppliesData = JSON.parse(suppliesUsed);
+            } catch (e) {
+                console.error('Failed to parse suppliesUsed', e);
+            }
+        }
+
+        if (suppliesData && Array.isArray(suppliesData)) {
             // Revert previous supplies if we are replacing the list (or handle differential updates - here we assume we append or replace via UI logic. 
             // For simplicity in this iteration, let's assume we are receiving the *new* supplies to add, or the full list.
             // A safer approach for stock management is to handle "adding" supplies specifically.
@@ -626,7 +915,7 @@ export const updateTicketWork = async (req: Request, res: Response, next: NextFu
             // For this Implementation: We will APPEND the new supplies sent in the body to the existing array.
             // so req.body.suppliesUsed should contain ONLY the new supplies to add.
 
-            for (const item of suppliesUsed) {
+            for (const item of suppliesData) {
                 const supply = await Supply.findById(item.supply);
                 if (supply) {
                     if (supply.quantity < item.quantity) {
@@ -699,7 +988,8 @@ export const getMaintenanceTicket = async (req: Request, res: Response, next: Ne
             .populate({
                 path: 'history.changedBy',
                 select: 'name avatar'
-            });
+            })
+            .populate('notes.addedBy', 'name avatar');
 
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });

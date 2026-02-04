@@ -6,7 +6,8 @@ import {
     createAsset,
     updateAsset,
     deleteAsset,
-    getInventoryStats
+    getInventoryStats,
+    getAvailableAssetsForEvent
 } from '../controllers/inventory.controller.js';
 import { cloneAsset } from '../controllers/assetTemplate.controller.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 // Apply auth middleware to all routes
 router.use(protect);
 
+router.get('/items/available', getAvailableAssetsForEvent);
 router.get('/items', getAssets);
 router.get('/items/:id', getAssetById);
 router.post('/items', createAsset);
