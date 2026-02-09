@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import imageCompression from 'browser-image-compression';
 import { useParams, useNavigate } from 'react-router-dom';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { showErrorToast, showConfirmDialog, showSuccessToast } from '@/utils/swal';
@@ -23,6 +24,23 @@ export default function MaintenanceDetailPage() {
     const [availableSupplies, setAvailableSupplies] = useState<Supply[]>([]);
     const [selectedSupply, setSelectedSupply] = useState('');
     const [supplyQty, setSupplyQty] = useState(1);
+
+    // Server URL for images
+    const SERVER_URL = 'http://localhost:3000';
+    const getImageUrl = (path: string) => {
+        if (!path) return '';
+        if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) return path;
+        // Handle windows paths if any
+        const cleanPath = path.replace(/\\/g, '/');
+        // Check if path already starts with /uploads but not full URL
+        if (cleanPath.startsWith('uploads/')) return `${SERVER_URL}/${cleanPath}`;
+        if (cleanPath.startsWith('/uploads/')) return `${SERVER_URL}${cleanPath}`;
+        return `${SERVER_URL}/${cleanPath}`;
+    };
+
+    // Upload Progress State
+    const [uploadProgress, setUploadProgress] = useState<number>(0);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
 
     const isTechnician = user?.role === 'technician';
     const isAdmin = user?.role === 'superuser' || user?.role === 'admin' || user?.role === 'administrator';
@@ -118,12 +136,14 @@ export default function MaintenanceDetailPage() {
                 showErrorToast('Failed to update status');
             }
         } else if (action === 'Done') {
-            // Use completeTicket or done status
+            // Check if afterPhotos are present before allowing completion? 
+            // The modal handles this check, but here we might want to warn or just allow.
+            // Let's keep it simple for now as per "Add upload before and upload after" request.
+
             const result = await showConfirmDialog('Complete Maintenance?', 'Are you sure you developed a finish?');
             if (!result.isConfirmed) return;
 
             try {
-                // Check if photos/supplies are needed? Assume technician handled it.
                 await maintenanceService.updateStatus(ticket._id!, 'Done', 'Maintenance Completed');
                 showSuccessToast('Maintenance Completed');
                 fetchTicket(ticket._id!);
@@ -131,6 +151,94 @@ export default function MaintenanceDetailPage() {
                 showErrorToast(error.response?.data?.message || 'Failed to complete');
             }
         }
+    };
+
+    const handleDeletePhoto = async (type: 'before' | 'after', index: number) => {
+        if (!ticket) return;
+
+        const result = await showConfirmDialog('Delete Photo?', 'This action cannot be undone.');
+        if (!result.isConfirmed) return;
+
+        try {
+            const currentPhotos = type === 'before' ? [...(ticket.beforePhotos || [])] : [...(ticket.afterPhotos || [])];
+            currentPhotos.splice(index, 1);
+
+            // We need to send the updated array. 
+            // The backend replaces the array if provided in the body (and no files are uploaded).
+            const updateData: any = {};
+            if (type === 'before') {
+                updateData.beforePhotos = currentPhotos;
+            } else {
+                updateData.afterPhotos = currentPhotos;
+            }
+
+            await maintenanceService.updateTicketWork(ticket._id!, updateData);
+            showSuccessToast('Photo deleted');
+            fetchTicket(ticket._id!);
+        } catch (error) {
+            console.error(error);
+            showErrorToast('Failed to delete photo');
+        }
+    };
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'before' | 'after') => {
+        if (!ticket || !e.target.files || e.target.files.length === 0) return;
+
+        const files = Array.from(e.target.files);
+        const formData = new FormData();
+
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        try {
+            // Compress images
+            const compressedFiles = await Promise.all(
+                files.map(async (file) => {
+                    const options = {
+                        maxSizeMB: 1,
+                        maxWidthOrHeight: 1920,
+                        useWebWorker: true
+                    };
+                    try {
+                        const compressedFile = await imageCompression(file, options);
+                        return new File([compressedFile], file.name, { type: file.type });
+                    } catch (error) {
+                        console.error('Compression failed for', file.name, error);
+                        return file; // Fallback to original
+                    }
+                })
+            );
+
+            // Append files to correct field
+            if (type === 'before') {
+                compressedFiles.forEach(file => formData.append('beforePhotos', file));
+            } else {
+                compressedFiles.forEach(file => formData.append('afterPhotos', file));
+            }
+
+            await maintenanceService.updateTicketWork(
+                ticket._id!,
+                formData,
+                (progressEvent) => {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setUploadProgress(percentCompleted);
+                    }
+                }
+            );
+
+            showSuccessToast(`${type === 'before' ? 'Before' : 'After'} photos uploaded`);
+            fetchTicket(ticket._id!);
+        } catch (error) {
+            console.error(error);
+            showErrorToast('Failed to upload photos');
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+
+        // Reset input
+        e.target.value = '';
     };
 
     useEffect(() => {
@@ -198,7 +306,23 @@ export default function MaintenanceDetailPage() {
     if (!ticket) return <div className="p-8 text-center">Ticket not found</div>;
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-12">
+        <div className="max-w-4xl mx-auto space-y-6 pb-12 relative">
+            {/* Global Upload Progress Bar Overlay */}
+            {isUploading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-card-dark p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4">
+                        <h3 className="text-lg font-bold mb-4 dark:text-white">Uploading Photos...</h3>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 mb-2">
+                            <div
+                                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                                style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-sm text-center text-slate-500">{uploadProgress}%</p>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                     <button
@@ -563,12 +687,119 @@ export default function MaintenanceDetailPage() {
                     </div>
                 </div>
 
+                {/* Before Maintenance Photos */}
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-slate-500 uppercase">Before Maintenance Photos</h3>
+                        {['In Progress', 'Accepted'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                            <div>
+                                <input
+                                    type="file"
+                                    id="upload-before-photos"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handlePhotoUpload(e, 'before')}
+                                />
+                                <label
+                                    htmlFor="upload-before-photos"
+                                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 rounded flex items-center gap-1 cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-sm">add_a_photo</span> Add Photo
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                    {ticket.beforePhotos && ticket.beforePhotos.length > 0 ? (
+                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                            {ticket.beforePhotos.map((img, idx) => (
+                                <div key={`before-${idx}`} className="relative group shrink-0 w-32 h-32">
+                                    <img
+                                        src={getImageUrl(img)}
+                                        alt={`Before ${idx}`}
+                                        className="w-full h-full rounded-lg border border-slate-200 dark:border-border-dark object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => window.open(getImageUrl(img), '_blank')}
+                                    />
+                                    {['In Progress', 'Accepted'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeletePhoto('before', idx);
+                                            }}
+                                            className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete photo"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-500 italic">No before photos added.</p>
+                    )}
+                </div>
+
+                {/* After Maintenance Photos */}
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-slate-500 uppercase">After Maintenance Photos</h3>
+                        {['In Progress', 'Accepted'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                            <div>
+                                <input
+                                    type="file"
+                                    id="upload-after-photos"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handlePhotoUpload(e, 'after')}
+                                />
+                                <label
+                                    htmlFor="upload-after-photos"
+                                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 rounded flex items-center gap-1 cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-sm">add_a_photo</span> Add Photo
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                    {ticket.afterPhotos && ticket.afterPhotos.length > 0 ? (
+                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                            {ticket.afterPhotos.map((img, idx) => (
+                                <div key={`after-${idx}`} className="relative group shrink-0 w-32 h-32">
+                                    <img
+                                        src={getImageUrl(img)}
+                                        alt={`After ${idx}`}
+                                        className="w-full h-full rounded-lg border border-slate-200 dark:border-border-dark object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => window.open(getImageUrl(img), '_blank')}
+                                    />
+                                    {['In Progress', 'Accepted'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeletePhoto('after', idx);
+                                            }}
+                                            className="absolute top-1 right-1 p-1 bg-red-500/80 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete photo"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-500 italic">No after photos added.</p>
+                    )}
+                </div>
+
+                {/* Initial Request Visual Proof - Keep existing logic but maybe move it up or differentiate */}
                 {ticket.visualProof && ticket.visualProof.length > 0 && (
                     <div className="mt-8">
-                        <h3 className="text-sm font-semibold text-slate-500 uppercase mb-2">Visual Proof</h3>
-                        <div className="flex gap-4 overflow-x-auto pb-2">
+                        <h3 className="text-sm font-semibold text-slate-500 uppercase mb-2">Original Request Proof</h3>
+                        <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
                             {ticket.visualProof.map((img, idx) => (
-                                <img key={idx} src={img} alt={`Proof ${idx}`} className="h-32 rounded-lg border border-slate-200 dark:border-border-dark" />
+                                <img key={idx} src={getImageUrl(img)} alt={`Proof ${idx}`} className="h-32 rounded-lg border border-slate-200 dark:border-border-dark" />
                             ))}
                         </div>
                     </div>

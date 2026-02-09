@@ -65,6 +65,14 @@ export function MaintenanceStatusBadge({ status }: { status: any }) {
             </div>
         );
     }
+    if (status === 'Closed') {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span className="text-sm font-semibold text-emerald-500">Close</span>
+            </div>
+        );
+    }
     // Pending
     return (
         <div className="flex items-center gap-2">

@@ -18,6 +18,9 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         if (req.query.status) {
             filter.status = req.query.status;
         }
+        if (req.query.supply) {
+            filter['suppliesUsed.supply'] = req.query.supply;
+        }
         // Filtering unassigned tickets for non-admin users
         const userRole = req.user.role;
         const userId = req.user._id;
@@ -209,6 +212,11 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
         });
         await record.save();
 
+        // Update asset status
+        await Asset.findByIdAndUpdate(assetId, { status: 'request maintenance' });
+        // Sync Assignment: active -> maintenance
+        await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial')
             .populate('requestedBy', 'name email');
@@ -240,6 +248,7 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
 
         if (req.body.asset) {
             await Asset.findByIdAndUpdate(req.body.asset, { status: 'request maintenance' });
+            await Assignment.findOneAndUpdate({ assetId: req.body.asset, status: 'assigned' }, { status: 'maintenance' });
         }
 
         res.status(201).json(record);
@@ -286,6 +295,7 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
 
         // Update asset status
         await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial')
@@ -321,6 +331,10 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
 
         record.status = 'In Progress';
 
+        // FIX: Ensure asset status is 'maintenance' when work starts
+        await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+
         record.history.push({
             status: 'In Progress',
             changedBy: technicianId,
@@ -350,6 +364,11 @@ export const escalateTicket = async (req: Request, res: Response, next: NextFunc
 
         record.assignedDepartment = departmentId;
         record.status = 'Escalated';
+
+        // FIX: Ensure asset status is 'maintenance' or 'request maintenance'
+        await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+
         // Optional: clear technician if escalating moves it out of their queue, 
         // but user might want to keep track. Let's keep it or clear it depending on logic.
         // Usually escalation goes to a manager of that dept.
@@ -394,8 +413,24 @@ export const updateTicketStatus = async (req: Request, res: Response, next: Next
         });
 
         await record.save();
+
+        // If ticket is closed/done/cancelled/rejected, set asset status to active
+        // If ticket is in progress/accepted/sent, set asset status to maintenance
+        const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+
+        if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(status)) {
+            console.log(`[Maintenance] Maintenance ended (${status}), setting asset ${assetId} to active`);
+            await Asset.findByIdAndUpdate(assetId, { status: 'active' });
+            await Assignment.findOneAndUpdate({ assetId, status: 'maintenance' }, { status: 'assigned' });
+        } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(status)) {
+            console.log(`[Maintenance] Maintenance active (${status}), setting asset ${assetId} to maintenance`);
+            await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
+            await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+        }
+
         res.json(record);
     } catch (error) {
+        console.error("Error updating ticket status:", error);
         next(error);
     }
 };
@@ -435,7 +470,9 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Restore asset status
-        await Asset.findByIdAndUpdate(record.asset, { status: 'available' });
+        // FIX: Use 'active' to be consistent with user request
+        await Asset.findByIdAndUpdate(record.asset, { status: 'active' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
 
         res.json(record);
     } catch (error) {
@@ -474,6 +511,7 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
         await record.save();
 
         // Update asset status to active and add history
+        // Update asset status to active and add history
         await Asset.findByIdAndUpdate(record.asset, {
             status: 'active',
             $push: {
@@ -487,6 +525,7 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
                 }
             }
         });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
 
         res.json(record);
     } catch (error) {
@@ -525,7 +564,9 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Restore asset status
-        await Asset.findByIdAndUpdate(record.asset, { status: 'available' });
+        // FIX: Use 'active' to be consistent with user request
+        await Asset.findByIdAndUpdate(record.asset, { status: 'active' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
 
         res.json(record);
     } catch (error) {
@@ -565,6 +606,7 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
 
         // Update asset status
         await Asset.findByIdAndUpdate(record.asset, { status: 'request maintenance' });
+        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial')
@@ -578,12 +620,36 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
 
 export const updateMaintenanceRecord = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        console.log(`[Maintenance] Update Request for ${req.params.id}:`, req.body);
         const record = await MaintenanceRecord.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!record) {
             return res.status(404).json({ message: 'Record not found' });
         }
+
+        console.log(`[Maintenance] Updated Record:`, {
+            id: record._id,
+            status: record.status,
+            asset: record.asset
+        });
+
+        // If status is updated, sync asset status
+        if (req.body.status) {
+            const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+
+            if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(req.body.status)) {
+                console.log(`[Maintenance] Maintenance ended (${req.body.status}), setting asset ${assetId} to active`);
+                await Asset.findByIdAndUpdate(assetId, { status: 'active' });
+                await Assignment.findOneAndUpdate({ assetId, status: 'maintenance' }, { status: 'assigned' });
+            } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(req.body.status)) {
+                console.log(`[Maintenance] Maintenance active (${req.body.status}), setting asset ${assetId} to maintenance`);
+                await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
+                await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+            }
+        }
+
         res.json(record);
     } catch (error) {
+        console.error("Error updating maintenance record:", error);
         next(error);
     }
 };

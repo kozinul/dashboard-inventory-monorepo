@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import clsx from 'clsx';
 import { Supply, supplyService } from '../../../services/supplyService';
+import { maintenanceService } from '../../../services/maintenanceService';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import { useForm } from 'react-hook-form';
 
@@ -11,6 +12,7 @@ export default function SupplyDetailsPage() {
     const navigate = useNavigate();
     const [supply, setSupply] = useState<Supply | null>(null);
     const [history, setHistory] = useState<any[]>([]);
+    const [maintenanceHistory, setMaintenanceHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -22,12 +24,14 @@ export default function SupplyDetailsPage() {
         if (!id) return;
         setLoading(true);
         try {
-            const [supplyData, historyData] = await Promise.all([
+            const [supplyData, historyData, maintenanceData] = await Promise.all([
                 supplyService.getById(id),
-                supplyService.getHistory(id)
+                supplyService.getHistory(id),
+                maintenanceService.getAll({ supply: id })
             ]);
             setSupply(supplyData);
             setHistory(historyData);
+            setMaintenanceHistory(maintenanceData);
         } catch (error) {
             console.error('Error fetching supply details:', error);
         } finally {
@@ -204,6 +208,7 @@ export default function SupplyDetailsPage() {
 
                 {/* Right Column: History */}
                 <div className="lg:col-span-2">
+                    {/* Combined History */}
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col h-full">
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -223,12 +228,35 @@ export default function SupplyDetailsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-                                    {history.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-slate-500">No history found</td>
-                                        </tr>
-                                    ) : (
-                                        history.map((record) => (
+                                    {(() => {
+                                        // Merge and sort history
+                                        const maintenanceItems = maintenanceHistory.map(record => {
+                                            const supplyUsage = record.suppliesUsed?.find((s: any) =>
+                                                (typeof s.supply === 'string' ? s.supply : s.supply._id) === id
+                                            );
+                                            return {
+                                                _id: `maint-${record._id}`,
+                                                createdAt: record.createdAt,
+                                                action: 'MAINTENANCE',
+                                                quantityChange: -(supplyUsage?.quantity || 0),
+                                                newStock: '-', // Calculated balance not available for these historical items without complex replay
+                                                notes: `Ticket #${record.ticketNumber} • ${record.technician?.name || 'Unassigned'}`
+                                            };
+                                        });
+
+                                        const combinedHistory = [...history, ...maintenanceItems].sort((a, b) =>
+                                            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                                        );
+
+                                        if (combinedHistory.length === 0) {
+                                            return (
+                                                <tr>
+                                                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">No history found</td>
+                                                </tr>
+                                            );
+                                        }
+
+                                        return combinedHistory.map((record) => (
                                             <tr key={record._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
                                                     {format(new Date(record.createdAt), 'MMM d, yyyy HH:mm')}
@@ -239,10 +267,10 @@ export default function SupplyDetailsPage() {
                                                         record.action === 'CREATE' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                                                         record.action === 'UPDATE' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
                                                         record.action === 'RESTOCK' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-                                                        record.action === 'USE' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                                        (record.action === 'USE' || record.action === 'MAINTENANCE') && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
                                                         record.action === 'DELETE' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                                     )}>
-                                                        {record.action}
+                                                        {record.action === 'MAINTENANCE' ? 'USED' : record.action}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -260,8 +288,8 @@ export default function SupplyDetailsPage() {
                                                     {record.notes || '-'}
                                                 </td>
                                             </tr>
-                                        ))
-                                    )}
+                                        ));
+                                    })()}
                                 </tbody>
                             </table>
                         </div>

@@ -15,6 +15,7 @@ export interface Asset {
     departmentId?: string;
     department?: string;
     status: 'active' | 'maintenance' | 'storage' | 'retired';
+    requiresExternalService?: boolean;
     value: number;
     images?: (string | { url: string; caption?: string; filename?: string })[];
     purchaseDate?: string;

@@ -68,9 +68,9 @@ export default function MyAssetsPage() {
                                         <h3 className="font-bold text-lg text-slate-900 dark:text-white">{assignment.assetId.name}</h3>
                                         <p className="text-sm text-slate-500 font-mono">{assignment.assetId.serial}</p>
                                     </div>
-                                    {assignment.assetId.imageUrl && (
+                                    {(assignment.assetId as any).imageUrl && (
                                         <img
-                                            src={assignment.assetId.imageUrl}
+                                            src={(assignment.assetId as any).imageUrl}
                                             alt={assignment.assetId.name}
                                             className="w-12 h-12 rounded-lg object-cover bg-slate-100"
                                         />

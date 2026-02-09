@@ -46,7 +46,7 @@ router.get('/department', getDepartmentTickets);
 
 router.put('/:id/accept', acceptTicket);
 router.put('/:id/start', startTicket);
-router.put('/:id/work', upload.fields([{ name: 'beforePhotos' }, { name: 'afterPhotos' }]), updateTicketWork);
+router.put('/:id/work', upload.fields([{ name: 'beforePhotos', maxCount: 10 }, { name: 'afterPhotos', maxCount: 10 }]), updateTicketWork);
 router.put('/:id/escalate', escalateTicket);
 router.put('/:id/status', updateTicketStatus);
 router.put('/:id/reject', rejectTicket);

@@ -154,9 +154,11 @@ export const maintenanceService = {
         return response.data;
     },
 
-    updateTicketWork: async (id: string, data: any): Promise<MaintenanceTicket> => {
+    updateTicketWork: async (id: string, data: any, onUploadProgress?: (progressEvent: any) => void): Promise<MaintenanceTicket> => {
         // Axios automatically handles FormData content-type header
-        const response = await axios.put(`${API_URL}/${id}/work`, data);
+        const response = await axios.put(`${API_URL}/${id}/work`, data, {
+            onUploadProgress
+        });
         return response.data;
     },
 

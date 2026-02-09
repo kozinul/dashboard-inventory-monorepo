@@ -7,9 +7,10 @@ interface AssetTableProps {
     onDelete?: (id: string) => void;
     onClone?: (id: string) => void;
     onSelect?: (asset: Asset) => void;
+    actionLabel?: string;
 }
 
-export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect }: AssetTableProps) {
+export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect, actionLabel = 'Select' }: AssetTableProps) {
     return (
         <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto custom-scrollbar">
@@ -59,7 +60,7 @@ export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect }: Asse
                                             onClick={() => onSelect(asset)}
                                             className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-md text-xs font-bold transition-all"
                                         >
-                                            Select
+                                            {actionLabel}
                                         </button>
                                     ) : (
                                         <AssetRowActions

@@ -47,6 +47,10 @@ const assetSchema = new mongoose.Schema({
         enum: ['active', 'maintenance', 'storage', 'retired', 'assigned', 'request maintenance'],
         default: 'active'
     },
+    requiresExternalService: {
+        type: Boolean,
+        default: false
+    },
     images: [{
         url: String,
         caption: String,

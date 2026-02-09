@@ -93,6 +93,12 @@ function StatusBadge({ status }: { status: Assignment['status'] }) {
                     RETURNED
                 </span>
             );
+        case 'maintenance':
+            return (
+                <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                    MAINTENANCE
+                </span>
+            );
         default:
             return (
                 <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">

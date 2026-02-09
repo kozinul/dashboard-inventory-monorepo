@@ -20,6 +20,7 @@ interface InventoryFormInputs {
     serial: string;
     departmentId: string;
     status: 'active' | 'maintenance' | 'storage' | 'retired';
+    requiresExternalService: boolean;
     value: string;
     purchaseDate: string;
 
@@ -113,6 +114,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                 departmentId: data.departmentId,
                 department: selectedDept?.name || 'Unknown',
                 status: data.status,
+                requiresExternalService: data.requiresExternalService,
                 value: parseFloat(data.value.replace(/[^0-9.]/g, '')), // Basic cleaning
                 purchaseDate: data.purchaseDate,
                 images: [],
@@ -275,6 +277,20 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                     <option value="storage">Storage</option>
                                                     <option value="retired">Retired</option>
                                                 </select>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-2 mt-8">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="requiresExternalService"
+                                                        {...register('requiresExternalService')}
+                                                        className="w-4 h-4 text-primary bg-slate-50 border-slate-200 rounded focus:ring-primary dark:bg-slate-800 dark:border-slate-700"
+                                                    />
+                                                    <label htmlFor="requiresExternalService" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                        Requires External Service
+                                                    </label>
+                                                </div>
                                             </div>
 
                                             <div>

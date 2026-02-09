@@ -19,7 +19,7 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
         // Check if asset is already assigned
         const activeAssignment = await Assignment.findOne({
             assetId,
-            status: 'assigned'
+            status: { $in: ['assigned', 'maintenance'] }
         });
 
         if (activeAssignment) {
@@ -86,7 +86,11 @@ export const returnAsset = async (req: Request, res: Response, next: NextFunctio
         // Update Asset status back to active
         // Assuming assetId is populated or we fetch it. Assignment model has assetId.
         // If not populated, it's an ObjectId.
-        await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
+        // Update Asset status back to active ONLY if not in maintenance
+        const asset = await Asset.findById(assignment.assetId);
+        if (asset && asset.status !== 'maintenance' && asset.status !== 'request maintenance') {
+            await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
+        }
 
         res.json(assignment);
     } catch (error) {
@@ -143,8 +147,11 @@ export const deleteAssignment = async (req: Request, res: Response, next: NextFu
         }
 
         // Release asset if active
-        if (assignment.status === 'assigned') {
-            await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
+        if (assignment.status === 'assigned' || assignment.status === 'maintenance') {
+            const asset = await Asset.findById(assignment.assetId);
+            if (asset && asset.status !== 'maintenance' && asset.status !== 'request maintenance') {
+                await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
+            }
             assignment.status = 'returned';
             assignment.returnedDate = new Date();
         }

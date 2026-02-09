@@ -12,7 +12,7 @@ export interface Assignment {
     assignedToTitle?: string; // Manual title
     assignedDate: string;
     returnedDate?: string;
-    status: 'assigned' | 'returned' | 'overdue' | 'active' | 'due-today';
+    status: 'assigned' | 'returned' | 'overdue' | 'active' | 'due-today' | 'maintenance';
     notes?: string;
     locationId?: any; // Populated Location object or ID
 }

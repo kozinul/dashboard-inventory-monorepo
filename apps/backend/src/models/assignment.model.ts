@@ -35,7 +35,7 @@ const assignmentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['assigned', 'returned'],
+        enum: ['assigned', 'returned', 'maintenance'],
         default: 'assigned',
         required: true
     },

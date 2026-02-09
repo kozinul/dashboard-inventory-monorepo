@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { maintenanceService } from '@/services/maintenanceService';
 import { ServiceTable } from '@/features/service/components/ServiceTable';
 import { ServiceModal } from '@/features/service/components/ServiceModal';
+import { assetService, Asset } from '@/services/assetService';
+import { AssetTable } from '@/features/inventory/components/AssetTable';
+import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 
 export default function ServicePage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -9,13 +12,35 @@ export default function ServicePage() {
     const [loading, setLoading] = useState(true);
     const [editingRecord, setEditingRecord] = useState<any>(null);
 
+    // New state for pending external assets
+    const [pendingAssets, setPendingAssets] = useState<Asset[]>([]);
+    const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
+    const [selectedAssetForAllocation, setSelectedAssetForAllocation] = useState<Asset | null>(null);
+
     const fetchRecords = async () => {
         setLoading(true);
         try {
-            const data = await maintenanceService.getAll({ serviceProviderType: 'Vendor' });
-            setRecords(data);
+            const [allServiceData, assetData] = await Promise.all([
+                maintenanceService.getAll(),
+                assetService.getAll()
+            ]);
+
+            // Filter for Vendor type OR External Service status
+            const filteredServiceData = (allServiceData || []).filter((record: any) =>
+                record.serviceProviderType === 'Vendor' || record.status === 'External Service'
+            );
+
+            setRecords(filteredServiceData);
+
+            // Filter assets that require external service but aren't currently in maintenance
+            // Note: If they are in maintenance, they should be covered by the service records above
+            const pending = (assetData.data || []).filter(a =>
+                a.requiresExternalService && a.status !== 'maintenance'
+            );
+            setPendingAssets(pending);
+
         } catch (error) {
-            console.error('Failed to fetch service records', error);
+            console.error('Failed to fetch data', error);
         } finally {
             setLoading(false);
         }
@@ -54,6 +79,17 @@ export default function ServicePage() {
         setEditingRecord(null);
     };
 
+    const handleAllocateService = (asset: Asset) => {
+        setSelectedAssetForAllocation(asset);
+        setIsAllocationModalOpen(true);
+    };
+
+    const handleAllocationSuccess = () => {
+        fetchRecords();
+        setIsAllocationModalOpen(false);
+        setSelectedAssetForAllocation(null);
+    };
+
     const activeServices = records.filter((r: any) => r.status === 'In Progress').length;
     const completedServices = records.filter((r: any) => r.status === 'Done').length;
     const totalCost = records.reduce((acc: number, r: any) => acc + (r.cost || 0), 0);
@@ -61,6 +97,31 @@ export default function ServicePage() {
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
+            {/* ... (Header code remains same, referencing lines 64-79) ... */}
+
+            {/* Pending Allocation Section */}
+            {pendingAssets.length > 0 && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-amber-500">warning</span>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Pending Allocation</h3>
+                        <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full dark:bg-amber-900/30 dark:text-amber-400">
+                            {pendingAssets.length} Assets
+                        </span>
+                    </div>
+                    <AssetTable
+                        assets={pendingAssets}
+                        onSelect={handleAllocateService}
+                        actionLabel="Allocate Service"
+                    />
+                </div>
+            )}
+
+            {/* Stats */}
+            {/* ... (Stats code remains same, referencing lines 82-116) ... */}
+
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Service Records</h3>
+            {/* Main Table */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">External Services</h2>
@@ -109,7 +170,7 @@ export default function ServicePage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Cost</p>
-                            <h4 className="text-2xl font-bold text-slate-900 dark:text-white">${totalCost.toLocaleString()}</h4>
+                            <h4 className="text-2xl font-bold text-slate-900 dark:text-white">Rp. {totalCost.toLocaleString('id-ID')}</h4>
                         </div>
                     </div>
                 </div>
@@ -131,6 +192,25 @@ export default function ServicePage() {
                 onSuccess={fetchRecords}
                 editData={editingRecord}
             />
+
+            {/* Allocation Modal */}
+            {selectedAssetForAllocation && (
+                <MaintenanceModal
+                    isOpen={isAllocationModalOpen}
+                    onClose={() => {
+                        setIsAllocationModalOpen(false);
+                        setSelectedAssetForAllocation(null);
+                    }}
+                    onSuccess={handleAllocationSuccess}
+                    initialData={{
+                        asset: selectedAssetForAllocation,
+                        serviceProviderType: 'Vendor',
+                        type: 'Repair',
+                        title: `External Service for ${selectedAssetForAllocation.name}`
+                    }}
+                    availableAssets={[selectedAssetForAllocation]}
+                />
+            )}
         </div>
     );
 }
