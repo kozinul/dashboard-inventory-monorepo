@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['superuser', 'admin', 'manager', 'technician', 'user', 'auditor'],
+        enum: ['superuser', 'system_admin', 'admin', 'manager', 'technician', 'user', 'auditor'],
         default: 'user'
     },
     // Custom permissions that override default role permissions

@@ -15,20 +15,39 @@ export interface Permission {
 
 // All available resources in the system
 export const RESOURCES = [
+    // Dashboard & Reports
     'dashboard',
+    'reports',
+
+    // Inventory Management
     'inventory',
     'incoming',
     'transfer',
+    'disposal',
+    'assignments',
+
+    // Maintenance Management
     'maintenance',
+    'my_tickets',
+    'dept_tickets',
+    'assigned_tickets',
     'services',
-    'history',
-    'asset_templates',
+
+    // Rental & Events
+    'rental',
+    'events',
+
+    // User Resources
+    'my_assets',
+    'users',
+    'settings',
+
+    // Master Data / Configuration
     'categories',
     'locations',
     'vendors',
-    'reports',
-    'settings',
-    'users'
+    'asset_templates',
+    'history'
 ] as const;
 
 export type ResourceType = typeof RESOURCES[number];
@@ -58,13 +77,26 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         actions: fullAccess()
     })),
 
+    system_admin: RESOURCES.map(resource => ({
+        resource,
+        actions: fullAccess()
+    })),
+
     manager: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewCreateEdit() },
         { resource: 'incoming', actions: viewCreate() },
         { resource: 'transfer', actions: viewCreate() },
         { resource: 'maintenance', actions: viewCreateEdit() },
+        { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewCreateEdit() },
         { resource: 'services', actions: viewCreateEdit() },
+        { resource: 'assignments', actions: viewCreateEdit() },
+        { resource: 'rental', actions: viewCreateEdit() },
+        { resource: 'events', actions: viewCreateEdit() },
+        { resource: 'users', actions: viewCreateEdit() },
+        { resource: 'settings', actions: viewOnly() },
+        { resource: 'my_assets', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
     ],
@@ -72,7 +104,20 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     user: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewOnly() },
+        { resource: 'maintenance', actions: viewCreateEdit() },
+        { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'my_assets', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
+    ],
+
+    technician: [
+        { resource: 'dashboard', actions: viewOnly() },
+        { resource: 'inventory', actions: viewOnly() },
+        { resource: 'maintenance', actions: viewCreateEdit() },
+        { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'assigned_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewOnly() },
+        { resource: 'my_assets', actions: viewOnly() },
     ],
 
     auditor: [

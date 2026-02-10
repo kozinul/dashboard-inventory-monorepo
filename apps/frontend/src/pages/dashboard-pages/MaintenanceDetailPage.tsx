@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { useParams, useNavigate } from 'react-router-dom';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
-import { showErrorToast, showConfirmDialog, showSuccessToast } from '@/utils/swal';
+import { showErrorToast, showConfirmDialog, showSuccessToast, showInputDialog } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 import { TicketWorkModal } from '@/features/maintenance/components/TicketWorkModal';
 import { EscalateTicketModal } from '@/features/maintenance/components/EscalateTicketModal'; // Need to verify if file is indexed
 import { supplyService, Supply } from '@/services/supplyService';
-import Swal from 'sweetalert2';
+
 
 export default function MaintenanceDetailPage() {
     const { id } = useParams();
@@ -106,20 +106,15 @@ export default function MaintenanceDetailPage() {
         if (!ticket) return;
 
         if (action === 'Pending') {
-            const { value: note } = await Swal.fire({
-                title: 'Set to Pending',
-                input: 'textarea',
-                inputLabel: 'Reason for Pending',
-                inputPlaceholder: 'Waiting for parts...',
-                showCancelButton: true,
-                inputValidator: (value) => {
-                    if (!value) return 'You need to write a reason!';
-                    return null;
-                }
-            });
-            if (note) {
+            const result = await showInputDialog(
+                'Set to Pending',
+                'Reason for Pending',
+                'text',
+                'Waiting for parts...'
+            );
+            if (result.isConfirmed && result.value) {
                 try {
-                    await maintenanceService.updateStatus(ticket._id!, 'Pending', note);
+                    await maintenanceService.updateStatus(ticket._id!, 'Pending', result.value);
                     showSuccessToast('Status updated to Pending');
                     fetchTicket(ticket._id!);
                 } catch (error) {
@@ -140,7 +135,7 @@ export default function MaintenanceDetailPage() {
             // The modal handles this check, but here we might want to warn or just allow.
             // Let's keep it simple for now as per "Add upload before and upload after" request.
 
-            const result = await showConfirmDialog('Complete Maintenance?', 'Are you sure you developed a finish?');
+            const result = await showConfirmDialog('Complete Maintenance?', 'Are you sure you developed a finish?', 'Yes, complete it!');
             if (!result.isConfirmed) return;
 
             try {
@@ -593,16 +588,14 @@ export default function MaintenanceDetailPage() {
                         {ticket.status === 'In Progress' && (
                             <button
                                 onClick={async () => {
-                                    const { value: text } = await Swal.fire({
-                                        title: 'Add Note',
-                                        input: 'textarea',
-                                        inputLabel: 'Note Content',
-                                        inputPlaceholder: 'Enter note...',
-                                        showCancelButton: true
-                                    });
-                                    if (text) {
+                                    const result = await showInputDialog(
+                                        'Add Note',
+                                        'Note Content',
+                                        'textarea'
+                                    );
+                                    if (result.isConfirmed && result.value) {
                                         try {
-                                            await maintenanceService.addNote(ticket._id!, text);
+                                            await maintenanceService.addNote(ticket._id!, result.value);
                                             showSuccessToast('Note added');
                                             fetchTicket(ticket._id!);
                                         } catch (e) { showErrorToast('Failed to add note'); }
@@ -636,15 +629,15 @@ export default function MaintenanceDetailPage() {
                                             <div className="hidden group-hover:flex gap-1 ml-2">
                                                 <button
                                                     onClick={async () => {
-                                                        const { value: text } = await Swal.fire({
-                                                            title: 'Edit Note',
-                                                            input: 'textarea',
-                                                            inputValue: note.content,
-                                                            showCancelButton: true
-                                                        });
-                                                        if (text) {
+                                                        const result = await showInputDialog(
+                                                            'Edit Note',
+                                                            'Edit note content',
+                                                            'textarea',
+                                                            note.content
+                                                        );
+                                                        if (result.isConfirmed && result.value) {
                                                             try {
-                                                                await maintenanceService.updateNote(ticket._id!, note._id, text);
+                                                                await maintenanceService.updateNote(ticket._id!, note._id, result.value);
                                                                 showSuccessToast('Note updated');
                                                                 fetchTicket(ticket._id!);
                                                             } catch (e) { showErrorToast('Failed to update note'); }
@@ -656,13 +649,12 @@ export default function MaintenanceDetailPage() {
                                                 </button>
                                                 <button
                                                     onClick={async () => {
-                                                        const result = await Swal.fire({
-                                                            title: 'Delete Note?',
-                                                            text: 'This cannot be undone.',
-                                                            icon: 'warning',
-                                                            showCancelButton: true,
-                                                            confirmButtonText: 'Yes, delete it'
-                                                        });
+                                                        const result = await showConfirmDialog(
+                                                            'Delete Note?',
+                                                            'This cannot be undone.',
+                                                            'Yes, delete it',
+                                                            'delete'
+                                                        );
                                                         if (result.isConfirmed) {
                                                             try {
                                                                 await maintenanceService.deleteNote(ticket._id!, note._id);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { assetTemplateService, AssetTemplate, GenerateAssetsPayload } from '../../services/assetTemplateService';
@@ -86,54 +86,29 @@ export default function AssetTemplatesPage() {
             }
             fetchTemplates();
             closeModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Template saved successfully',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            showSuccessToast('Template saved successfully');
         } catch (error) {
             console.error('Error saving template:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save template',
-                confirmButtonColor: '#6366F1'
-            });
+            showErrorToast('Failed to save template');
         }
     };
 
     const handleDelete = async (id: string) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#6366F1',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
+        const result = await showConfirmDialog(
+            'Are you sure?',
+            "You won't be able to revert this!",
+            'Yes, delete it!',
+            'delete'
+        );
 
         if (result.isConfirmed) {
             try {
                 await assetTemplateService.delete(id);
                 fetchTemplates();
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Template has been deleted.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+                showSuccessToast('Template has been deleted.');
             } catch (error) {
                 console.error('Error deleting template:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to delete template',
-                    confirmButtonColor: '#6366F1'
-                });
+                showErrorToast('Failed to delete template');
             }
         }
     };
@@ -210,20 +185,10 @@ export default function AssetTemplatesPage() {
 
             const result = await assetTemplateService.generateAssets(generateTemplateId, payload);
             closeGenerateModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Assets Created!',
-                text: result.message,
-                confirmButtonColor: '#6366F1'
-            });
+            showSuccessToast(result.message);
         } catch (error) {
             console.error('Error generating assets:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to generate assets',
-                confirmButtonColor: '#6366F1'
-            });
+            showErrorToast('Failed to generate assets');
         }
     };
 

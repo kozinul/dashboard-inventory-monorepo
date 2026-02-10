@@ -1,7 +1,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { Unit, getUnits, createUnit, updateUnit, deleteUnit } from '../../services/unitService';
 
 export default function UnitManagementPage() {
@@ -33,38 +33,35 @@ export default function UnitManagementPage() {
         try {
             if (editingUnit && editingUnit._id) {
                 await updateUnit(editingUnit._id, data);
-                Swal.fire('Success', 'Unit updated successfully', 'success');
+                showSuccessToast('Unit updated successfully');
             } else {
                 await createUnit(data);
-                Swal.fire('Success', 'Unit created successfully', 'success');
+                showSuccessToast('Unit created successfully');
             }
             closeModal();
             fetchUnits();
         } catch (error: any) {
             console.error('Error saving unit:', error);
-            Swal.fire('Error', error.response?.data?.message || 'Failed to save unit', 'error');
+            showErrorToast(error.response?.data?.message || 'Failed to save unit');
         }
     };
 
     const handleDelete = async (id: string) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
+        const result = await showConfirmDialog(
+            'Are you sure?',
+            "You won't be able to revert this!",
+            'Yes, delete it!',
+            'delete'
+        );
 
         if (result.isConfirmed) {
             try {
                 await deleteUnit(id);
                 fetchUnits();
-                Swal.fire('Deleted!', 'Unit has been deleted.', 'success');
+                showSuccessToast('Unit has been deleted.');
             } catch (error) {
                 console.error('Error deleting unit:', error);
-                Swal.fire('Error!', 'Failed to delete unit.', 'error');
+                showErrorToast('Failed to delete unit.');
             }
         }
     };

@@ -20,6 +20,9 @@ interface User {
     department?: string;
     departmentId?: string;
     permissions?: Permission[];
+    avatarUrl?: string;
+    phone?: string;
+    designation?: string;
 }
 
 interface AuthState {
@@ -30,6 +33,7 @@ interface AuthState {
     login: (username: string, password: string) => Promise<void>;
     logout: () => void;
     initialize: () => Promise<void>;
+    setUser: (user: User) => void;
 }
 
 // Helper to safely parse JSON
@@ -90,5 +94,10 @@ export const useAuthStore = create<AuthState>((set) => ({
                 set({ user: null, token: null });
             }
         }
+    },
+
+    setUser: (user) => {
+        localStorage.setItem('user', JSON.stringify(user));
+        set({ user });
     },
 }));

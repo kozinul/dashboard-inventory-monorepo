@@ -4,7 +4,7 @@ import { eventService, Event } from '@/services/eventService';
 import { format } from 'date-fns';
 import AddEventAssetModal from '@/features/events/components/AddEventAssetModal';
 import AddEventSupplyModal from '@/features/events/components/AddEventSupplyModal';
-import Swal from 'sweetalert2';
+import { showConfirmDialog, showSuccess, showErrorToast, showAlert } from '@/utils/swal';
 
 export default function EventDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -35,27 +35,18 @@ export default function EventDetailsPage() {
     const handleRemoveAsset = async (assetIndex: number) => {
         if (!event || !id) return;
 
-        const result = await Swal.fire({
-            title: 'Remove Asset?',
-            text: "Are you sure you want to remove this asset?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3b82f6',
-            confirmButtonText: 'Yes, remove it!'
-        });
+        const result = await showConfirmDialog(
+            'Remove Asset?',
+            'Are you sure you want to remove this asset?',
+            'Yes, remove it!',
+            'delete'
+        );
 
         if (!result.isConfirmed) return;
 
         try {
             const updatedAssets = [...(event.rentedAssets || [])];
             updatedAssets.splice(assetIndex, 1);
-            // Since our backend replaces the array, we can just send the new array. 
-            // However, the backend expects objects with assetId, rentalRate etc.
-            // The objects in state populated.
-            // When sending back, we need to ensure we send the correct structure if backend uses simple schema validation,
-            // or if it handles populated objects gracefully (usually Mongoose casting handles ObjectId from populated doc _id).
-            // But optimal is to map back to IDs.
 
             const payloadAssets = updatedAssets.map(a => ({
                 assetId: a.assetId._id,
@@ -64,32 +55,23 @@ export default function EventDetailsPage() {
             }));
 
             await eventService.update(id, { rentedAssets: payloadAssets });
-            await Swal.fire({
-                title: 'Removed!',
-                text: 'Asset has been removed.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            showSuccess('Removed!', 'Asset has been removed.');
             fetchEvent();
         } catch (error) {
             console.error('Failed to remove asset:', error);
-            Swal.fire('Error', 'Failed to remove asset', 'error');
+            showErrorToast('Failed to remove asset');
         }
     };
 
     const handleRemoveSupply = async (supplyIndex: number) => {
         if (!event || !id) return;
 
-        const result = await Swal.fire({
-            title: 'Remove Supply?',
-            text: "Are you sure you want to remove this supply?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#3b82f6',
-            confirmButtonText: 'Yes, remove it!'
-        });
+        const result = await showConfirmDialog(
+            'Remove Supply?',
+            'Are you sure you want to remove this supply?',
+            'Yes, remove it!',
+            'delete'
+        );
 
         if (!result.isConfirmed) return;
 
@@ -104,17 +86,11 @@ export default function EventDetailsPage() {
             }));
 
             await eventService.update(id, { planningSupplies: payloadSupplies });
-            await Swal.fire({
-                title: 'Removed!',
-                text: 'Supply has been removed.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            showSuccess('Removed!', 'Supply has been removed.');
             fetchEvent();
         } catch (error) {
             console.error('Failed to remove supply:', error);
-            Swal.fire('Error', 'Failed to remove supply', 'error');
+            showErrorToast('Failed to remove supply');
         }
     };
 
@@ -174,7 +150,7 @@ export default function EventDetailsPage() {
                                         (event.planningSupplies && event.planningSupplies.length > 0);
 
                                     if (hasItems) {
-                                        Swal.fire({
+                                        showAlert({
                                             title: 'Cannot Delete',
                                             text: 'Please remove all rented assets and planned supplies before deleting the event.',
                                             icon: 'warning'
@@ -182,39 +158,28 @@ export default function EventDetailsPage() {
                                         return;
                                     }
 
-                                    const result = await Swal.fire({
-                                        title: 'Are you sure?',
-                                        text: "You won't be able to revert this!",
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonColor: '#ef4444',
-                                        cancelButtonColor: '#3b82f6',
-                                        confirmButtonText: 'Yes, delete it!'
-                                    });
+                                    const result = await showConfirmDialog(
+                                        'Are you sure?',
+                                        "You won't be able to revert this!",
+                                        'Yes, delete it!',
+                                        'delete'
+                                    );
 
                                     if (result.isConfirmed) {
                                         try {
                                             await eventService.delete(id);
-                                            await Swal.fire({
-                                                title: 'Deleted!',
-                                                text: 'The event has been deleted.',
-                                                icon: 'success'
-                                            });
+                                            showSuccess('Deleted!', 'The event has been deleted.');
                                             navigate('/rental');
                                         } catch (error: any) {
                                             console.error('Failed to delete event:', error);
-                                            Swal.fire({
-                                                title: 'Error!',
-                                                text: error.response?.data?.message || 'Failed to delete event',
-                                                icon: 'error'
-                                            });
+                                            showErrorToast(error.response?.data?.message || 'Failed to delete event');
                                         }
                                     }
                                 }}
                                 disabled={(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)}
                                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)
-                                        ? 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
-                                        : 'text-red-600 bg-red-50 border border-red-200 hover:bg-red-100'
+                                    ? 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
+                                    : 'text-red-600 bg-red-50 border border-red-200 hover:bg-red-100'
                                     }`}
                                 title={((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)) ? "Remove all assets and supplies first" : "Delete Event"}
                             >
@@ -223,7 +188,13 @@ export default function EventDetailsPage() {
                             <button
                                 onClick={async () => {
                                     if (!id) return;
-                                    if (confirm('Are you sure you want to book these resources? This will mark the event as scheduled.')) {
+                                    const result = await showConfirmDialog(
+                                        'Book Resources?',
+                                        'Are you sure you want to book these resources? This will mark the event as scheduled.',
+                                        'Yes, book it!',
+                                        'info'
+                                    );
+                                    if (result.isConfirmed) {
                                         try {
                                             await eventService.update(id, { status: 'scheduled' });
                                             fetchEvent();
@@ -244,7 +215,13 @@ export default function EventDetailsPage() {
                             <button
                                 onClick={async () => {
                                     if (!id) return;
-                                    if (confirm('Are you sure you want to release these resources? This will move the event back to planning.')) {
+                                    const result = await showConfirmDialog(
+                                        'Release Resources?',
+                                        'Are you sure you want to release these resources? This will move the event back to planning.',
+                                        'Yes, release!',
+                                        'warning'
+                                    );
+                                    if (result.isConfirmed) {
                                         try {
                                             await eventService.update(id, { status: 'planning' });
                                             fetchEvent();
@@ -260,7 +237,13 @@ export default function EventDetailsPage() {
                             <button
                                 onClick={async () => {
                                     if (!id) return;
-                                    if (confirm('Are you sure you want to mark this event as done? Resources will be freed.')) {
+                                    const result = await showConfirmDialog(
+                                        'Mark as Done?',
+                                        'Are you sure you want to mark this event as done? Resources will be freed.',
+                                        'Yes, mark as done!',
+                                        'info'
+                                    );
+                                    if (result.isConfirmed) {
                                         try {
                                             await eventService.update(id, { status: 'completed' });
                                             fetchEvent();

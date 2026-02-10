@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { userService, User } from '@/services/userService';
-import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showInputDialog } from '@/utils/swal';
 import { DepartmentTicketActionModal } from '@/features/maintenance/components/DepartmentTicketActionModal';
 
 const statusColors: Record<string, string> = {
@@ -72,21 +71,15 @@ export default function DepartmentTicketsPage() {
     };
 
     const handleReject = async (id: string) => {
-        const { value: reason } = await Swal.fire({
-            title: 'Reject Ticket',
-            input: 'textarea',
-            inputLabel: 'Reason for rejection',
-            inputPlaceholder: 'Enter the reason...',
-            showCancelButton: true,
-            inputValidator: (value) => {
-                if (!value) return 'Please provide a reason';
-                return null;
-            }
-        });
+        const result = await showInputDialog(
+            'Reject Ticket',
+            'Reason for rejection',
+            'text'
+        );
 
-        if (reason) {
+        if (result.isConfirmed && result.value) {
             try {
-                await maintenanceService.rejectTicket(id, reason);
+                await maintenanceService.rejectTicket(id, result.value);
                 showSuccessToast('Ticket rejected');
                 fetchData();
             } catch (error: any) {
@@ -96,18 +89,6 @@ export default function DepartmentTicketsPage() {
         }
     };
 
-    const handleComplete = async (id: string) => {
-        const result = await showConfirmDialog('Complete Ticket?', 'Mark this maintenance as done.');
-        if (!result.isConfirmed) return;
-
-        try {
-            await maintenanceService.completeTicket(id);
-            showSuccessToast('Ticket completed');
-            fetchData();
-        } catch (error: any) {
-            showErrorToast(error.response?.data?.message || 'Failed to complete');
-        }
-    };
 
     const filteredTickets = filter === 'all'
         ? tickets

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { supplyService, Supply } from '../../../services/supplyService';
 import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 
 export default function SuppliesPage() {
     const [supplies, setSupplies] = useState<Supply[]>([]);
@@ -39,24 +39,21 @@ export default function SuppliesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
+        const result = await showConfirmDialog(
+            'Are you sure?',
+            "You won't be able to revert this!",
+            'Yes, delete it!',
+            'delete'
+        );
 
         if (result.isConfirmed) {
             try {
                 await supplyService.delete(id);
                 fetchSupplies();
-                Swal.fire('Deleted!', 'Supply item has been deleted.', 'success');
+                showSuccessToast('Supply item has been deleted.');
             } catch (error) {
                 console.error('Error deleting supply:', error);
-                Swal.fire('Error!', 'Failed to delete item.', 'error');
+                showErrorToast('Failed to delete item.');
             }
         }
     };

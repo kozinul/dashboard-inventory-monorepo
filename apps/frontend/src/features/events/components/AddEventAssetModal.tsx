@@ -54,8 +54,8 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
         if (asset && asset.rentalRates && asset.rentalRates.length > 0) {
             // Default to first rate
             setSelectedRate({
-                rate: asset.rentalRates[0].rate,
-                unit: asset.rentalRates[0].unit
+                rate: asset.rentalRates![0]!.rate,
+                unit: asset.rentalRates![0]!.unit
             });
         } else {
             setSelectedRate(null);

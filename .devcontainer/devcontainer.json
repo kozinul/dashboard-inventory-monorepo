@@ -7,11 +7,9 @@
     "workspaceFolder": "/workspace",
     "shutdownAction": "stopCompose",
     "remoteUser": "node",
-    "forwardPorts": [
-        5173,
-        3000,
-        27017,
-        8081
+    "runArgs": [
+        // Memberikan akses ke Antogravity di host melalui host.docker.internal
+        "--add-host=host.docker.internal:host-gateway"
     ],
     "customizations": {
         "vscode": {
@@ -36,9 +34,14 @@
     },
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
-            "configureZshAsDefaultShell": true
+            "configureZshAsDefaultShell": false,
+            "upgradePackages": false
         }
     },
-    "postCreateCommand": "pnpm install",
-    "overrideCommand": false
+    "forwardPorts": [
+        3000,
+        5173
+    ], // Tambahkan port aplikasi inventory kamu di sini
+    "postStartCommand": "pnpm config set store-dir ~/.pnpm-store",
+    "overrideCommand": true
 }

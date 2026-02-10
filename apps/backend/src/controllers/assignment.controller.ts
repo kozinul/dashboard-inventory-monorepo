@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Assignment } from '../models/assignment.model.js';
 import { Asset } from '../models/asset.model.js';
+import { User } from '../models/user.model.js';
 
 export const createAssignment = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -11,6 +12,15 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
         if (!userId && !assignedTo) {
             res.status(400);
             throw new Error('Either a registered User or a manual Recipient Name is required');
+        }
+
+        // RBAC: Check if user can assign this asset (department check)
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            const asset = await Asset.findById(assetId);
+            if (!asset || asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                res.status(403);
+                throw new Error('You can only assign assets from your department');
+            }
         }
 
         // Sanitize userId -> if empty string, make it null/undefined so Mongoose doesn't error on casting
@@ -43,10 +53,6 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
 
         if (locationId) {
             assetUpdate.locationId = locationId;
-            // Ideally fetch location name too, but for now ID is critical.
-            // If we have Location model imported, we could fetch it.
-            // keeping it simple to just ID for now or assuming frontend sends name if needed, 
-            // but model generally uses ID ref.
         }
 
         await Asset.findByIdAndUpdate(assetId, assetUpdate);
@@ -101,6 +107,15 @@ export const returnAsset = async (req: Request, res: Response, next: NextFunctio
 export const getUserAssignments = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { userId } = req.params;
+
+        // RBAC: Check if user can access this user's assignments
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            const targetUser = await User.findById(userId);
+            if (!targetUser || targetUser.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+        }
+
         const assignments = await Assignment.find({ userId })
             .populate('assetId')
             .sort({ assignedDate: -1 });
@@ -113,6 +128,15 @@ export const getUserAssignments = async (req: Request, res: Response, next: Next
 export const getAssetHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { assetId } = req.params;
+
+        // RBAC: Check if user can access this asset's history
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            const asset = await Asset.findById(assetId);
+            if (!asset || asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+        }
+
         const history = await Assignment.find({ assetId })
             .sort({ assignedDate: -1 })
             .populate('locationId');
@@ -125,7 +149,22 @@ export const getAssetHistory = async (req: Request, res: Response, next: NextFun
 
 export const getAllAssignments = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const assignments = await Assignment.find({ isDeleted: { $ne: true } })
+        const filter: any = { isDeleted: { $ne: true } };
+
+        // RBAC: Department filtering for non-admin users
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                // Get assets from user's department
+                const deptAssets = await Asset.find({ departmentId: req.user.departmentId }).select('_id');
+                const assetIds = deptAssets.map(a => a._id);
+                filter.assetId = { $in: assetIds };
+            } else {
+                // No department = no access
+                return res.json([]);
+            }
+        }
+
+        const assignments = await Assignment.find(filter)
             .populate('assetId')
             .populate('userId')
             .populate('locationId')

@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import { Department, departmentService } from '@/services/departmentService';
 import { MaintenanceTicket, maintenanceService } from '@/services/maintenanceService';
-import { showSuccessToast, showErrorToast } from '@/utils/swal';
+
 
 interface EscalateTicketModalProps {
     isOpen: boolean;
@@ -36,7 +36,7 @@ export function EscalateTicketModal({ isOpen, onClose, onSuccess, ticket }: Esca
 
     const handleEscalate = async () => {
         if (!selectedDept) {
-            Swal.fire('Error', 'Please select a department', 'error');
+            showErrorToast('Please select a department');
             return;
         }
 

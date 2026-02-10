@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import Swal from 'sweetalert2'
+import { showErrorToast, showSuccess, showConfirmDialog, showSelectDialog } from '@/utils/swal'
 import { UserRow } from "@/features/users/components/UserRow"
 import { StatsGrid } from "@/features/users/components/StatsGrid"
 import { userService, CreateUserDto } from "@/services/userService"
@@ -25,11 +25,7 @@ export default function UserManagementPage() {
             setUsers(data)
         } catch (error) {
             console.error("Failed to fetch users", error)
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to fetch users'
-            })
+            showErrorToast('Failed to fetch users')
         } finally {
             setIsLoading(false)
         }
@@ -42,24 +38,11 @@ export default function UserManagementPage() {
     const handleCreateOrUpdate = async (data: CreateUserDto) => {
         try {
             if (editingUser) {
-                // Assuming we use _id as the identifier for now
                 await userService.update((editingUser as any)._id || (editingUser as any).id, data)
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Updated!',
-                    text: 'User has been updated successfully.',
-                    timer: 1500,
-                    showConfirmButton: false
-                })
+                showSuccess('Updated!', 'User has been updated successfully.')
             } else {
                 await userService.create(data)
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Created!',
-                    text: 'User has been created successfully.',
-                    timer: 1500,
-                    showConfirmButton: false
-                })
+                showSuccess('Created!', 'User has been created successfully.')
             }
             fetchUsers()
         } catch (error) {
@@ -69,32 +52,21 @@ export default function UserManagementPage() {
     };
 
     const handleDelete = async (user: User) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: `You want to delete ${user.name}? This action cannot be undone.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        })
+        const result = await showConfirmDialog(
+            'Are you sure?',
+            `You want to delete ${user.name}? This action cannot be undone.`,
+            'Yes, delete it!',
+            'delete'
+        )
 
         if (result.isConfirmed) {
             try {
                 await userService.delete((user as any)._id || (user as any).id)
-                await Swal.fire(
-                    'Deleted!',
-                    'User has been deleted.',
-                    'success'
-                )
+                showSuccess('Deleted!', 'User has been deleted.')
                 fetchUsers()
             } catch (error) {
                 console.error("Failed to delete user", error)
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to delete user'
-                })
+                showErrorToast('Failed to delete user')
             }
         }
     }
@@ -110,38 +82,28 @@ export default function UserManagementPage() {
     }
 
     const handleCopyRole = async (sourceUser: User) => {
-        // Create options for users dropdown (exclude source user)
         const otherUsers = users.filter(u =>
             ((u as any)._id || (u as any).id) !== ((sourceUser as any)._id || (sourceUser as any).id)
         );
 
         if (otherUsers.length === 0) {
-            Swal.fire('No Users', 'No other users available to copy role to.', 'info');
+            showErrorToast('No other users available to copy role to.');
             return;
         }
 
-        const { value: selectedUserId } = await Swal.fire({
-            title: `Copy role "${sourceUser.role}" to:`,
-            input: 'select',
-            inputOptions: Object.fromEntries(
-                otherUsers.map(u => [((u as any)._id || (u as any).id), u.name])
-            ),
-            inputPlaceholder: 'Select a user',
-            showCancelButton: true,
-            confirmButtonText: 'Copy Role',
-            inputValidator: (value) => {
-                if (!value) return 'Please select a user';
-                return null;
-            }
-        });
+        const { value: selectedUserId } = await showSelectDialog(
+            `Copy role "${sourceUser.role}" to:`,
+            Object.fromEntries(otherUsers.map(u => [((u as any)._id || (u as any).id), u.name])),
+            'Select a user'
+        );
 
         if (selectedUserId) {
             try {
                 await userService.update(selectedUserId, { role: sourceUser.role });
-                Swal.fire('Copied!', `Role has been copied successfully.`, 'success');
+                showSuccess('Copied!', 'Role has been copied successfully.');
                 fetchUsers();
             } catch (error) {
-                Swal.fire('Error', 'Failed to copy role.', 'error');
+                showErrorToast('Failed to copy role.');
             }
         }
     }

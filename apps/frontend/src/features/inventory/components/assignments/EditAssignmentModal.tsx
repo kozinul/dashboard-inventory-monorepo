@@ -26,7 +26,7 @@ export function EditAssignmentModal({
             setRecipientName(assignment.assignedTo || '');
             setRecipientTitle(assignment.assignedToTitle || '');
             setNotes(assignment.notes || '');
-            setAssignedDate(assignment.assignedDate ? new Date(assignment.assignedDate).toISOString().split('T')[0] : '');
+            setAssignedDate(assignment.assignedDate ? new Date(assignment.assignedDate).toISOString().split('T')[0] || '' : '');
         }
     }, [isOpen, assignment]);
 

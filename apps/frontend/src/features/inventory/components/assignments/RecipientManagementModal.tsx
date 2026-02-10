@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Assignment, assignmentService } from '@/services/assignmentService';
+import { assignmentService } from '@/services/assignmentService';
 import { RecipientGroup } from './RecipientListTable';
 import Swal from 'sweetalert2';
 import { AssetSelectionModal } from './AssetSelectionModal';
@@ -139,7 +139,7 @@ export function RecipientManagementModal({ isOpen, onClose, recipient, onRefresh
                                                     {assignment.assetId?.name || 'Unknown Asset'}
                                                 </div>
                                                 <div className="text-xs text-slate-500">
-                                                    {assignment.assetId?.assetCode}
+                                                    {(assignment.assetId as any)?.assetCode}
                                                 </div>
                                                 {assignment.notes && (
                                                     <div className="text-xs text-slate-400 mt-1 italic">

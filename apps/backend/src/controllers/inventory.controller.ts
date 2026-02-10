@@ -89,6 +89,14 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
         if (!asset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
+
+        // RBAC: Check if user can access this asset
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+        }
+
         res.json(asset);
     } catch (error) {
         next(error);
@@ -97,6 +105,17 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
 
 export const createAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        // RBAC: Non-admin users can only create assets in their department
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+                return res.status(403).json({ message: 'You can only create assets in your department' });
+            }
+            // Auto-assign to user's department if not specified
+            if (!req.body.departmentId) {
+                req.body.departmentId = req.user.departmentId;
+            }
+        }
+
         const asset = new Asset(req.body);
         await asset.save();
         res.status(201).json(asset);
@@ -107,10 +126,23 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
 
 export const updateAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const asset = await Asset.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!asset) {
+        const existingAsset = await Asset.findById(req.params.id);
+        if (!existingAsset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
+
+        // RBAC: Check if user can update this asset
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (existingAsset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'You can only update assets from your department' });
+            }
+            // Prevent changing department
+            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+                return res.status(403).json({ message: 'You cannot transfer assets to other departments' });
+            }
+        }
+
+        const asset = await Asset.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(asset);
     } catch (error) {
         next(error);
@@ -119,10 +151,19 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
 
 export const deleteAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const asset = await Asset.findByIdAndDelete(req.params.id);
-        if (!asset) {
+        const existingAsset = await Asset.findById(req.params.id);
+        if (!existingAsset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
+
+        // RBAC: Check if user can delete this asset
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (existingAsset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'You can only delete assets from your department' });
+            }
+        }
+
+        await Asset.findByIdAndDelete(req.params.id);
         res.json({ message: 'Asset deleted successfully' });
     } catch (error) {
         next(error);
@@ -131,17 +172,35 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
 
 export const getInventoryStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const totalAssets = await Asset.countDocuments();
+        const filter: any = {};
+
+        // RBAC: Filter stats by department for non-admin users
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                filter.departmentId = req.user.departmentId;
+            } else {
+                // No department = no stats
+                return res.json({
+                    totalAssets: 0,
+                    totalValue: 0,
+                    lowStock: 0,
+                    maintenanceCount: 0
+                });
+            }
+        }
+
+        const totalAssets = await Asset.countDocuments(filter);
         const totalValueAgg = await Asset.aggregate([
+            { $match: filter },
             { $group: { _id: null, total: { $sum: '$value' } } }
         ]);
-        const lowStock = await Asset.countDocuments({ status: 'active' }); // Simplification for demo
-        const maintenanceCount = await Asset.countDocuments({ status: 'maintenance' });
+        const lowStock = await Asset.countDocuments({ ...filter, status: 'active' });
+        const maintenanceCount = await Asset.countDocuments({ ...filter, status: 'maintenance' });
 
         res.json({
             totalAssets,
             totalValue: totalValueAgg[0]?.total || 0,
-            lowStock, // Placeholder logic
+            lowStock,
             maintenanceCount
         });
     } catch (error) {

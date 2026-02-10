@@ -49,7 +49,7 @@ export function EditRecipientModal({
         if (!loc) return '';
 
         const parts: string[] = [];
-        const type = loc.type?.toLowerCase();
+
 
         // If we can't traverse parents (child not in allLocations or no parentId header), 
         // at least return the name we have.

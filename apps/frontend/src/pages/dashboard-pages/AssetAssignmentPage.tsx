@@ -4,7 +4,7 @@ import { RecipientListTable, RecipientGroup } from '@/features/inventory/compone
 import { RecipientManagementModal } from '@/features/inventory/components/assignments/RecipientManagementModal';
 import { EditRecipientModal } from '@/features/inventory/components/assignments/EditRecipientModal';
 import { AssignmentModal } from '@/features/inventory/components/assignments/AssignmentModal';
-import Swal from 'sweetalert2';
+import { showConfirmDialog, showSuccess, showErrorToast } from '@/utils/swal';
 
 export default function AssetAssignmentPage() {
     const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -125,25 +125,21 @@ export default function AssetAssignmentPage() {
                         setIsEditRecipientModalOpen(true);
                     }}
                     onDelete={async (recipient) => {
-                        const result = await Swal.fire({
-                            title: `Delete ${recipient.name}?`,
-                            text: 'This will remove ALL assignment records for this recipient. Active assets will become available again.',
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#3085d6',
-                            confirmButtonText: 'Yes, delete everything!'
-                        });
+                        const result = await showConfirmDialog(
+                            `Delete ${recipient.name}?`,
+                            'This will remove ALL assignment records for this recipient. Active assets will become available again.',
+                            'Yes, delete everything!',
+                            'delete'
+                        );
 
                         if (result.isConfirmed) {
-                            const Swal = (await import('sweetalert2')).default; // Use imported Swal or from closure
                             try {
                                 await assignmentService.bulkDeleteRecipient(recipient.name);
-                                Swal.fire('Deleted!', 'Recipient and assignments removed.', 'success');
+                                showSuccess('Deleted!', 'Recipient and assignments removed.');
                                 fetchAssignments();
                             } catch (err) {
                                 console.error(err);
-                                Swal.fire('Error', 'Failed to delete recipient assignments', 'error');
+                                showErrorToast('Failed to delete recipient assignments');
                             }
                         }
                     }}

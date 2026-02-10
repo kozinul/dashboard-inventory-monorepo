@@ -38,7 +38,7 @@ export function ServiceModal({ isOpen, onClose, onSuccess, editData }: ServiceMo
                     type: editData.type || 'Repair',
                     cost: editData.cost || '',
                     description: editData.description || '',
-                    expectedCompletionDate: editData.expectedCompletionDate ? new Date(editData.expectedCompletionDate).toISOString().split('T')[0] : '',
+                    expectedCompletionDate: editData.expectedCompletionDate ? (new Date(editData.expectedCompletionDate).toISOString().split('T')[0] || '') : '',
                 });
             } else {
                 setFormData({

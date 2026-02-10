@@ -12,7 +12,7 @@ const userSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
-    role: z.enum(['user', 'admin', 'manager', 'auditor', 'technician', 'superuser']),
+    role: z.enum(['user', 'admin', 'manager', 'auditor', 'technician', 'superuser', 'system_admin']),
     department: z.string().optional(),
     designation: z.string().optional(),
     status: z.enum(['Active', 'Offline', 'Away']),

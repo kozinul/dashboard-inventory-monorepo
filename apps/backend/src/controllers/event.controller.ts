@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import Event from '../models/event.model';
-import { Supply } from '../models/supply.model';
-import { SupplyHistory } from '../models/supplyHistory.model';
+import Event from '../models/event.model.js';
+import { Supply } from '../models/supply.model.js';
+import { SupplyHistory } from '../models/supplyHistory.model.js';
+import { Asset } from '../models/asset.model.js';
 
 export const createEvent = async (req: Request, res: Response) => {
     try {
@@ -15,7 +16,29 @@ export const createEvent = async (req: Request, res: Response) => {
 
 export const getEvents = async (req: Request, res: Response) => {
     try {
-        const events = await Event.find().sort({ startTime: 1 });
+        let events = await Event.find().sort({ startTime: 1 });
+
+        // RBAC: Filter by department for non-admin users
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                // Filter events that have assets from user's department
+                const eventsWithAccess = [];
+                for (const event of events) {
+                    if (event.rentedAssets && event.rentedAssets.length > 0) {
+                        // Check if any asset belongs to user's department
+                        const assetIds = event.rentedAssets.map(ra => ra.assetId);
+                        const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
+                        if (assets.length > 0) {
+                            eventsWithAccess.push(event);
+                        }
+                    }
+                }
+                events = eventsWithAccess;
+            } else {
+                return res.json([]);
+            }
+        }
+
         res.status(200).json(events);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching events', error });
@@ -31,6 +54,21 @@ export const getEventById = async (req: Request, res: Response) => {
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
+
+        // RBAC: Check if user can access this event
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId && event.rentedAssets && event.rentedAssets.length > 0) {
+                // Check if any asset belongs to user's department
+                const assetIds = event.rentedAssets.map(ra => ra.assetId);
+                const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
+                if (assets.length === 0) {
+                    return res.status(403).json({ message: 'Access denied' });
+                }
+            } else if (!req.user.departmentId) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+        }
+
         res.status(200).json(event);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching event', error });

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import imageCompression from 'browser-image-compression';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { supplyService, Supply } from '@/services/supplyService';
-import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog, showInputDialog } from '@/utils/swal';
+import { validateFile, formatFileSize } from '@/utils/fileValidation';
+
 
 export interface TicketWorkModalProps {
     isOpen: boolean;
@@ -14,6 +16,8 @@ export interface TicketWorkModalProps {
 
 export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWorkModalProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [, setUploadProgress] = useState(0);
+    const [, setIsCompressing] = useState(false);
     const [activeTab, setActiveTab] = useState<'photos' | 'supplies' | 'status'>('photos');
 
     // Form States
@@ -84,23 +88,67 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
     const [previewBefore, setPreviewBefore] = useState<string[]>([]);
     const [previewAfter, setPreviewAfter] = useState<string[]>([]);
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'before' | 'after') => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, type: 'before' | 'after') => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
             if (!file) return;
 
-            const url = URL.createObjectURL(file);
-
-            if (type === 'before') {
-                setNewBeforeFiles([...newBeforeFiles, file]);
-                setPreviewBefore([...previewBefore, url]);
-            } else {
-                setNewAfterFiles([...newAfterFiles, file]);
-                setPreviewAfter([...previewAfter, url]);
+            // Validate file
+            const validation = validateFile(file);
+            if (!validation.valid) {
+                showErrorToast(validation.error || 'Invalid file');
+                e.target.value = ''; // Reset input
+                return;
             }
 
-            // Reset input
-            e.target.value = '';
+            // Check for duplicates
+            const existingFiles = type === 'before' ? newBeforeFiles : newAfterFiles;
+            const isDuplicate = existingFiles.some(
+                existing => existing.name === file.name && existing.size === file.size
+            );
+
+            if (isDuplicate) {
+                showErrorToast(`File "${file.name}" is already added`);
+                e.target.value = '';
+                return;
+            }
+
+            try {
+                setIsCompressing(true);
+
+                // Compress image
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    fileType: file.type as 'image/jpeg' | 'image/png' | 'image/webp'
+                };
+
+                const compressedFile = await imageCompression(file, options);
+
+                // Show compression result
+                const originalSize = formatFileSize(file.size);
+                const compressedSize = formatFileSize(compressedFile.size);
+                console.log(`Compressed ${file.name}: ${originalSize} → ${compressedSize}`);
+
+                const url = URL.createObjectURL(compressedFile);
+
+                if (type === 'before') {
+                    setNewBeforeFiles([...newBeforeFiles, compressedFile]);
+                    setPreviewBefore([...previewBefore, url]);
+                } else {
+                    setNewAfterFiles([...newAfterFiles, compressedFile]);
+                    setPreviewAfter([...previewAfter, url]);
+                }
+
+                // Reset input
+                e.target.value = '';
+            } catch (error) {
+                console.error('Error compressing image:', error);
+                showErrorToast('Failed to process image');
+            } finally {
+                setIsCompressing(false);
+            }
         }
     };
 
@@ -157,22 +205,17 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
             let pendingNote = '';
 
             if (newStatus === 'Pending') {
-                const { value: note } = await Swal.fire({
-                    title: 'Reason for Pending',
-                    input: 'textarea',
-                    inputLabel: 'Note',
-                    inputPlaceholder: 'Waiting for spare parts...',
-                    showCancelButton: true,
-                    inputValidator: (value) => {
-                        if (!value) return 'You need to write a reason!';
-                        return null;
-                    }
-                });
-                if (!note) {
+                const result = await showInputDialog(
+                    'Reason for Pending',
+                    'Note',
+                    'text',
+                    'Waiting for spare parts...'
+                );
+                if (!result.isConfirmed || !result.value) {
                     setIsLoading(false);
                     return;
                 }
-                pendingNote = note;
+                pendingNote = result.value;
             }
 
             if (newStatus === 'Done') {
@@ -209,15 +252,16 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
             // Note: If no supplies added, we might skip or send empty array
             formData.append('suppliesUsed', JSON.stringify(newSuppliesToSend));
 
-            // To support removing existing photos (if we implemented that logic in UI), we'd usually need to send the 'kept' URLs.
-            // But current backend logic for 'req.files' branch APPENDS.
-            // So existing photos are safe even if not sent.
-            // If we want to support deleting existing photos, we should probably do that via a separate API call or separate field 'deletedPhotos'.
-            // For now, let's focus on ADDING.
-
-            await maintenanceService.updateTicketWork(ticket._id, formData);
+            // Upload with progress tracking
+            await maintenanceService.updateTicketWork(ticket._id, formData, (progressEvent) => {
+                if (progressEvent.total) {
+                    const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(progress);
+                }
+            });
 
             showSuccessToast('Work updated successfully');
+            setUploadProgress(0); // Reset progress
             onSuccess();
             onClose();
 

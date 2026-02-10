@@ -63,6 +63,7 @@ export default function MaintenancePage() {
         fetchData();
     }, [viewMode]);
 
+
     const handleCreate = () => {
         setSelectedTask(null);
         setIsCreateModalOpen(true);
@@ -184,6 +185,7 @@ export default function MaintenancePage() {
 
                     <div className="flex items-center gap-3">
                         {/* Search could go here */}
+
                         <button
                             onClick={handleCreate}
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
@@ -215,14 +217,16 @@ export default function MaintenancePage() {
             />
 
             {/* Work Modal (Technician working on ticket) */}
-            {selectedTask && (
-                <TicketWorkModal
-                    isOpen={isWorkModalOpen}
-                    onClose={handleModalClose}
-                    onSuccess={handleSuccess}
-                    ticket={selectedTask}
-                />
-            )}
-        </div>
+            {
+                selectedTask && (
+                    <TicketWorkModal
+                        isOpen={isWorkModalOpen}
+                        onClose={handleModalClose}
+                        onSuccess={handleSuccess}
+                        ticket={selectedTask}
+                    />
+                )
+            }
+        </div >
     );
 }

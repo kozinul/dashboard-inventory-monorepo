@@ -4,23 +4,70 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { useRoleStore, Role } from '@/store/roleStore';
 
-// Permission resources list
-const RESOURCES = [
-    { id: 'dashboard', label: 'Dashboard', actions: ['view'] },
-    { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create'] },
-    { id: 'transfer', label: 'Transfer', actions: ['view', 'create'] },
-    { id: 'maintenance', label: 'Maintenance', actions: ['view', 'create', 'edit'] },
-    { id: 'services', label: 'Services', actions: ['view', 'create', 'edit'] },
-    { id: 'history', label: 'History', actions: ['view'] },
-    { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'reports', label: 'Laporan', actions: ['view'] },
-    { id: 'settings', label: 'Settings', actions: ['view', 'edit'] },
-    { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'] },
+// Permission resources organized by groups
+const RESOURCE_GROUPS = [
+    {
+        group: 'Dashboard & Reports',
+        icon: '📊',
+        resources: [
+            { id: 'dashboard', label: 'Dashboard', actions: ['view'], description: 'Overview of system status and key metrics' },
+            { id: 'reports', label: 'Laporan', actions: ['view'], description: 'Access system reports and analytics' },
+        ]
+    },
+    {
+        group: 'Inventory Management',
+        icon: '📦',
+        resources: [
+            { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory items' },
+            { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
+            { id: 'transfer', label: 'Transfer', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
+            { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },
+            { id: 'assignments', label: 'Assignments', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset assignments to users' },
+        ]
+    },
+    {
+        group: 'Maintenance Management',
+        icon: '🔧',
+        resources: [
+            { id: 'maintenance', label: 'Maintenance', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage maintenance tickets and records' },
+            { id: 'my_tickets', label: 'My Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Tickets created by the user' },
+            { id: 'dept_tickets', label: 'Dept. Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Department ticket queue for approval' },
+            { id: 'assigned_tickets', label: 'Assigned Tickets', actions: ['view', 'create', 'edit'], description: 'Tickets assigned to the current user (technician)' },
+            { id: 'services', label: 'Services', actions: ['view', 'create', 'edit', 'delete'], description: 'External service and vendor management' },
+        ]
+    },
+    {
+        group: 'Rental & Events',
+        icon: '🎪',
+        resources: [
+            { id: 'rental', label: 'Rental', actions: ['view', 'create', 'edit', 'delete'], description: 'Rental calendar and event planning' },
+            { id: 'events', label: 'Events', actions: ['view', 'create', 'edit', 'delete'], description: 'Individual event details and asset assignment' },
+        ]
+    },
+    {
+        group: 'User Resources',
+        icon: '👤',
+        resources: [
+            { id: 'my_assets', label: 'My Assets', actions: ['view'], description: 'Assets assigned to the current user' },
+            { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage user accounts and roles' },
+            { id: 'settings', label: 'Settings', actions: ['view', 'edit'], description: 'System-wide configuration and account settings' },
+        ]
+    },
+    {
+        group: 'Master Data',
+        icon: '⚙️',
+        resources: [
+            { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage item categories' },
+            { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage physical locations and rooms' },
+            { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage vendor and supplier information' },
+            { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage templates for asset creation' },
+            { id: 'history', label: 'History', actions: ['view'], description: 'View audit logs and activity history' },
+        ]
+    },
 ];
+
+// Flatten for backwards compatibility
+const RESOURCES = RESOURCE_GROUPS.flatMap(g => g.resources);
 
 interface Permission {
     resource: string;
@@ -46,6 +93,19 @@ export function RoleManager() {
         }));
     };
 
+    // Merge existing permissions with all available resources
+    // This ensures new resources are included when editing existing roles
+    const mergePermissions = (existingPerms: Permission[]): Permission[] => {
+        const existingMap = new Map(existingPerms.map(p => [p.resource, p]));
+        return RESOURCES.map(r => {
+            const existing = existingMap.get(r.id);
+            return existing || {
+                resource: r.id,
+                actions: { view: false, create: false, edit: false, delete: false }
+            };
+        });
+    };
+
     const handleOpenModal = (role?: Role) => {
         if (role) {
             setEditingRole(role);
@@ -54,7 +114,7 @@ export function RoleManager() {
                 slug: role.slug,
                 color: role.color,
                 description: role.description,
-                permissions: role.permissions.length > 0 ? role.permissions : initializePermissions()
+                permissions: mergePermissions(role.permissions)
             });
         } else {
             setEditingRole(null);
@@ -109,8 +169,9 @@ export function RoleManager() {
     };
 
     const handleDelete = async (role: Role) => {
-        if (role.isSystem) {
-            Swal.fire('Cannot Delete', 'System roles cannot be deleted.', 'warning');
+        // Protect strict system roles
+        if (['superuser', 'admin', 'user'].includes(role.slug)) {
+            Swal.fire('Cannot Delete', 'This default system role cannot be deleted.', 'warning');
             return;
         }
 
@@ -202,11 +263,11 @@ export function RoleManager() {
                                         </button>
                                         <button
                                             onClick={() => handleDelete(role)}
-                                            className={`p-1.5 transition-colors ${role.isSystem
+                                            className={`p-1.5 transition-colors ${['superuser', 'admin', 'user'].includes(role.slug)
                                                 ? 'text-slate-300 cursor-not-allowed'
                                                 : 'text-slate-400 hover:text-red-600'}`}
-                                            title={role.isSystem ? 'System role cannot be deleted' : 'Delete'}
-                                            disabled={role.isSystem}
+                                            title={['superuser', 'admin', 'user'].includes(role.slug) ? 'System role cannot be deleted' : 'Delete'}
+                                            disabled={['superuser', 'admin', 'user'].includes(role.slug)}
                                         >
                                             <TrashIcon className="w-5 h-5" />
                                         </button>
@@ -303,7 +364,7 @@ export function RoleManager() {
                                             {/* Permission Matrix */}
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Permissions</label>
-                                                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+                                                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden max-h-96 overflow-y-auto">
                                                     <table className="w-full text-sm">
                                                         <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
                                                             <tr>
@@ -315,28 +376,50 @@ export function RoleManager() {
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                            {RESOURCES.map((resource) => {
-                                                                const perm = formData.permissions.find(p => p.resource === resource.id);
-                                                                return (
-                                                                    <tr key={resource.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                                        <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200">{resource.label}</td>
-                                                                        {(['view', 'create', 'edit', 'delete'] as const).map((action) => (
-                                                                            <td key={action} className="text-center px-2 py-2">
-                                                                                {resource.actions.includes(action) ? (
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                                                                                        checked={perm?.actions[action] || false}
-                                                                                        onChange={() => handleToggleAction(resource.id, action)}
-                                                                                    />
-                                                                                ) : (
-                                                                                    <span className="text-slate-300">—</span>
-                                                                                )}
-                                                                            </td>
-                                                                        ))}
+                                                            {RESOURCE_GROUPS.map((group) => (
+                                                                <Fragment key={group.group}>
+                                                                    {/* Group Header */}
+                                                                    <tr className="bg-slate-100 dark:bg-slate-800">
+                                                                        <td colSpan={5} className="px-3 py-2 text-xs font-bold uppercase text-slate-600 dark:text-slate-300">
+                                                                            <span className="mr-2">{group.icon}</span>
+                                                                            {group.group}
+                                                                        </td>
                                                                     </tr>
-                                                                );
-                                                            })}
+                                                                    {/* Group Resources */}
+                                                                    {group.resources.map((resource) => {
+                                                                        const perm = formData.permissions.find(p => p.resource === resource.id);
+                                                                        return (
+                                                                            <tr key={resource.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 group">
+                                                                                <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2 pl-6">
+                                                                                    {resource.label}
+                                                                                    <div className="relative group/tooltip">
+                                                                                        <span className="material-symbols-outlined text-[16px] text-slate-400 cursor-help">help</span>
+                                                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all whitespace-nowrap z-50 pointer-events-none">
+                                                                                            {resource.description}
+                                                                                            {/* Arrow */}
+                                                                                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </td>
+                                                                                {(['view', 'create', 'edit', 'delete'] as const).map((action) => (
+                                                                                    <td key={action} className="text-center px-2 py-2">
+                                                                                        {resource.actions.includes(action) ? (
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                                                                checked={perm?.actions[action] || false}
+                                                                                                onChange={() => handleToggleAction(resource.id, action)}
+                                                                                            />
+                                                                                        ) : (
+                                                                                            <span className="text-slate-300">—</span>
+                                                                                        )}
+                                                                                    </td>
+                                                                                ))}
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </Fragment>
+                                                            ))}
                                                         </tbody>
                                                     </table>
                                                 </div>

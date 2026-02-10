@@ -9,6 +9,8 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - .:/workspace:cached
+      - node_modules:/workspace/node_modules
+      - pnpm-store:/workspace/.pnpm-store
     # Overriding command to sleep infinity lets VS Code control the lifecycle
     command: sleep infinity
     privileged: true
@@ -49,6 +51,8 @@ services:
 
 volumes:
   mongo-data:
+  node_modules:
+  pnpm-store:
 
 
 networks:

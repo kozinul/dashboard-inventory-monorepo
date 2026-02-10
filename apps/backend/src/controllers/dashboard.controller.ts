@@ -30,11 +30,14 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 
 export const getRecentActivity = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Fetch recent items from multiple collections and merge (simplified)
-        const recentMaintenance = await MaintenanceRecord.find()
+        // Fetch recent tickets excluding Closed and Done status
+        const recentMaintenance = await MaintenanceRecord.find({
+            status: { $nin: ['Closed', 'Done'] }
+        })
             .sort({ updatedAt: -1 })
-            .limit(5)
-            .populate('asset', 'name')
+            .limit(10)
+            .populate('asset', 'name serial')
+            .populate('requestedBy', 'name email')
             .populate('technician', 'name');
 
         res.json(recentMaintenance);

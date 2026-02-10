@@ -11,7 +11,6 @@ import {
     ChartBarIcon,
     TrashIcon,
     Cog6ToothIcon,
-    UserGroupIcon,
     BriefcaseIcon,
     BuildingOfficeIcon,
     CubeIcon,
@@ -47,10 +46,7 @@ const mainNavigation = [
 
 // Master data navigation
 const masterDataNavigation = [
-    { name: 'Users', href: '/master-data/users', icon: UserGroupIcon },
-    { name: 'Job Titles', href: '/master-data/job-titles', icon: BriefcaseIcon },
-    { name: 'Departments', href: '/master-data/departments', icon: BuildingOfficeIcon },
-    { name: 'Item Types', href: '/master-data/item-types', icon: CubeIcon },
+
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
@@ -119,7 +115,7 @@ function DashboardLayout() {
         if (name === 'Dept. Tickets') return counts.dept;
         if (name === 'Maintenance') {
             if (user?.role === 'technician') return counts.assigned;
-            if (user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager') return counts.active;
+            if (user?.role === 'admin' || user?.role === 'system_admin' || user?.role === 'superuser' || user?.role === 'manager') return counts.active;
         }
         return 0;
     };
@@ -127,7 +123,7 @@ function DashboardLayout() {
     // Check if user has permission for a resource
     const hasPermission = (item: any) => {
         // Superuser and admin have access to everything
-        if (user?.role === 'superuser' || user?.role === 'admin') return true;
+        if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
 
         const resourceMap: Record<string, string> = {
             'Dashboard': 'dashboard',
@@ -135,12 +131,13 @@ function DashboardLayout() {
             'Supplies': 'inventory', // grouped
             'Assignments': 'assignments',
             'My Tickets': 'my_tickets',
-            'Assigned Jobs': 'assigned_jobs',
+            'Assigned Jobs': 'assigned_tickets',
             'Dept. Tickets': 'dept_tickets',
             'Maintenance': 'maintenance',
             'Services': 'services',
             'Reports': 'reports',
-            'Rental': 'rental', // grouped with events
+            'Rental': 'rental',
+            'Events': 'events',
             'Disposal': 'disposal',
             'Users': 'users',
             'Settings': 'settings',
@@ -150,19 +147,24 @@ function DashboardLayout() {
 
         const resource = resourceMap[item.name];
 
+        // Manager permissions
+        if (user?.role === 'manager') {
+            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events'].includes(resource || '');
+        }
+
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'my_tickets', 'department_tickets', 'maintenance', 'assignments', 'my_assets'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets'].includes(resource || '');
         }
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'inventory', 'my_tickets', 'my_assets'].includes(resource || '');
+            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history'].includes(resource || '');
         }
 
-        // Manager permissions
-        if (user?.role === 'manager') {
-            return ['dashboard', 'inventory', 'my_tickets', 'dept_tickets', 'maintenance', 'reports', 'users', 'my_assets', 'settings', 'assignments'].includes(resource || '');
+        // Auditor permissions
+        if (user?.role === 'auditor') {
+            return ['dashboard', 'inventory', 'history', 'reports'].includes(resource || '');
         }
 
         // Fallback or explicit deny if no role matches above
@@ -192,6 +194,7 @@ function DashboardLayout() {
             }
         }
     }, [user, location.pathname]);
+
 
     return (
         <>

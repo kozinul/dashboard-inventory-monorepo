@@ -30,6 +30,16 @@ export const getAllSupplies = async (req: Request, res: Response) => {
         const { search, category, lowStock } = req.query;
         let query: any = {};
 
+        // RBAC: Department filtering for non-admin users
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                query.departmentId = req.user.departmentId;
+            } else {
+                // No department = no access
+                return res.json([]);
+            }
+        }
+
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -69,6 +79,14 @@ export const getSupplyById = async (req: Request, res: Response) => {
         if (!supply) {
             return res.status(404).json({ message: 'Supply not found' });
         }
+
+        // RBAC: Check if user can access this supply
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (supply.departmentId?._id?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+        }
+
         res.json(supply);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -80,6 +98,17 @@ export const updateSupply = async (req: Request, res: Response) => {
         const oldSupply = await Supply.findById(req.params.id);
         if (!oldSupply) {
             return res.status(404).json({ message: 'Supply not found' });
+        }
+
+        // RBAC: Check if user can update this supply
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (oldSupply.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'You can only update supplies from your department' });
+            }
+            // Prevent changing department
+            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+                return res.status(403).json({ message: 'You cannot transfer supplies to other departments' });
+            }
         }
 
         const supply = await Supply.findByIdAndUpdate(
@@ -125,10 +154,19 @@ export const updateSupply = async (req: Request, res: Response) => {
 
 export const deleteSupply = async (req: Request, res: Response) => {
     try {
-        const supply = await Supply.findByIdAndDelete(req.params.id);
+        const supply = await Supply.findById(req.params.id);
         if (!supply) {
             return res.status(404).json({ message: 'Supply not found' });
         }
+
+        // RBAC: Check if user can delete this supply
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (supply.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'You can only delete supplies from your department' });
+            }
+        }
+
+        await Supply.findByIdAndDelete(req.params.id);
         res.json({ message: 'Supply deleted successfully' });
     } catch (error: any) {
         res.status(500).json({ message: error.message });

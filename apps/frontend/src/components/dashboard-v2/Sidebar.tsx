@@ -9,7 +9,7 @@ export function Sidebar() {
     // Check if user has permission for a resource
     const hasPermission = (resource: string) => {
         // Superuser and admin have access to everything
-        if (user?.role === 'superuser' || user?.role === 'admin') return true;
+        if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
 
         // Technician permissions
         if (user?.role === 'technician') {

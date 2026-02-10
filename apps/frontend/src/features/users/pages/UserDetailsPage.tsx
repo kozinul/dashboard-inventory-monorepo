@@ -5,12 +5,14 @@ import { assignmentService, Assignment } from '@/services/assignmentService';
 import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
 import { User } from '@dashboard/schemas';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import UserPermissionEditor from '../components/UserPermissionEditor';
+import { useRoleStore } from '@/store/roleStore';
 
 export default function UserDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { roles } = useRoleStore();
     const [user, setUser] = useState<User | null>(null);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function UserDetailsPage() {
             });
         } catch (error) {
             console.error("Failed to fetch user details", error);
-            Swal.fire('Error', 'Failed to load user data', 'error');
+            showErrorToast('Failed to load user data');
             navigate('/users');
         } finally {
             setIsLoading(false);
@@ -79,32 +81,31 @@ export default function UserDetailsPage() {
         if (!id) return;
 
         try {
-            await userService.update(id, editFormData);
-            Swal.fire('Success', 'User profile updated', 'success');
+            await userService.update(id, editFormData as any);
+            showSuccessToast('User profile updated');
             // Refresh data to ensure UI syncs
             fetchData();
         } catch (error: any) {
-            Swal.fire('Error', error.response?.data?.message || 'Failed to update user', 'error');
+            showErrorToast(error.response?.data?.message || 'Failed to update user');
         }
     };
 
     const handleReturn = async (assignmentId: string) => {
-        const result = await Swal.fire({
-            title: 'Return Asset?',
-            text: "Confirm return of this asset",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, return it'
-        });
+        const result = await showConfirmDialog(
+            'Return Asset?',
+            'Confirm return of this asset',
+            'Yes, return it',
+            'info'
+        );
 
         if (result.isConfirmed) {
             try {
                 await assignmentService.returnAsset(assignmentId, {});
-                Swal.fire('Returned!', 'Asset has been returned.', 'success');
+                showSuccessToast('Asset has been returned.');
                 fetchData();
             } catch (error) {
                 console.error("Failed to return asset", error);
-                Swal.fire('Error', 'Failed to return asset', 'error');
+                showErrorToast('Failed to return asset');
             }
         }
     };
@@ -303,11 +304,11 @@ export default function UserDetailsPage() {
                                             value={editFormData.role}
                                             onChange={e => setEditFormData({ ...editFormData, role: e.target.value })}
                                         >
-                                            <option value="user">User</option>
-                                            <option value="manager">Manager</option>
-                                            <option value="admin">Admin</option>
-                                            <option value="superuser">Super User</option>
-                                            <option value="auditor">Auditor</option>
+                                            {roles.map((role) => (
+                                                <option key={role.id} value={role.slug}>
+                                                    {role.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     {/* Status (Deactivate) */}

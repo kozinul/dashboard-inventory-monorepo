@@ -5,7 +5,15 @@ import { CreateUserSchema } from '@dashboard/schemas'; // Assuming this export e
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const users = await User.find().select('-password');
+        const filter: any = {};
+
+        // RBAC: Department filtering for managers
+        if (req.user && req.user.role === 'manager' && req.user.departmentId) {
+            filter.departmentId = req.user.departmentId;
+        }
+        // Superuser/Admin see all users
+
+        const users = await User.find(filter).select('-password');
         res.json(users);
     } catch (error) {
         next(error);
@@ -19,6 +27,15 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
             res.status(404);
             throw new Error('User not found');
         }
+
+        // RBAC: Managers can only view users from their department
+        if (req.user && req.user.role === 'manager') {
+            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                res.status(403);
+                throw new Error('Access denied');
+            }
+        }
+
         res.json(user);
     } catch (error) {
         next(error);
@@ -56,6 +73,25 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         if (!user) {
             res.status(404);
             throw new Error('User not found');
+        }
+
+        // Protect Superuser from being edited
+        if (user.role === 'superuser') {
+            res.status(403);
+            throw new Error('Superuser cannot be edited');
+        }
+
+        // RBAC: Managers can only edit users from their department
+        if (req.user && req.user.role === 'manager') {
+            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                res.status(403);
+                throw new Error('You can only edit users from your department');
+            }
+            // Prevent changing department
+            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+                res.status(403);
+                throw new Error('You cannot transfer users to other departments');
+            }
         }
 
         user.name = req.body.name || user.name;
@@ -97,6 +133,20 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
         if (!user) {
             res.status(404);
             throw new Error('User not found');
+        }
+
+        // Protect Superuser from being deleted
+        if (user.role === 'superuser') {
+            res.status(403);
+            throw new Error('Superuser cannot be deleted');
+        }
+
+        // RBAC: Managers can only delete users from their department
+        if (req.user && req.user.role === 'manager') {
+            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+                res.status(403);
+                throw new Error('You can only delete users from your department');
+            }
         }
 
         await user.deleteOne();

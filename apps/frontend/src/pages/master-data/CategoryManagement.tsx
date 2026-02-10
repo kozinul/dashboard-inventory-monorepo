@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Swal from 'sweetalert2';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 
@@ -75,54 +75,29 @@ export default function CategoryManagement() {
             }
             fetchData();
             closeModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Category saved successfully',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            showSuccessToast('Category saved successfully');
         } catch (error) {
             console.error('Error saving category:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to save category',
-                confirmButtonColor: '#6366F1'
-            });
+            showErrorToast('Failed to save category');
         }
     };
 
     const handleDelete = async (id: string) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#6366F1',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
+        const result = await showConfirmDialog(
+            'Are you sure?',
+            "You won't be able to revert this!",
+            'Yes, delete it!',
+            'delete'
+        );
 
         if (result.isConfirmed) {
             try {
                 await axios.delete(`${API_URL}/categories/${id}`);
                 fetchData();
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Category has been deleted.',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+                showSuccessToast('Category has been deleted.');
             } catch (error) {
                 console.error('Error deleting category:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to delete category',
-                    confirmButtonColor: '#6366F1'
-                });
+                showErrorToast('Failed to delete category');
             }
         }
     };
@@ -189,35 +164,23 @@ export default function CategoryManagement() {
                     validTemplate[key] = ''; // We only care about keys for the template
                 }
 
-                const result = await Swal.fire({
-                    title: 'Import Template?',
-                    text: 'This will merge/overwrite existing template keys.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Import'
-                });
+                const result = await showConfirmDialog(
+                    'Import Template?',
+                    'This will merge/overwrite existing template keys.',
+                    'Import',
+                    'info'
+                );
 
                 if (result.isConfirmed) {
                     setFormData(prev => ({
                         ...prev,
                         technicalSpecsTemplate: { ...prev.technicalSpecsTemplate, ...validTemplate }
                     }));
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Imported',
-                        text: `Imported ${Object.keys(validTemplate).length} fields from JSON.`,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+                    showSuccessToast(`Imported ${Object.keys(validTemplate).length} fields from JSON.`);
                 }
             } catch (err) {
                 console.error(err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Invalid JSON file.',
-                    confirmButtonColor: '#6366F1'
-                });
+                showErrorToast('Invalid JSON file.');
             }
             // Reset input
             event.target.value = '';

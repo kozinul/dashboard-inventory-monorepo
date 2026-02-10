@@ -35,7 +35,12 @@ const DEFAULT_ROLES: Role[] = [
         permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
     },
     {
-        id: '2', name: 'Administrator', slug: 'admin', color: '#f97316',
+        id: '2', name: 'System Admin', slug: 'system_admin', color: '#ea580c',
+        description: 'Full system access (Editable)', isSystem: true, usersCount: 0,
+        permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
+    },
+    {
+        id: '3', name: 'Administrator', slug: 'admin', color: '#f97316',
         description: 'Administrative access', isSystem: true, usersCount: 3,
         permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
     },
