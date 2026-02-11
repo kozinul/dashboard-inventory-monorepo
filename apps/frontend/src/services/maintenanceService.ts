@@ -11,6 +11,7 @@ export interface MaintenanceTicket {
         serial?: string;
         department?: string;
         departmentId?: string;
+        branchId?: string | { _id: string; name: string };
     };
     title: string;
     description?: string;

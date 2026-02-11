@@ -3,6 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 import { StatsGrid } from '@/features/inventory/components/StatsGrid';
 import { AssetTable } from '@/features/inventory/components/AssetTable';
 // import { inventoryStats, mockAssets, Asset } from '@/features/inventory/data/mock-inventory'; // REMOVED
+import { useAppStore } from '@/store/appStore';
 import { AddInventoryModal } from '@/features/inventory/components/AddInventoryModal';
 import { EditInventoryModal } from '@/features/inventory/components/EditInventoryModal';
 import { CloneAssetModal } from '@/features/inventory/components/CloneAssetModal';
@@ -12,14 +13,9 @@ import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swa
 
 
 export default function InventoryPage() {
+    const { activeBranchId } = useAppStore();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [stats, setStats] = useState<any>({
-        totalAssets: 0,
-        outsideService: 0,
-        unassigned: 0,
-        maintenanceCount: 0
-    });
 
     // Filter State
     const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
@@ -36,12 +32,8 @@ export default function InventoryPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [assetsData, statsData] = await Promise.all([
-                assetService.getAll(),
-                assetService.getStats()
-            ]);
+            const assetsData = await assetService.getAll();
             setAssets(assetsData.data);
-            setStats(statsData);
         } catch (error) {
             console.error("Failed to fetch inventory data:", error);
             // Fallback or toast error here
@@ -55,12 +47,27 @@ export default function InventoryPage() {
     }, []);
 
     // Derive categories
-    const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
+    // const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
 
-    // Derive filtered assets
-    const filteredAssets = selectedCategory === 'All Categories'
+    // Derive filtered assets (Branch -> Category)
+    const branchAssets = activeBranchId === 'ALL'
         ? assets
-        : assets.filter(a => a.category === selectedCategory);
+        : assets.filter(a => a.branchId === activeBranchId || (typeof a.branchId === 'object' && (a.branchId as any)._id === activeBranchId));
+
+    const categories = ['All Categories', ...Array.from(new Set(branchAssets.map(a => a.category))).filter(Boolean).sort()];
+
+    const filteredAssets = selectedCategory === 'All Categories'
+        ? branchAssets
+        : branchAssets.filter(a => a.category === selectedCategory);
+
+    // Recalculate stats based on branchAssets (to reflect branch view)
+    // Overriding backend stats for consistency in UI
+    const displayedStats = {
+        totalAssets: branchAssets.length,
+        outsideService: branchAssets.filter(a => a.requiresExternalService).length, // approximate
+        unassigned: branchAssets.filter(a => a.status === 'storage' || a.status === 'active').length, // approximate 'Available'
+        maintenanceCount: branchAssets.filter(a => a.status === 'maintenance').length
+    };
 
     const handleAddAsset = async (newAsset: any) => {
         try {
@@ -160,10 +167,10 @@ export default function InventoryPage() {
 
             {/* Stats */}
             <StatsGrid stats={[
-                { label: 'Total Assets', value: stats.totalAssets, icon: 'inventory_2', delta: '+12%', trend: 'success', iconColor: 'text-blue-500' },
-                { label: 'Outside Service', value: stats.outsideService, icon: 'engineering', delta: 'Items', trend: 'warning', iconColor: 'text-orange-500' },
-                { label: 'Unassigned Assets', value: stats.unassigned, icon: 'pending', delta: 'Available', trend: 'neutral', iconColor: 'text-emerald-500' },
-                { label: 'Asset In Maintenance', value: stats.maintenanceCount, icon: 'build', delta: '+ Rental', trend: 'neutral', iconColor: 'text-purple-500' }
+                { label: 'Total Assets', value: displayedStats.totalAssets.toString(), icon: 'inventory_2', delta: '+12%', trend: 'success', iconColor: 'text-blue-500' },
+                { label: 'Outside Service', value: displayedStats.outsideService.toString(), icon: 'engineering', delta: 'Items', trend: 'warning', iconColor: 'text-orange-500' },
+                { label: 'Unassigned Assets', value: displayedStats.unassigned.toString(), icon: 'pending', delta: 'Available', trend: 'neutral', iconColor: 'text-emerald-500' },
+                { label: 'Asset In Maintenance', value: displayedStats.maintenanceCount.toString(), icon: 'build', delta: '+ Rental', trend: 'neutral', iconColor: 'text-purple-500' }
             ]} />
 
             {/* Table */}

@@ -3,7 +3,7 @@ import { transferService, Transfer } from '../../services/transferService';
 import { TransferModal } from '../../features/transfer/components/TransferModal';
 import { showSuccessToast, showErrorToast, showConfirmDelete } from '../../utils/swal';
 import { useAuthStore } from '../../store/authStore';
-import { AssetStatusBadge } from '../../features/inventory/components/AssetTableParts';
+import { useAppStore } from '../../store/appStore';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 
@@ -12,8 +12,9 @@ export default function TransferPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTransfer, setEditingTransfer] = useState<Transfer | null>(null);
-    const [activeTab, setActiveTab] = useState<'incoming' | 'outgoing' | 'history'>('incoming');
+    const [activeTab, setActiveTab] = useState<'drafts' | 'approval' | 'incoming' | 'history'>('drafts');
     const { user } = useAuthStore();
+    const { activeBranchId } = useAppStore();
 
     const fetchTransfers = async () => {
         setIsLoading(true);
@@ -35,7 +36,27 @@ export default function TransferPage() {
     const handleApprove = async (id: string) => {
         try {
             await transferService.approve(id);
-            showSuccessToast('Transfer approved!');
+            showSuccessToast('Transfer transfer received and completed!');
+            fetchTransfers();
+        } catch (error) {
+            showErrorToast('Failed to complete transfer.');
+        }
+    };
+
+    const handleSend = async (id: string) => {
+        try {
+            await transferService.send(id);
+            showSuccessToast('Transfer sent for approval!');
+            fetchTransfers();
+        } catch (error) {
+            showErrorToast('Failed to send transfer.');
+        }
+    };
+
+    const handleManagerApprove = async (id: string) => {
+        try {
+            await transferService.approveManager(id);
+            showSuccessToast('Transfer approved and sent to destination!');
             fetchTransfers();
         } catch (error) {
             showErrorToast('Failed to approve transfer.');
@@ -74,26 +95,63 @@ export default function TransferPage() {
         }
     };
 
-    const incomingPending = transfers.filter(t =>
+    // 1. Drafts (Pending) - Shows for Requester
+    const isSuperUser = user?.role === 'superuser';
+    const drafts = transfers.filter(t =>
         t.status === 'Pending' &&
-        (t.toDepartmentId?._id === user?.departmentId || t.toDepartmentId === user?.departmentId)
+        (isSuperUser || t.requestedBy?._id === user?._id || t.requestedBy === user?._id)
     );
 
-    const outgoingPending = transfers.filter(t =>
-        t.status === 'Pending' &&
-        (
-            (t.fromDepartmentId?._id === user?.departmentId || t.fromDepartmentId === user?.departmentId) ||
-            (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)
-        )
+    // 2. Approval (WaitingApproval) - Shows for Manager of SENDER
+    // Only show if user is admin/manager and is part of the sending branch/dept
+    const isManager = ['superuser', 'admin', 'manager'].includes(user?.role || '');
+    const approvalPending = transfers.filter(t => {
+        if (t.status !== 'WaitingApproval') return false;
+        if (isSuperUser) return true; // Superuser sees all
+
+        if (!isManager) return false;
+
+        // Check if user belongs to sending unit
+        const isFromMyDept = (t.fromDepartmentId?._id === user?.departmentId || t.fromDepartmentId === user?.departmentId);
+        const isFromMyBranch = (t.fromBranchId?._id === user?.branchId || t.fromBranchId === user?.branchId);
+
+        // If user has no branch (legacy), maybe just check dept? Strictly enforcing branch if present.
+        if (user?.branchId) {
+            return isFromMyDept && isFromMyBranch;
+        }
+        return isFromMyDept;
+    });
+
+    // 3. Incoming (InTransit) - Shows for Receiver
+    const incoming = transfers.filter(t =>
+        t.status === 'InTransit' &&
+        (isSuperUser || t.toDepartmentId?._id === user?.departmentId || t.toDepartmentId === user?.departmentId)
     );
 
-    const history = transfers.filter(t => t.status !== 'Pending');
+    // 4. History - Shows Completed, Rejected, Cancelled (and WaitingApproval for requester if they want to see progress)
+    const history = transfers.filter(t =>
+        ['Completed', 'Rejected', 'Cancelled', 'Approved'].includes(t.status) ||
+        (!isSuperUser && t.status === 'WaitingApproval' && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) ||
+        (!isSuperUser && t.status === 'InTransit' && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) // Also show InTransit to sender in history? Or maybe a separate 'Outgoing' tab?
+    );
 
-    const displayedTransfers = activeTab === 'incoming'
-        ? incomingPending
-        : activeTab === 'outgoing'
-            ? outgoingPending
-            : history;
+    // Global Branch Filter for Superuser
+    // If activeBranchId is not 'ALL' and user is superuser, filter the results
+    const filterByBranch = (list: Transfer[]) => {
+        if (!isSuperUser || activeBranchId === 'ALL') return list;
+        return list.filter(t =>
+            (t.fromBranchId?._id === activeBranchId || t.fromBranchId === activeBranchId) ||
+            (t.toBranchId?._id === activeBranchId || t.toBranchId === activeBranchId)
+        );
+    };
+
+    const displayedTransfers = activeTab === 'drafts'
+        ? filterByBranch(drafts)
+        : activeTab === 'approval'
+            ? filterByBranch(approvalPending)
+            : activeTab === 'incoming'
+                ? filterByBranch(incoming)
+                : filterByBranch(history);
 
     return (
         <div className="space-y-8">
@@ -121,9 +179,10 @@ export default function TransferPage() {
             <div className="border-b border-slate-200 dark:border-slate-800">
                 <nav className="flex gap-8">
                     {[
-                        { id: 'incoming', label: 'Incoming Requests', count: incomingPending.length },
-                        { id: 'outgoing', label: 'Outgoing Requests', count: outgoingPending.length },
-                        { id: 'history', label: 'Transfer History', count: null }
+                        { id: 'drafts', label: 'Drafts', count: drafts.length },
+                        { id: 'approval', label: 'To Approve', count: approvalPending.length },
+                        { id: 'incoming', label: 'Incoming', count: incoming.length },
+                        { id: 'history', label: 'History', count: null }
                     ].map((tab) => (
                         <button
                             key={tab.id}
@@ -176,8 +235,9 @@ export default function TransferPage() {
                                     <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Requested By</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
+                                    {activeTab === 'drafts' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
+                                    {activeTab === 'approval' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
                                     {activeTab === 'incoming' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
-                                    {activeTab === 'outgoing' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -231,8 +291,10 @@ export default function TransferPage() {
                                         <td className="px-6 py-4">
                                             <span className={clsx(
                                                 "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                                                transfer.status === 'Pending' && "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-                                                transfer.status === 'Approved' && "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+                                                transfer.status === 'Pending' && "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+                                                transfer.status === 'WaitingApproval' && "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
+                                                transfer.status === 'InTransit' && "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+                                                (transfer.status === 'Approved' || transfer.status === 'Completed') && "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
                                                 transfer.status === 'Rejected' && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                                             )}>
                                                 {transfer.status}
@@ -243,27 +305,7 @@ export default function TransferPage() {
                                                 {format(new Date(transfer.transferDate), 'MMM d, yyyy')}
                                             </span>
                                         </td>
-                                        {activeTab === 'incoming' && (
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleReject(transfer._id)}
-                                                        className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center transition-all"
-                                                        title="Reject"
-                                                    >
-                                                        <span className="material-symbols-outlined text-sm">close</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleApprove(transfer._id)}
-                                                        className="size-8 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center justify-center transition-all shadow-lg shadow-green-500/20"
-                                                        title="Approve"
-                                                    >
-                                                        <span className="material-symbols-outlined text-sm">check</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        )}
-                                        {activeTab === 'outgoing' && transfer.status === 'Pending' && (
+                                        {activeTab === 'drafts' && (
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     <button
@@ -279,15 +321,64 @@ export default function TransferPage() {
                                                     <button
                                                         onClick={() => handleDelete(transfer._id)}
                                                         className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center transition-all"
-                                                        title="Cancel Transfer"
+                                                        title="Delete Draft"
                                                     >
                                                         <span className="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSend(transfer._id)}
+                                                        className="px-3 py-1 bg-primary text-background-dark rounded-lg text-xs font-bold hover:brightness-110 transition-all shadow-sm"
+                                                        title="Send for Approval"
+                                                    >
+                                                        Send
                                                     </button>
                                                 </div>
                                             </td>
                                         )}
-                                        {activeTab === 'outgoing' && transfer.status !== 'Pending' && (
-                                            <td className="px-6 py-4 text-right"></td>
+
+                                        {activeTab === 'approval' && (
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleReject(transfer._id)}
+                                                        className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center transition-all"
+                                                        title="Reject"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">close</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleManagerApprove(transfer._id)}
+                                                        className="size-8 rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center justify-center transition-all shadow-lg shadow-green-500/20"
+                                                        title="Approve & Send"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">check</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
+
+                                        {activeTab === 'incoming' && (
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {/* Receiver can technically reject if they don't want it? Keep it for now */}
+                                                    {/* Actually, maybe they shouldn't reject "InTransit" easily without reason? */}
+                                                    {/* Keeping Reject for consistency, assuming it cancels the transfer */}
+                                                    <button
+                                                        onClick={() => handleReject(transfer._id)}
+                                                        className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center transition-all"
+                                                        title="Reject"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">close</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApprove(transfer._id)}
+                                                        className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-all shadow-sm"
+                                                        title="Receive Asset"
+                                                    >
+                                                        Receive
+                                                    </button>
+                                                </div>
+                                            </td>
                                         )}
                                     </tr>
                                 ))}

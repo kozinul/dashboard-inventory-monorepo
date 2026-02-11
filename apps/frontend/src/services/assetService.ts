@@ -14,6 +14,7 @@ export interface Asset {
     location?: string;
     departmentId?: string;
     department?: string;
+    branchId?: string | { _id: string; name: string };
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     requiresExternalService?: boolean;
     value: number;

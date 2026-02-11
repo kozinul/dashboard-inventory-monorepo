@@ -4,6 +4,7 @@ import { Asset } from './models/asset.model.js';
 import { User } from './models/user.model.js';
 import { Branch } from './models/branch.model.js';
 import { Transfer } from './models/transfer.model.js';
+import { Supply } from './models/supply.model.js';
 
 dotenv.config();
 
@@ -30,32 +31,37 @@ const migrateBranches = async () => {
         }
         console.log(`Using Branch: ${headOffice.name} (${headOffice._id})`);
 
-        // 2. Update Assets
+        // 2. Update Assets (ALL)
         const assetResult = await Asset.updateMany(
-            { branchId: { $exists: false } }, // Or $eq: null
+            {},
             { $set: { branchId: headOffice._id } }
         );
-        console.log(`Updated ${assetResult.modifiedCount} Assets.`);
+        console.log(`Updated ${assetResult.modifiedCount} Assets (All).`);
 
-        // 3. Update Users
+        // 3. Update Users (ALL)
         const userResult = await User.updateMany(
-            { branchId: { $exists: false } },
+            {},
             { $set: { branchId: headOffice._id } }
         );
-        console.log(`Updated ${userResult.modifiedCount} Users.`);
+        console.log(`Updated ${userResult.modifiedCount} Users (All).`);
 
-        // 4. Update Transfers (Optional, but good for consistency)
-        // Update 'fromBranchId' if missing, based on 'fromDepartment' or fallback
-        // Update 'toBranchId' if missing
+        // 4. Update Transfers (ALL to Head Office)
         const transferResultFrom = await Transfer.updateMany(
-            { fromBranchId: { $exists: false } },
+            {},
             { $set: { fromBranchId: headOffice._id } }
         );
         const transferResultTo = await Transfer.updateMany(
-            { toBranchId: { $exists: false } },
+            {},
             { $set: { toBranchId: headOffice._id } }
         );
-        console.log(`Updated Transfers: ${transferResultFrom.modifiedCount} From, ${transferResultTo.modifiedCount} To.`);
+        console.log(`Updated Transfers: ${transferResultFrom.modifiedCount} From, ${transferResultTo.modifiedCount} To (All).`);
+
+        // 5. Update Supplies (ALL)
+        const supplyResult = await Supply.updateMany(
+            {},
+            { $set: { branchId: headOffice._id } }
+        );
+        console.log(`Updated ${supplyResult.modifiedCount} Supplies (All).`);
 
         console.log('Migration Completed Successfully.');
         process.exit(0);

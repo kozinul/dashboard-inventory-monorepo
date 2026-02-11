@@ -30,6 +30,11 @@ const supplySchema = new mongoose.Schema({
         ref: 'Department',
         required: false
     },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
+    },
     description: {
         type: String,
         trim: true

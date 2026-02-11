@@ -27,6 +27,9 @@ import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
 import { BreadcrumbProvider } from '../context/BreadcrumbContext'
 import { useAuthStore } from '@/store/authStore'
 import { maintenanceService } from '@/services/maintenanceService'
+import { useAppStore } from '@/store/appStore'
+import { Listbox } from '@headlessui/react'
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
 // Main app navigation
 const mainNavigation = [
@@ -89,7 +92,16 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
+    const { activeBranchId, branches, setActiveBranch, initialize, isLoading: isBranchLoading } = useAppStore()
     const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0, userAction: 0 });
+
+    useEffect(() => {
+        if (user?.role === 'superuser' && branches.length === 0) {
+            initialize();
+        }
+    }, [user, branches.length, initialize]);
+
+    const activeBranch = branches.find(b => b._id === activeBranchId) || { name: 'All Branches', _id: 'ALL' };
 
     useEffect(() => {
         const fetchCounts = async () => {
@@ -278,12 +290,91 @@ function DashboardLayout() {
                                     </Transition.Child>
                                     {/* Sidebar component for mobile */}
                                     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
-                                        <div className="flex h-16 shrink-0 items-center">
-                                            <img
-                                                className="h-8 w-auto"
-                                                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                                                alt="Your Company"
-                                            />
+                                        <div className="flex h-16 shrink-0 items-center px-4">
+                                            {user?.role === 'superuser' ? (
+                                                <div className="w-full">
+                                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading}>
+                                                        <div className="relative mt-1">
+                                                            <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
+                                                                <span className="block truncate text-white">
+                                                                    {isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name)}
+                                                                </span>
+                                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                                    <ChevronUpDownIcon
+                                                                        className="h-5 w-5 text-gray-400"
+                                                                        aria-hidden="true"
+                                                                    />
+                                                                </span>
+                                                            </Listbox.Button>
+                                                            <Transition
+                                                                as={Fragment}
+                                                                leave="transition ease-in duration-100"
+                                                                leaveFrom="opacity-100"
+                                                                leaveTo="opacity-0"
+                                                            >
+                                                                <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm z-50">
+                                                                    <Listbox.Option
+                                                                        key="ALL"
+                                                                        className={({ active }) =>
+                                                                            `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                                            }`
+                                                                        }
+                                                                        value="ALL"
+                                                                    >
+                                                                        {({ selected }) => (
+                                                                            <>
+                                                                                <span
+                                                                                    className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                                                                        }`}
+                                                                                >
+                                                                                    All Branches
+                                                                                </span>
+                                                                                {selected ? (
+                                                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                    </span>
+                                                                                ) : null}
+                                                                            </>
+                                                                        )}
+                                                                    </Listbox.Option>
+                                                                    {branches.map((branch) => (
+                                                                        <Listbox.Option
+                                                                            key={branch._id}
+                                                                            className={({ active }) =>
+                                                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                                                }`
+                                                                            }
+                                                                            value={branch._id}
+                                                                        >
+                                                                            {({ selected }) => (
+                                                                                <>
+                                                                                    <span
+                                                                                        className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                                                                            }`}
+                                                                                    >
+                                                                                        {branch.name} {branch.isHeadOffice ? '(HO)' : ''}
+                                                                                    </span>
+                                                                                    {selected ? (
+                                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                        </span>
+                                                                                    ) : null}
+                                                                                </>
+                                                                            )}
+                                                                        </Listbox.Option>
+                                                                    ))}
+                                                                </Listbox.Options>
+                                                            </Transition>
+                                                        </div>
+                                                    </Listbox>
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    className="h-8 w-auto"
+                                                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                                                    alt="Your Company"
+                                                />
+                                            )}
                                         </div>
                                         <nav className="flex flex-1 flex-col">
                                             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -369,12 +460,91 @@ function DashboardLayout() {
                 {/* Static sidebar for desktop */}
                 <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
                     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
-                        <div className="flex h-16 shrink-0 items-center">
-                            <img
-                                className="h-8 w-auto"
-                                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                                alt="Your Company"
-                            />
+                        <div className="flex h-16 shrink-0 items-center px-4">
+                            {user?.role === 'superuser' ? (
+                                <div className="w-full">
+                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading}>
+                                        <div className="relative mt-1">
+                                            <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
+                                                <span className="block truncate text-white">
+                                                    {isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name)}
+                                                </span>
+                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                                    <ChevronUpDownIcon
+                                                        className="h-5 w-5 text-gray-400"
+                                                        aria-hidden="true"
+                                                    />
+                                                </span>
+                                            </Listbox.Button>
+                                            <Transition
+                                                as={Fragment}
+                                                leave="transition ease-in duration-100"
+                                                leaveFrom="opacity-100"
+                                                leaveTo="opacity-0"
+                                            >
+                                                <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm z-50">
+                                                    <Listbox.Option
+                                                        key="ALL"
+                                                        className={({ active }) =>
+                                                            `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                            }`
+                                                        }
+                                                        value="ALL"
+                                                    >
+                                                        {({ selected }) => (
+                                                            <>
+                                                                <span
+                                                                    className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                                                        }`}
+                                                                >
+                                                                    All Branches
+                                                                </span>
+                                                                {selected ? (
+                                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                    </span>
+                                                                ) : null}
+                                                            </>
+                                                        )}
+                                                    </Listbox.Option>
+                                                    {branches.map((branch) => (
+                                                        <Listbox.Option
+                                                            key={branch._id}
+                                                            className={({ active }) =>
+                                                                `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-amber-100 text-amber-900' : 'text-gray-900'
+                                                                }`
+                                                            }
+                                                            value={branch._id}
+                                                        >
+                                                            {({ selected }) => (
+                                                                <>
+                                                                    <span
+                                                                        className={`block truncate ${selected ? 'font-medium' : 'font-normal'
+                                                                            }`}
+                                                                    >
+                                                                        {branch.name} {branch.isHeadOffice ? '(HO)' : ''}
+                                                                    </span>
+                                                                    {selected ? (
+                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                                                            <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                        </span>
+                                                                    ) : null}
+                                                                </>
+                                                            )}
+                                                        </Listbox.Option>
+                                                    ))}
+                                                </Listbox.Options>
+                                            </Transition>
+                                        </div>
+                                    </Listbox>
+                                </div>
+                            ) : (
+                                <img
+                                    className="h-8 w-auto"
+                                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                                    alt="Your Company"
+                                />
+                            )}
                         </div>
                         <nav className="flex flex-1 flex-col">
                             <ul role="list" className="flex flex-1 flex-col gap-y-7">

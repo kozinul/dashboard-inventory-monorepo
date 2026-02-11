@@ -23,6 +23,7 @@ interface User {
     avatarUrl?: string;
     phone?: string;
     designation?: string;
+    branchId?: string;
 }
 
 interface AuthState {

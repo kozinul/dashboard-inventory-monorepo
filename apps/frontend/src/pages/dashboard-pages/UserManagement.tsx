@@ -9,8 +9,10 @@ import { UserModal } from "@/features/users/components/UserModal"
 import { DepartmentManager } from "@/features/users/components/DepartmentManager"
 import { JobTitleManager } from "@/features/users/components/JobTitleManager"
 import { RoleManager } from "@/features/users/components/RoleManager"
+import { useAppStore } from "@/store/appStore"
 
 export default function UserManagementPage() {
+    const { activeBranchId } = useAppStore();
     const navigate = useNavigate()
     const [users, setUsers] = useState<User[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -34,6 +36,10 @@ export default function UserManagementPage() {
     useEffect(() => {
         fetchUsers()
     }, [])
+
+    const filteredUsers = activeBranchId === 'ALL'
+        ? users
+        : users.filter(u => ((u as any).branchId?._id === activeBranchId || (u as any).branchId === activeBranchId));
 
     const handleCreateOrUpdate = async (data: CreateUserDto) => {
         try {
@@ -138,7 +144,7 @@ export default function UserManagementPage() {
                         : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
                         }`}
                 >
-                    Users <span className="ml-2 py-0.5 px-2 rounded-full bg-primary/20 text-[10px]">{users.length}</span>
+                    Users <span className="ml-2 py-0.5 px-2 rounded-full bg-primary/20 text-[10px]">{filteredUsers.length}</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('departments')}
@@ -218,12 +224,12 @@ export default function UserManagementPage() {
                                         <tr>
                                             <td colSpan={6} className="px-6 py-8 text-center text-slate-500">Loading users...</td>
                                         </tr>
-                                    ) : users.length === 0 ? (
+                                    ) : filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No users found</td>
+                                            <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No users found for this branch</td>
                                         </tr>
                                     ) : (
-                                        users.map(user => (
+                                        filteredUsers.map(user => (
                                             <UserRow
                                                 key={(user as any)._id || (user as any).id || user.email}
                                                 user={user}
@@ -239,7 +245,7 @@ export default function UserManagementPage() {
                         </div>
                         {/* Table Footer / Pagination */}
                         <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <span className="text-sm text-slate-500">Showing {users.length} results</span>
+                            <span className="text-sm text-slate-500">Showing {filteredUsers.length} results</span>
                             <div className="flex items-center gap-2">
                                 <button className="px-3 py-1 rounded border border-slate-300 dark:border-slate-600 text-sm hover:bg-slate-200 dark:hover:bg-slate-card transition-colors disabled:opacity-50" disabled>Previous</button>
                                 <button className="px-4 py-1 rounded bg-primary text-background-dark text-sm font-bold">1</button>

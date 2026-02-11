@@ -9,8 +9,9 @@ export interface Transfer {
     fromBranchId?: any;
     toBranchId?: any;
     requestedBy: any;
-    approvedBy?: any;
-    status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed';
+    managerApprovedBy?: any;
+    managerApprovedAt?: string;
+    status: 'Pending' | 'WaitingApproval' | 'InTransit' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed';
     notes?: string;
     transferDate: string;
     completedAt?: string;
@@ -27,6 +28,16 @@ export const transferService = {
 
     create: async (data: { assetId: string, toDepartmentId: string, notes?: string }) => {
         const response = await axios.post<Transfer>(API_URL, data);
+        return response.data;
+    },
+
+    send: async (id: string) => {
+        const response = await axios.post<Transfer>(`${API_URL}/${id}/send`);
+        return response.data;
+    },
+
+    approveManager: async (id: string) => {
+        const response = await axios.post<Transfer>(`${API_URL}/${id}/approve-manager`);
         return response.data;
     },
 

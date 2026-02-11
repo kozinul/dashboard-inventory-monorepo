@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useAppStore } from '@/store/appStore';
 import { supplyService, Supply } from '../../../services/supplyService';
 import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 
 export default function SuppliesPage() {
+    const { activeBranchId } = useAppStore();
     const [supplies, setSupplies] = useState<Supply[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -29,6 +31,11 @@ export default function SuppliesPage() {
     useEffect(() => {
         fetchSupplies();
     }, [searchTerm]);
+
+    // Filter supplies by branch for superusers
+    const filteredSupplies = activeBranchId === 'ALL'
+        ? supplies
+        : supplies.filter(s => ((s as any).branchId?._id === activeBranchId || (s as any).branchId === activeBranchId));
 
     const handleAdd = () => {
         setIsAddModalOpen(true);
@@ -132,7 +139,7 @@ export default function SuppliesPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : supplies.filter(item => {
+                            ) : filteredSupplies.filter(item => {
                                 // Robust Frontend Filter (Extra Security)
                                 const user = useAuthStore.getState().user;
                                 if (!user) return true;
@@ -165,7 +172,7 @@ export default function SuppliesPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                supplies.filter(item => {
+                                filteredSupplies.filter(item => {
                                     // Same Filter Logic for Mapping
                                     const user = useAuthStore.getState().user;
                                     if (!user) return true;

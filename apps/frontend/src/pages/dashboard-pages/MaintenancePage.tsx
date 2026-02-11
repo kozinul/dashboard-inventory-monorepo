@@ -6,9 +6,11 @@ import { TicketWorkModal } from '@/features/maintenance/components/TicketWorkMod
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
+import { useAppStore } from '@/store/appStore';
 
 export default function MaintenancePage() {
     const { user } = useAuthStore();
+    const { activeBranchId } = useAppStore();
     const isTechnician = user?.role === 'technician';
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -16,11 +18,7 @@ export default function MaintenancePage() {
 
     // Data Stats
     const [tasks, setTasks] = useState<MaintenanceTicket[]>([]);
-    const [stats, setStats] = useState({
-        activeRepairs: 0,
-        pending: 0,
-        completed: 0
-    });
+    // Removed stats state, calculating on the fly from filtered tasks
     const [loading, setLoading] = useState(true);
 
     // Selection
@@ -31,8 +29,8 @@ export default function MaintenancePage() {
             setLoading(true);
             let tasksData: MaintenanceTicket[] = [];
 
-            const statsData = await maintenanceService.getStats();
-            setStats(statsData);
+            // const statsData = await maintenanceService.getStats();
+            // setStats(statsData);
 
             if (isTechnician) {
                 // Fetch BOTH assigned and department tickets
@@ -76,6 +74,22 @@ export default function MaintenancePage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Filter tasks based on activeBranchId
+    const filteredTasks = activeBranchId === 'ALL'
+        ? tasks
+        : tasks.filter(t => {
+            // Check asset branch (populated object or ID)
+            const branchId = typeof t.asset?.branchId === 'object' ? t.asset?.branchId._id : t.asset?.branchId;
+            return branchId === activeBranchId;
+        });
+
+    // Recalculate stats based on filteredTasks
+    const displayedStats = {
+        activeRepairs: filteredTasks.filter(t => ['In Progress', 'Service', 'Accepted'].includes(t.status)).length,
+        pending: filteredTasks.filter(t => ['Draft', 'Sent', 'Pending', 'Escalated'].includes(t.status)).length,
+        completed: filteredTasks.filter(t => ['Done', 'Closed'].includes(t.status)).length
+    };
 
     const handleCreate = () => {
         setSelectedTask(null);
@@ -127,7 +141,7 @@ export default function MaintenancePage() {
     const statsArray = [
         {
             label: 'Active Repairs',
-            value: stats.activeRepairs,
+            value: displayedStats.activeRepairs,
             icon: 'engineering',
             type: 'active' as const,
             trendValue: '+12%',
@@ -135,7 +149,7 @@ export default function MaintenancePage() {
         },
         {
             label: 'Pending Requests',
-            value: stats.pending,
+            value: displayedStats.pending,
             icon: 'pending_actions',
             type: 'pending' as const,
             trendValue: 'High Priority',
@@ -143,7 +157,7 @@ export default function MaintenancePage() {
         },
         {
             label: 'Completed Tasks',
-            value: stats.completed,
+            value: displayedStats.completed,
             icon: 'task_alt',
             type: 'completed' as const,
             progressBar: 82
@@ -184,7 +198,7 @@ export default function MaintenancePage() {
 
             {/* Main Table */}
             <MaintenanceTable
-                tasks={tasks}
+                tasks={filteredTasks}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 userRole={user?.role}

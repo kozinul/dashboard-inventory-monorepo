@@ -103,22 +103,33 @@ export const getTransfers = async (req: Request, res: Response, next: NextFuncti
 
         // RBAC: Non-admin users only see transfers involving their department/branch
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            // Complex OR: 
-            // 1. Outgoing from my Branch+Dept
-            // 2. Incoming to my Branch+Dept
-            // Simplified: User can see if they are involved in From or To side
             const myDept = req.user.departmentId;
             const myBranch = req.user.branchId;
 
-            // This simplistic filter allows seeing transfers from my branch to another branch if I am in the source department
+            // Expanded visibility logic:
+            // 1. Requester: See all requests they made
+            // 2. Manager (Sender): See requests from their branch/dept (WaitApproval)
+            // 3. Manager (Receiver) / Receiver: See requests to their branch/dept (InTransit+)
+
+            // Simplified:
+            // OR Condition:
+            // - requestedBy IS user
+            // - fromBranch/Dept IS user's (for Managers)
+            // - toBranch/Dept IS user's (for Receiver)
+
             filters.$or = [
+                { requestedBy: req.user._id },
                 { fromDepartmentId: myDept, fromBranchId: myBranch },
                 { toDepartmentId: myDept, toBranchId: myBranch }
             ];
 
-            // If branch is missing in user, maybe just filter by Dept? 
+            // Fallback for users without branch
             if (!myBranch) {
-                filters.$or = [{ fromDepartmentId: myDept }, { toDepartmentId: myDept }];
+                filters.$or = [
+                    { requestedBy: req.user._id },
+                    { fromDepartmentId: myDept },
+                    { toDepartmentId: myDept }
+                ];
             }
         }
 
@@ -130,6 +141,7 @@ export const getTransfers = async (req: Request, res: Response, next: NextFuncti
             .populate('toBranchId')
             .populate('requestedBy', 'name username')
             .populate('approvedBy', 'name username')
+            .populate('managerApprovedBy', 'name username')
             .sort({ createdAt: -1 });
 
         res.json(transfers);
@@ -138,6 +150,7 @@ export const getTransfers = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+// Receiver Approves (Final Step: InTransit -> Completed)
 export const approveTransfer = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const transfer = await Transfer.findById(req.params.id);
@@ -145,21 +158,21 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
             return res.status(404).json({ message: 'Transfer request not found' });
         }
 
-        if (transfer.status !== 'Pending') {
-            return res.status(400).json({ message: 'Only pending transfers can be approved' });
+        if (transfer.status !== 'InTransit') {
+            return res.status(400).json({ message: 'Only transfers in transit can be completed (received)' });
         }
 
         // RBAC: Only admin or user from the target department AND target branch can approve
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             if (transfer.toDepartmentId.toString() !== req.user.departmentId?.toString()) {
-                return res.status(403).json({ message: 'Only users from the receiving department can approve transfers' });
+                return res.status(403).json({ message: 'Only users from the receiving department can receive transfers' });
             }
             if (transfer.toBranchId && req.user.branchId && transfer.toBranchId.toString() !== req.user.branchId.toString()) {
-                return res.status(403).json({ message: 'Only users from the receiving branch can approve transfers' });
+                return res.status(403).json({ message: 'Only users from the receiving branch can receive transfers' });
             }
         }
 
-        transfer.status = 'Approved';
+        transfer.status = 'Completed';
         transfer.approvedBy = req.user?._id;
         transfer.completedAt = new Date();
         await transfer.save();
@@ -185,7 +198,8 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
     }
 };
 
-export const rejectTransfer = async (req: Request, res: Response, next: NextFunction) => {
+// Requester Sends (Step 1: Pending -> WaitingApproval)
+export const sendTransfer = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const transfer = await Transfer.findById(req.params.id);
         if (!transfer) {
@@ -193,7 +207,72 @@ export const rejectTransfer = async (req: Request, res: Response, next: NextFunc
         }
 
         if (transfer.status !== 'Pending') {
-            return res.status(400).json({ message: 'Only pending transfers can be rejected' });
+            return res.status(400).json({ message: 'Only pending transfers can be sent for approval' });
+        }
+
+        // RBAC: Only admin or the requester can send
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (transfer.requestedBy.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: 'You can only send your own transfer requests' });
+            }
+        }
+
+        transfer.status = 'WaitingApproval';
+        await transfer.save();
+
+        res.json(transfer);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Manager Approves (Step 2: WaitingApproval -> InTransit)
+export const approveTransferByManager = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const transfer = await Transfer.findById(req.params.id);
+        if (!transfer) {
+            return res.status(404).json({ message: 'Transfer request not found' });
+        }
+
+        if (transfer.status !== 'WaitingApproval') {
+            return res.status(400).json({ message: 'Only transfers waiting for manager approval can be approved by manager' });
+        }
+
+        // RBAC: Only admin or Manager from the source department AND source branch can approve
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            // Check if user has manager role
+            if (!['manager'].includes(req.user.role)) {
+                return res.status(403).json({ message: 'Only managers can approve transfer requests' });
+            }
+
+            if (transfer.fromDepartmentId.toString() !== req.user.departmentId?.toString()) {
+                return res.status(403).json({ message: 'You can only approve transfers from your own department' });
+            }
+            if (transfer.fromBranchId && req.user.branchId && transfer.fromBranchId.toString() !== req.user.branchId.toString()) {
+                return res.status(403).json({ message: 'You can only approve transfers from your own branch' });
+            }
+        }
+
+        transfer.status = 'InTransit';
+        transfer.managerApprovedBy = req.user?._id;
+        transfer.managerApprovedAt = new Date();
+        await transfer.save();
+
+        res.json(transfer);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const rejectTransfer = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const transfer = await Transfer.findById(req.params.id);
+        if (!transfer) {
+            return res.status(404).json({ message: 'Transfer request not found' });
+        }
+
+        if (!['Pending', 'WaitingApproval'].includes(transfer.status)) { // Can reject in early stages
+            return res.status(400).json({ message: 'Only pending or waiting approval transfers can be rejected' });
         }
 
         // RBAC: Only admin or user from the target department can reject

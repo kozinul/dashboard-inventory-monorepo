@@ -35,9 +35,14 @@ const transferSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    managerApprovedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    managerApprovedAt: Date,
     status: {
         type: String,
-        enum: ['Pending', 'Approved', 'Rejected', 'Cancelled', 'Completed'],
+        enum: ['Pending', 'WaitingApproval', 'InTransit', 'Completed', 'Rejected', 'Cancelled'],
         default: 'Pending'
     },
     notes: {
