@@ -11,7 +11,6 @@ export default function MaintenancePage() {
     const { user } = useAuthStore();
     const isTechnician = user?.role === 'technician';
 
-    const [viewMode, setViewMode] = useState<'all' | 'assigned' | 'department'>(isTechnician ? 'assigned' : 'all');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
 
@@ -30,21 +29,36 @@ export default function MaintenancePage() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            let tasksData = [];
+            let tasksData: MaintenanceTicket[] = [];
 
-            // Stats always fetched general for now, or we can fetch personal stats if needed
             const statsData = await maintenanceService.getStats();
             setStats(statsData);
 
             if (isTechnician) {
-                if (viewMode === 'assigned') {
-                    tasksData = await maintenanceService.getAssignedTickets();
-                } else if (viewMode === 'department') {
-                    // Start with empty or fetch if endpoint exists logic is tricky without dedicated endpoint for "unassigned department tickets"
-                    // But getDepartmentTickets usually returns ALL department tickets.
-                    // We can filter on client side for "Available" if needed, but let's just show all for "Department Tickets" view
-                    tasksData = await maintenanceService.getDepartmentTickets();
-                }
+                // Fetch BOTH assigned and department tickets
+                const [assigned, department] = await Promise.all([
+                    maintenanceService.getAssignedTickets(),
+                    maintenanceService.getDepartmentTickets()
+                ]);
+
+                // Merge and Filter
+                const map = new Map();
+
+                // Add department tickets mostly because they might be unassigned
+                department.forEach(t => {
+                    // Only add if Unassigned OR Assigned to Me
+                    const techId = t.technician && typeof t.technician === 'object' ? t.technician._id : t.technician;
+
+                    // Logic: Include unassigned (techId falsy) OR assigned to me
+                    if (!techId || techId === user?._id) {
+                        map.set(t._id, t);
+                    }
+                });
+
+                // Add assigned tickets (these are definitely mine)
+                assigned.forEach(t => map.set(t._id, t));
+
+                tasksData = Array.from(map.values());
             } else {
                 // Admin / Manager Logic
                 tasksData = await maintenanceService.getAll();
@@ -61,8 +75,7 @@ export default function MaintenancePage() {
 
     useEffect(() => {
         fetchData();
-    }, [viewMode]);
-
+    }, []);
 
     const handleCreate = () => {
         setSelectedTask(null);
@@ -74,22 +87,17 @@ export default function MaintenancePage() {
 
         // Logic: specific action based on Role & Status
         if (isTechnician) {
-            // Technicians only edit "Work" on assigned tickets
-            // If ticket is not assigned to them (e.g. viewMode department), maybe they can't edit or they "Accept" it?
-            // "Accept" logic is usually for managers to assign, but maybe tech can self-assign?
-            // For now, if they are viewing 'assigned', they open WorkModal.
-            if (viewMode === 'assigned') {
+            // If the ticket is assigned to THIS technician, open work modal
+            if (task.technician?._id === user?._id) {
                 setIsWorkModalOpen(true);
                 return;
             }
+            // else fall through to MaintenanceModal (view/edit details if allowed) or maybe show "Take Job" modal later?
+            // For now, let's allow them to view details via MaintenanceModal
         }
 
-        // Default to admin/manager edit or if technician is viewing unrelated ticket (fallback)
         setIsCreateModalOpen(true);
     };
-
-    // Custom action handler for "Accept" if we want to add self-assignment later
-    // For now we stick to handleEdit being the entry point
 
     const handleDelete = async (id: string) => {
         const result = await showConfirmDialog('Are you sure?', 'You wont be able to revert this!');
@@ -154,38 +162,12 @@ export default function MaintenancePage() {
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Maintenance Management</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">engineering</span>
-                        {isTechnician ? 'Manage your assigned jobs and department requests' : 'Technician logs and task tracking'}
+                        {isTechnician ? 'Manage assigned jobs and department requests' : 'Technician logs and task tracking'}
                     </p>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-3 items-end md:items-center">
-                    {/* View Toggles for Technician */}
-                    {isTechnician && (
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                            <button
-                                onClick={() => setViewMode('assigned')}
-                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'assigned'
-                                    ? 'bg-white dark:bg-card-dark text-primary shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                            >
-                                My Tickets
-                            </button>
-                            <button
-                                onClick={() => setViewMode('department')}
-                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'department'
-                                    ? 'bg-white dark:bg-card-dark text-primary shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}
-                            >
-                                Department Tickets
-                            </button>
-                        </div>
-                    )}
-
                     <div className="flex items-center gap-3">
-                        {/* Search could go here */}
-
                         <button
                             onClick={handleCreate}
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
@@ -208,7 +190,7 @@ export default function MaintenancePage() {
                 userRole={user?.role}
             />
 
-            {/* Create/Edit Modal (Admin/Manager usually, or Technician creating new Request) */}
+            {/* Create/Edit Modal */}
             <MaintenanceModal
                 isOpen={isCreateModalOpen}
                 onClose={handleModalClose}
@@ -216,17 +198,15 @@ export default function MaintenancePage() {
                 initialData={selectedTask}
             />
 
-            {/* Work Modal (Technician working on ticket) */}
-            {
-                selectedTask && (
-                    <TicketWorkModal
-                        isOpen={isWorkModalOpen}
-                        onClose={handleModalClose}
-                        onSuccess={handleSuccess}
-                        ticket={selectedTask}
-                    />
-                )
-            }
-        </div >
+            {/* Work Modal */}
+            {selectedTask && (
+                <TicketWorkModal
+                    isOpen={isWorkModalOpen}
+                    onClose={handleModalClose}
+                    onSuccess={handleSuccess}
+                    ticket={selectedTask}
+                />
+            )}
+        </div>
     );
 }

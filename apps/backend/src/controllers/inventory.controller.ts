@@ -170,9 +170,13 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+import { MaintenanceRecord } from '../models/maintenance.model.js';
+import Rental from '../models/rental.model.js';
+
 export const getInventoryStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: any = {};
+        let assetIds: any[] = [];
 
         // RBAC: Filter stats by department for non-admin users
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
@@ -182,25 +186,53 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
                 // No department = no stats
                 return res.json({
                     totalAssets: 0,
-                    totalValue: 0,
-                    lowStock: 0,
+                    outsideService: 0,
+                    unassigned: 0,
                     maintenanceCount: 0
                 });
             }
         }
 
+        // Get all asset IDs matching the filter (to cross-reference with other collections)
+        const assets = await Asset.find(filter).select('_id');
+        assetIds = assets.map(a => a._id);
+
         const totalAssets = await Asset.countDocuments(filter);
-        const totalValueAgg = await Asset.aggregate([
-            { $match: filter },
-            { $group: { _id: null, total: { $sum: '$value' } } }
-        ]);
-        const lowStock = await Asset.countDocuments({ ...filter, status: 'active' });
-        const maintenanceCount = await Asset.countDocuments({ ...filter, status: 'maintenance' });
+
+        // 1. Outside Service: Maintenance Tickets with status 'External Service'
+        const outsideService = await MaintenanceRecord.countDocuments({
+            asset: { $in: assetIds },
+            status: 'External Service'
+        });
+
+        // 2. Unassigned: Assets with status 'active' or 'storage' (Available for assignment)
+        // Note: 'assigned' is a distinct status in the model enum.
+        const unassigned = await Asset.countDocuments({
+            ...filter,
+            status: { $in: ['active', 'storage'] }
+        });
+
+        // 3. Maintenance + Rental
+        // Assets in maintenance status
+        const assetsInMaintenance = await Asset.countDocuments({ ...filter, status: 'maintenance' });
+
+        // Assets in rental (active rentals)
+        const activeRentals = await Rental.countDocuments({
+            assetId: { $in: assetIds },
+            status: 'active'
+        });
+
+        const maintenanceCount = assetsInMaintenance + activeRentals;
+
+        // Total Value (Keep existing logic if needed, but UI asked to replace it? 
+        // Prompt: "ganti total value dengan total outside servicing". 
+        // So I will return 'outsideService' instead of value or alongside it. 
+        // The frontend expects a shape. I will send the new fields.
 
         res.json({
             totalAssets,
-            totalValue: totalValueAgg[0]?.total || 0,
-            lowStock,
+            outsideService,
+            unassigned,
             maintenanceCount
         });
     } catch (error) {

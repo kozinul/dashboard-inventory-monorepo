@@ -5,6 +5,7 @@ import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceSer
 import { supplyService, Supply } from '@/services/supplyService';
 import { showSuccessToast, showErrorToast, showConfirmDialog, showInputDialog } from '@/utils/swal';
 import { validateFile, formatFileSize } from '@/utils/fileValidation';
+import { useAuthStore } from '@/store/authStore';
 
 
 export interface TicketWorkModalProps {
@@ -15,6 +16,7 @@ export interface TicketWorkModalProps {
 }
 
 export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWorkModalProps) {
+    const { user } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
     const [, setUploadProgress] = useState(0);
     const [, setIsCompressing] = useState(false);
@@ -461,11 +463,37 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                                             className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark"
                                         >
                                             <option value="">Select supply...</option>
-                                            {supplies.map(s => (
-                                                <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
-                                                    {s.name} ({s.quantity} {s.unit} avail)
-                                                </option>
-                                            ))}
+                                            {supplies
+                                                .filter(s => {
+                                                    const userDeptId = user?.departmentId;
+                                                    const userDeptObjId = user?.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
+                                                    const userDeptName = user?.department && typeof user.department === 'object' ? (user.department as any).name : user?.department;
+
+                                                    // If show all or no user dept
+                                                    if (!userDeptId && !userDeptObjId && !userDeptName) return true;
+
+                                                    // Robust ID extraction
+                                                    const sDeptId = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any)._id : s.departmentId;
+                                                    const sDeptRef = s.department && typeof s.department === 'object' ? (s.department as any)._id : s.department;
+
+                                                    const validSupplyIds = [sDeptId, sDeptRef, s.department?._id, s.department].filter(Boolean);
+
+                                                    let match = false;
+                                                    if (userDeptId && validSupplyIds.some(id => String(id) === String(userDeptId))) match = true;
+                                                    if (userDeptObjId && validSupplyIds.some(id => String(id) === String(userDeptObjId))) match = true;
+
+                                                    // Name Match Fallback
+                                                    const sName = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any).name : (s.department as any)?.name;
+                                                    if (!match && userDeptName && sName === userDeptName) match = true;
+                                                    if (!match && userDeptName && s.department?.name === userDeptName) match = true;
+
+                                                    return match;
+                                                })
+                                                .map(s => (
+                                                    <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
+                                                        {s.name} ({s.quantity} {s.unit} avail)
+                                                    </option>
+                                                ))}
                                         </select>
                                     </div>
                                     <div className="w-24">
@@ -529,6 +557,17 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                         {activeTab === 'status' && (
                             <div className="space-y-6">
                                 <h3 className="text-lg font-bold">Update Status</h3>
+
+                                {/* Pending Note Display */}
+                                {ticket.status === 'Pending' && ticket.pendingNote && (
+                                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex gap-3 text-amber-800 dark:text-amber-200">
+                                        <span className="material-symbols-outlined shrink-0">pending</span>
+                                        <div>
+                                            <div className="font-bold text-sm uppercase mb-1">Pending Reason</div>
+                                            <p className="text-sm">{ticket.pendingNote}</p>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">

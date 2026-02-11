@@ -85,6 +85,7 @@ export const getAssignedTickets = async (req: Request, res: Response, next: Next
         const userId = req.user._id;
         const records = await MaintenanceRecord.find({ technician: userId })
             .populate('asset', 'name serial department departmentId')
+            .populate('technician', 'name avatar')
             .populate('requestedBy', 'name email department')
             .populate('processedBy', 'name')
             .populate({
@@ -866,6 +867,7 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
         let pendingDeptTickets = 0;
         let assignedTickets = 0;
         let activeTickets = 0;
+        let pendingUserAction = 0;
 
         // Count pending department tickets (Sent status)
         if (user.role === 'admin' || user.role === 'superuser') {
@@ -902,10 +904,17 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
             });
         }
 
+        // Count pending actions for all users (tickets waiting for their input)
+        pendingUserAction = await MaintenanceRecord.countDocuments({
+            requestedBy: userId,
+            status: 'Pending'
+        });
+
         res.json({
             pendingDeptTickets,
             assignedTickets,
-            activeTickets
+            activeTickets,
+            pendingUserAction
         });
     } catch (error) {
         next(error);
@@ -918,6 +927,9 @@ export const updateTicketWork = async (req: Request, res: Response, next: NextFu
         const { id } = req.params;
         const technicianId = req.user._id;
         const { status, beforePhotos, afterPhotos, suppliesUsed, pendingNote, notes } = req.body;
+
+
+
 
         const record = await MaintenanceRecord.findById(id);
         if (!record) {

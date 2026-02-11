@@ -9,17 +9,20 @@ import { CloneAssetModal } from '@/features/inventory/components/CloneAssetModal
 import { assetService, Asset } from '@/services/assetService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 
-import { formatIDR } from '@/utils/currency';
+
 
 export default function InventoryPage() {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState<any>({
         totalAssets: 0,
-        totalValue: 0,
-        lowStock: 0,
+        outsideService: 0,
+        unassigned: 0,
         maintenanceCount: 0
     });
+
+    // Filter State
+    const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -50,6 +53,14 @@ export default function InventoryPage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Derive categories
+    const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
+
+    // Derive filtered assets
+    const filteredAssets = selectedCategory === 'All Categories'
+        ? assets
+        : assets.filter(a => a.category === selectedCategory);
 
     const handleAddAsset = async (newAsset: any) => {
         try {
@@ -125,11 +136,14 @@ export default function InventoryPage() {
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">filter_list</span>
-                        <select className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg pl-9 pr-8 py-2 text-sm font-medium focus:ring-primary focus:border-primary appearance-none cursor-pointer">
-                            <option>All Categories</option>
-                            <option>Laptops</option>
-                            <option>AV Gear</option>
-                            <option>Furniture</option>
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg pl-9 pr-8 py-2 text-sm font-medium focus:ring-primary focus:border-primary appearance-none cursor-pointer"
+                        >
+                            {categories.map((cat) => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
                         </select>
                     </div>
                     {canEdit && (
@@ -147,9 +161,9 @@ export default function InventoryPage() {
             {/* Stats */}
             <StatsGrid stats={[
                 { label: 'Total Assets', value: stats.totalAssets, icon: 'inventory_2', delta: '+12%', trend: 'success', iconColor: 'text-blue-500' },
-                { label: 'Total Value', value: formatIDR(stats.totalValue), icon: 'payments', delta: '+5%', trend: 'success', iconColor: 'text-emerald-500' },
-                { label: 'Low Stock', value: stats.lowStock, icon: 'warning', delta: '2 items', trend: 'warning', iconColor: 'text-amber-500' },
-                { label: 'In Maintenance', value: stats.maintenanceCount, icon: 'build', delta: '-1', trend: 'neutral', iconColor: 'text-purple-500' }
+                { label: 'Outside Service', value: stats.outsideService, icon: 'engineering', delta: 'Items', trend: 'warning', iconColor: 'text-orange-500' },
+                { label: 'Unassigned Assets', value: stats.unassigned, icon: 'pending', delta: 'Available', trend: 'neutral', iconColor: 'text-emerald-500' },
+                { label: 'Asset In Maintenance', value: stats.maintenanceCount, icon: 'build', delta: '+ Rental', trend: 'neutral', iconColor: 'text-purple-500' }
             ]} />
 
             {/* Table */}
@@ -159,7 +173,7 @@ export default function InventoryPage() {
                 </div>
             ) : (
                 <AssetTable
-                    assets={assets}
+                    assets={filteredAssets}
                     onEdit={canEdit ? openEditModal : undefined}
                     onDelete={canEdit ? handleDeleteAsset : undefined}
                     onClone={canEdit ? openCloneModal : undefined}

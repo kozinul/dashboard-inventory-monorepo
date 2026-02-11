@@ -118,6 +118,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'assigned_tickets', actions: viewCreateEdit() },
         { resource: 'dept_tickets', actions: viewOnly() },
         { resource: 'my_assets', actions: viewOnly() },
+        { resource: 'rental', actions: viewOnly() },
     ],
 
     auditor: [

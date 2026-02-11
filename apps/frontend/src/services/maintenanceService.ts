@@ -15,7 +15,7 @@ export interface MaintenanceTicket {
     title: string;
     description?: string;
     type: string;
-    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Service' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed';
+    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Service' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed' | 'Pending';
     requestedBy?: {
         _id: string;
         name: string;
@@ -157,7 +157,10 @@ export const maintenanceService = {
     updateTicketWork: async (id: string, data: any, onUploadProgress?: (progressEvent: any) => void): Promise<MaintenanceTicket> => {
         // Axios automatically handles FormData content-type header
         const response = await axios.put(`${API_URL}/${id}/work`, data, {
-            onUploadProgress
+            onUploadProgress,
+            headers: {
+                'Content-Type': undefined // Unset default JSON header to let browser set multipart/form-data with boundary
+            }
         });
         return response.data;
     },

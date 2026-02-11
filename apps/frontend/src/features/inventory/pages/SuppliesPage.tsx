@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 import { supplyService, Supply } from '../../../services/supplyService';
 import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
@@ -131,17 +132,62 @@ export default function SuppliesPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : supplies.length === 0 ? (
+                            ) : supplies.filter(item => {
+                                // Robust Frontend Filter (Extra Security)
+                                const user = useAuthStore.getState().user;
+                                if (!user) return true;
+                                if (['superuser', 'admin'].includes(user.role)) return true;
+
+                                const userDeptId = user.departmentId;
+                                const userDeptObjId = user.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
+
+                                const sDeptId = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any)._id : item.departmentId;
+                                const sDeptRef = item.department && typeof item.department === 'object' ? (item.department as any)._id : item.department;
+
+                                const validSupplyIds = [sDeptId, sDeptRef].filter(Boolean);
+
+                                let match = false;
+                                if (userDeptId && validSupplyIds.includes(userDeptId)) match = true;
+                                if (userDeptObjId && validSupplyIds.includes(userDeptObjId)) match = true;
+
+                                const userDeptName = user.department && typeof user.department === 'object' ? (user.department as any).name : user.department;
+                                const sName = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any).name : (item.department as any)?.name;
+                                if (!match && userDeptName && sName === userDeptName) match = true;
+
+                                return match;
+                            }).length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
-                                            <p>No supplies found</p>
+                                            <p>No supplies found for your department</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                supplies.map((item) => (
+                                supplies.filter(item => {
+                                    // Same Filter Logic for Mapping
+                                    const user = useAuthStore.getState().user;
+                                    if (!user) return true;
+                                    if (['superuser', 'admin'].includes(user.role)) return true;
+
+                                    const userDeptId = user.departmentId;
+                                    const userDeptObjId = user.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
+
+                                    const sDeptId = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any)._id : item.departmentId;
+                                    const sDeptRef = item.department && typeof item.department === 'object' ? (item.department as any)._id : item.department;
+
+                                    const validSupplyIds = [sDeptId, sDeptRef].filter(Boolean);
+                                    let match = false;
+                                    if (userDeptId && validSupplyIds.includes(userDeptId)) match = true;
+                                    if (userDeptObjId && validSupplyIds.includes(userDeptObjId)) match = true;
+
+                                    const userDeptName = user.department && typeof user.department === 'object' ? (user.department as any).name : user.department;
+                                    const sName = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any).name : (item.department as any)?.name;
+                                    if (!match && userDeptName && sName === userDeptName) match = true;
+
+                                    return match;
+                                }).map((item) => (
                                     <tr key={item._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div>
@@ -201,10 +247,12 @@ export default function SuppliesPage() {
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">edit</span>
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDelete(item._id!)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors">
-                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                </button>
+                                                {['superuser', 'administrator'].includes(useAuthStore.getState().user?.role || '') && (
+                                                    <button
+                                                        onClick={() => handleDelete(item._id!)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors">
+                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

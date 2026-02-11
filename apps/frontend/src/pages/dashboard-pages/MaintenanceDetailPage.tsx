@@ -55,6 +55,9 @@ export default function MaintenanceDetailPage() {
     const loadSupplies = async () => {
         try {
             const data = await supplyService.getAll();
+            console.log('DEBUG: User Full Object:', user);
+            console.log('DEBUG: User Dept ID:', user?.departmentId);
+            console.log('DEBUG: All Supplies:', data);
             setAvailableSupplies(data);
         } catch (error) {
             console.error('Failed to load supplies', error);
@@ -333,7 +336,7 @@ export default function MaintenanceDetailPage() {
                 </div>
                 <div className="flex gap-2">
                     {/* Technicians/Admins: Start Work */}
-                    {['Accepted', 'Pending', 'Draft', 'Sent'].includes(ticket.status) && (isAdmin || (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
+                    {['Accepted', 'Pending', 'Draft', 'Sent'].includes(ticket.status) && (isAdmin || (isTechnician && (!ticket.technician || (ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id))) && (
                         <button
                             onClick={async () => {
                                 try {
@@ -352,22 +355,13 @@ export default function MaintenanceDetailPage() {
                         </button>
                     )}
 
-                    {/* Manager: Close Ticket */}
-                    {isAdmin && ticket.status === 'Done' && (
+                    {/* Close Ticket: Admin, Manager, or Requester */}
+                    {(isAdmin || user?.role === 'manager' || (ticket.requestedBy as any)?._id === user?._id || (ticket.requestedBy as any) === user?._id) && ticket.status === 'Done' && (
                         <button
                             onClick={async () => {
                                 const result = await showConfirmDialog('Close Ticket?', 'This will finalize the maintenance record.');
                                 if (!result.isConfirmed) return;
                                 try {
-                                    // Assuming a closeTicket method exists or we update status to 'Closed' manually if needed.
-                                    // For now, let's assume 'Closed' is a valid status update or we need a specific endpoint.
-                                    // The plan said 'Close Ticket', usually meaning status -> Closed.
-                                    // Let's use update for now if no specific close endpoint exists, or check service.
-                                    // Checking service... completeTicket exists (sets to Done). Reject exists.
-                                    // If 'Done' -> 'Closed' isn't standard, maybe 'Done' IS closed?
-                                    // User asked: "dept ticket bisa mengclose tiketnya dengan button close jika status nya done"
-                                    // So 'Done' -> 'Closed'.
-                                    // I'll assume standard update to 'Closed' status works or I might need to add it to generic update.
                                     await maintenanceService.update(ticket._id!, { status: 'Closed' });
                                     showSuccessToast('Ticket closed');
                                     fetchTicket(ticket._id!);
@@ -417,8 +411,8 @@ export default function MaintenanceDetailPage() {
                         </div>
                     )}
 
-                    {/* Other Actions */}
-                    {(ticket.status === 'Draft' || ticket.status === 'Accepted') && (isAdmin || isTechnician) && (
+                    {/* Edit Action - Hide for Technicians as they work inline */}
+                    {(ticket.status === 'Draft' || ticket.status === 'Accepted') && isAdmin && (
                         <button
                             onClick={handleEdit}
                             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm transition-all"
@@ -497,11 +491,40 @@ export default function MaintenanceDetailPage() {
                                     className="w-full text-sm p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
                                 >
                                     <option value="">Choose item...</option>
-                                    {availableSupplies.map(s => (
-                                        <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
-                                            {s.name} ({s.quantity} avail)
-                                        </option>
-                                    ))}
+                                    {availableSupplies
+                                        .filter(s => {
+                                            const userDeptId = user?.departmentId;
+                                            const userDeptObjId = user?.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
+                                            const userDeptName = user?.department && typeof user.department === 'object' ? (user.department as any).name : user?.department;
+
+                                            // If no user dept info, show all
+                                            if (!userDeptId && !userDeptObjId && !userDeptName) return true;
+
+                                            // Robust ID extraction (handles string ID, populated object, or nested fields)
+                                            const sDeptId = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any)._id : s.departmentId;
+                                            const sDeptRef = s.department && typeof s.department === 'object' ? (s.department as any)._id : s.department;
+
+                                            // Create comprehensive list of potential IDs from the supply record
+                                            const validSupplyIds = [sDeptId, sDeptRef, s.department?._id, s.department].filter(Boolean);
+
+                                            let match = false;
+                                            // Check against User IDs
+                                            if (userDeptId && validSupplyIds.some(id => String(id) === String(userDeptId))) match = true;
+                                            if (userDeptObjId && validSupplyIds.some(id => String(id) === String(userDeptObjId))) match = true;
+
+                                            // Name Match Fallback
+                                            const sName = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any).name : (s.department as any)?.name;
+                                            if (!match && userDeptName && sName === userDeptName) match = true;
+                                            if (!match && userDeptName && s.department?.name === userDeptName) match = true;
+
+                                            console.log(`DEBUG: Supply ${s.name} match? ${match}. IDs: ${validSupplyIds.join(',')}`);
+                                            return match;
+                                        })
+                                        .map(s => (
+                                            <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
+                                                {s.name} ({s.quantity} avail)
+                                            </option>
+                                        ))}
                                 </select>
                             </div>
                             <div className="w-20">
@@ -610,7 +633,7 @@ export default function MaintenanceDetailPage() {
 
                     <div className="space-y-2">
                         {/* Display Pending Note if exists - kept separately as it is status related */}
-                        {ticket.pendingNote && (
+                        {ticket.status === 'Pending' && ticket.pendingNote && (
                             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
                                 <span className="font-bold block mb-1">Pending/Hold Note:</span>
                                 {ticket.pendingNote}

@@ -16,6 +16,28 @@ export function AssetPurchasingTab({ asset }: AssetPurchasingTabProps) {
 
     return (
         <div className="space-y-8">
+            {/* Purchase Details */}
+            <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">sell</span>
+                    Purchase Details
+                </h3>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-6 border border-slate-100 dark:border-slate-700">
+                    <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Purchase Date</p>
+                        <p className="text-base font-medium text-slate-900 dark:text-slate-200">
+                            {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : '-'}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Purchase Cost</p>
+                        <p className="text-base font-medium text-slate-900 dark:text-slate-200">
+                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(asset.value || 0)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Vendor Information */}
             <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">

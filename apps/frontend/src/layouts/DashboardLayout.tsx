@@ -16,6 +16,8 @@ import {
     CubeIcon,
     TagIcon,
     CircleStackIcon,
+    DocumentIcon,
+    ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation } from 'react-router-dom'
@@ -38,19 +40,19 @@ const mainNavigation = [
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+    { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
-    { name: 'Users', href: '/users', icon: UsersIcon },
     { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
 // Master data navigation
 const masterDataNavigation = [
-
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
+    { name: 'Users', href: '/users', icon: UsersIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
 
@@ -86,7 +88,7 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
-    const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0 });
+    const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0, userAction: 0 });
 
     useEffect(() => {
         const fetchCounts = async () => {
@@ -96,7 +98,8 @@ function DashboardLayout() {
                     setCounts({
                         dept: data.pendingDeptTickets || 0,
                         assigned: data.assignedTickets || 0,
-                        active: data.activeTickets || 0
+                        active: data.activeTickets || 0,
+                        userAction: data.pendingUserAction || 0
                     });
                 } catch (error) {
                     console.error('Failed to fetch nav counts', error);
@@ -112,11 +115,24 @@ function DashboardLayout() {
 
     // Helper to inject badges
     const getBadge = (name: string) => {
+        // User Action Required (Pending tickets)
+        if (name === 'My Tickets') return counts.userAction;
+
+        // Manager / Admin: Pending Department Tickets (Sent status)
         if (name === 'Dept. Tickets') return counts.dept;
-        if (name === 'Maintenance') {
-            if (user?.role === 'technician') return counts.assigned;
-            if (user?.role === 'admin' || user?.role === 'system_admin' || user?.role === 'superuser' || user?.role === 'manager') return counts.active;
+
+        // Admin/Superuser: Show new requests on main 'Maintenance' item
+        if (name === 'Maintenance' && (user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'system_admin')) {
+            return counts.dept;
         }
+
+        // Technician: Assigned Jobs (Accepted status)
+        if (name === 'Maintenance' && user?.role === 'technician') {
+            return counts.assigned;
+        }
+
+        if (name === 'Assigned Jobs') return counts.assigned; // Redundant if mapped to Maintenance, but safe to keep
+
         return 0;
     };
 
@@ -136,25 +152,54 @@ function DashboardLayout() {
             'Maintenance': 'maintenance',
             'Services': 'services',
             'Reports': 'reports',
+            'Transfers': 'transfer',
             'Rental': 'rental',
             'Events': 'events',
             'Disposal': 'disposal',
             'Users': 'users',
             'Settings': 'settings',
             'My Assets': 'my_assets',
-            'Master Data': 'master_data'
+            'Master Data': 'master_data',
+            // Master Data Children
+            'Units': 'categories', // Map units to categories resource for now
+            'Categories': 'categories',
+            'Vendors': 'vendors',
+            'Locations': 'locations',
+            'Database': 'settings' // Map database to settings
         };
 
         const resource = resourceMap[item.name];
 
+        // Check custom permissions if available
+        if (user?.permissions && user.permissions.length > 0) {
+            // Logic: IF specific permission exists for this resource, use it.
+            // IF NOT, strict deny? Or fallback to role default?
+            // "getMergedPermissions" in backend ALREADY merges default role perms + custom perms.
+            // So if it's not in the array, it means NO access (or view: false).
+            // We should trust the array if it exists.
+
+            // Note: 'master_data' is a group. If children are visible, it should show.
+            // But existing filtering logic handles groups by checking children.
+            // So we only care about leaf nodes or specific group permission if intended.
+            if (item.children) return true; // Allow groups to check their children
+
+            if (!resource) return false; // Unknown resource, deny
+
+            const perm = user.permissions.find((p: any) => p.resource === resource);
+            return perm?.actions?.view === true;
+        }
+
+        // BACKWARD COMPATIBILITY / FALLBACK
+        // (Only used if user.permissions is missing)
+
         // Manager permissions
         if (user?.role === 'manager') {
-            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events'].includes(resource || '');
+            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors'].includes(resource || '');
         }
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental'].includes(resource || '');
         }
 
         // Standard User permissions
@@ -182,19 +227,8 @@ function DashboardLayout() {
         return hasPermission(item) ? item : null;
     }).filter(Boolean) as NavigationItem[];
 
-    // Redirect unauthorized access
-    useEffect(() => {
-        if (location.pathname === '/maintenance') {
-            // Access denied for technician if not in permitted list (which strict logic above implies it isn't)
-            if (user?.role === 'technician') {
-                // Double check why technician might be here?
-                // If sidebar hides it, they shouldn't be here.
-                // Force redirect to dashboard
-                window.location.href = '/';
-            }
-        }
-    }, [user, location.pathname]);
-
+    // Redirect logic removed as technicians are now allowed to access maintenance page
+    // to view their assigned tickets.
 
     return (
         <>

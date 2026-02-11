@@ -13,7 +13,7 @@ export function Sidebar() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'assigned_tickets', 'my_tickets'].includes(resource);
+            return ['dashboard', 'maintenance', 'my_tickets'].includes(resource);
         }
 
         // Standard User permissions
@@ -34,7 +34,6 @@ export function Sidebar() {
         { name: 'Transfer', href: '/transfer', icon: 'move_item', resource: 'transfer' },
         { name: 'Maintenance', href: '/maintenance', icon: 'build', resource: 'maintenance' },
         { name: 'My Tickets', href: '/my-tickets', icon: 'confirmation_number', resource: 'my_tickets' },
-        { name: 'My Assignments', href: '/assigned-tickets', icon: 'engineering', resource: 'assigned_tickets' },
         { name: 'Services', href: '/services', icon: 'medical_services', resource: 'services' },
         { name: 'History', href: '/history', icon: 'history', resource: 'history' },
     ]
@@ -44,12 +43,12 @@ export function Sidebar() {
         { name: 'Categories', href: '/master-data/item-categories', icon: 'category', resource: 'categories' },
         { name: 'Locations', href: '/master-data/locations', icon: 'location_on', resource: 'locations' },
         { name: 'Vendors', href: '/master-data/vendors', icon: 'storefront', resource: 'vendors' },
+        { name: 'User Management', href: '/users', icon: 'group', resource: 'users' },
     ]
 
     const systemItems = [
         { name: 'Laporan', href: '/reports', icon: 'description', resource: 'reports' },
         { name: 'Settings', href: '/settings', icon: 'settings', resource: 'settings' },
-        { name: 'User Management', href: '/users', icon: 'group', resource: 'users' },
     ]
 
     // Filter items based on permissions

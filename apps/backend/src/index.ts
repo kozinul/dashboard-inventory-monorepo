@@ -79,6 +79,9 @@ app.use('/api/v1/rentals', rentalRoutes);
 import assignmentRoutes from './routes/assignment.routes.js';
 app.use('/api/v1/assignments', assignmentRoutes);
 
+import transferRoutes from './routes/transfer.routes.js';
+app.use('/api/v1/transfers', transferRoutes);
+
 import uploadRoutes from './routes/upload.routes.js';
 import path from 'path';
 
