@@ -11,6 +11,7 @@ export interface CreateUserDto {
     role: string;
     department?: string;
     departmentId?: string;
+    branchId?: string;
     designation?: string;
     status: 'Active' | 'Offline' | 'Away' | 'Inactive';
     avatarUrl?: string;

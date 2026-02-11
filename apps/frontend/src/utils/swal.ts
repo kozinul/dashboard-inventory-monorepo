@@ -108,6 +108,11 @@ export const showConfirmDialog = (
     });
 };
 
+export const showConfirmDelete = async (title: string, text: string) => {
+    const result = await showConfirmDialog(title, text, 'Yes, delete it!', 'delete');
+    return result.isConfirmed;
+};
+
 // Loading state
 export const showLoading = (title = 'Processing...', text = 'Please wait') => {
     return MySwal.fire({

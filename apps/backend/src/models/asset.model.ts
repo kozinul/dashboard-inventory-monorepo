@@ -27,6 +27,11 @@ const assetSchema = new mongoose.Schema({
         ref: 'Department',
         required: false // Make required when data migrated?
     },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false // Make required when migrated
+    },
     department: {
         type: String,
         required: false,

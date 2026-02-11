@@ -3,7 +3,9 @@ import {
     createTransfer,
     getTransfers,
     approveTransfer,
-    rejectTransfer
+    rejectTransfer,
+    deleteTransfer,
+    updateTransfer
 } from '../controllers/transfer.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -15,5 +17,7 @@ router.get('/', getTransfers);
 router.post('/', createTransfer);
 router.post('/:id/approve', approveTransfer);
 router.post('/:id/reject', rejectTransfer);
+router.delete('/:id', deleteTransfer);
+router.put('/:id', updateTransfer);
 
 export default router;

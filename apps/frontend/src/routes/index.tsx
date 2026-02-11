@@ -33,6 +33,7 @@ import CategoryManagement from '../pages/master-data/CategoryManagement';
 import AssetTemplatesPage from '../pages/master-data/AssetTemplatesPage';
 import VendorManagementPage from '../pages/master-data/VendorManagementPage';
 import UnitManagementPage from '../pages/master-data/UnitManagementPage';
+import BranchManagementPage from '../pages/master-data/BranchManagementPage';
 
 import SuppliesPage from '../features/inventory/pages/SuppliesPage';
 import SupplyDetailsPage from '../features/inventory/pages/SupplyDetailsPage';
@@ -204,6 +205,10 @@ export const router = createBrowserRouter([
                             {
                                 path: 'master-data/locations/types',
                                 element: <LocationTypesPage />,
+                            },
+                            {
+                                path: 'master-data/branches',
+                                element: <BranchManagementPage />,
                             },
                             {
                                 path: 'master-data/database',

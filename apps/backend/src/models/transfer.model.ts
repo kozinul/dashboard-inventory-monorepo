@@ -16,6 +16,16 @@ const transferSchema = new mongoose.Schema({
         ref: 'Department',
         required: true
     },
+    fromBranchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: true
+    },
+    toBranchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: true
+    },
     requestedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

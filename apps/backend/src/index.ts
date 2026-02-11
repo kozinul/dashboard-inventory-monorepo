@@ -57,6 +57,10 @@ app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);
 app.use('/api/v1/maintenance', maintenanceRoutes);
 app.use('/api/v1/disposal', disposalRoutes);
+
+import branchRoutes from './routes/branch.routes.js';
+app.use('/api/v1/branches', branchRoutes);
+
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/location-types', locationTypeRoutes);

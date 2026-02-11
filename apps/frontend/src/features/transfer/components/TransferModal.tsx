@@ -2,22 +2,28 @@ import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Asset, assetService } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
-import { transferService } from '../../../services/transferService';
+import { branchService, Branch } from '../../../services/branchService';
+import { transferService, Transfer } from '../../../services/transferService';
 import { AssetTable } from '../../inventory/components/AssetTable';
 import { showSuccessToast, showErrorToast } from '../../../utils/swal';
+import { useAuthStore } from '../../../store/authStore';
 
 interface TransferModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    editingTransfer?: Transfer | null;
 }
 
-export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps) {
+export function TransferModal({ isOpen, onClose, onSuccess, editingTransfer }: TransferModalProps) {
+    const { user } = useAuthStore();
     const [step, setStep] = useState(1);
     const [assets, setAssets] = useState<Asset[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const [targetDeptId, setTargetDeptId] = useState('');
+    const [targetBranchId, setTargetBranchId] = useState('');
     const [notes, setNotes] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -28,14 +34,35 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
         }
     }, [isOpen]);
 
+    // Initialize form when editingTransfer changes or modal opens
+    useEffect(() => {
+        if (isOpen && editingTransfer) {
+            setStep(2); // Skip straight to details
+            setSelectedAsset(editingTransfer.assetId as Asset);
+            setTargetDeptId((editingTransfer.toDepartmentId as any)._id || editingTransfer.toDepartmentId);
+            setTargetBranchId((editingTransfer.toBranchId as any)?._id || editingTransfer.toBranchId || '');
+            setNotes(editingTransfer.notes || '');
+        } else if (isOpen && !editingTransfer) {
+            // Reset for create mode
+            setStep(1);
+            setSelectedAsset(null);
+            setTargetDeptId('');
+            if (user?.branchId) setTargetBranchId(user.branchId.toString());
+            setNotes('');
+        }
+    }, [isOpen, editingTransfer, user]);
+
+    // ... fetchData
     const fetchData = async () => {
         try {
-            const [assetsData, deptsData] = await Promise.all([
-                assetService.getAll({ limit: 100 }), // Get some assets to choose from
-                departmentService.getAll()
+            const [assetsData, deptsData, branchesData] = await Promise.all([
+                assetService.getAll({ limit: 100 }),
+                departmentService.getAll(),
+                branchService.getAll()
             ]);
             setAssets(assetsData.data);
             setDepartments(deptsData);
+            setBranches(branchesData);
         } catch (error) {
             console.error("Failed to load transfer data", error);
         }
@@ -43,6 +70,12 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
 
     const handleSelectAsset = (asset: Asset) => {
         setSelectedAsset(asset);
+        // Default target branch to asset's current branch if available, else user's
+        if (asset.branchId) {
+            setTargetBranchId(asset.branchId.toString());
+        } else if (user?.branchId) {
+            setTargetBranchId(user.branchId.toString());
+        }
         setStep(2);
     };
 
@@ -51,12 +84,22 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
 
         setIsLoading(true);
         try {
-            await transferService.create({
-                assetId: selectedAsset._id,
-                toDepartmentId: targetDeptId,
-                notes
-            });
-            showSuccessToast('Transfer request submitted successfully!');
+            if (editingTransfer) {
+                await transferService.update(editingTransfer._id, {
+                    toDepartmentId: targetDeptId,
+                    toBranchId: targetBranchId,
+                    notes
+                });
+                showSuccessToast('Transfer request updated!');
+            } else {
+                await transferService.create({
+                    assetId: selectedAsset._id,
+                    toDepartmentId: targetDeptId,
+                    toBranchId: targetBranchId,
+                    notes
+                });
+                showSuccessToast('Transfer request submitted!');
+            }
             onSuccess();
             handleClose();
         } catch (error) {
@@ -71,6 +114,7 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
         setStep(1);
         setSelectedAsset(null);
         setTargetDeptId('');
+        if (user?.branchId) setTargetBranchId(user.branchId.toString());
         setNotes('');
         onClose();
     };
@@ -112,7 +156,7 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
                                     className="text-lg font-bold leading-6 text-slate-900 dark:text-white flex items-center gap-2"
                                 >
                                     <span className="material-symbols-outlined text-primary">move_item</span>
-                                    {step === 1 ? 'Select Asset to Move' : 'Request Asset Transfer'}
+                                    {editingTransfer ? 'Edit Transfer Request' : (step === 1 ? 'Select Asset to Move' : 'Request Asset Transfer')}
                                 </Dialog.Title>
 
                                 {step === 1 ? (
@@ -156,6 +200,21 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Target Branch</label>
+                                                <select
+                                                    value={targetBranchId}
+                                                    onChange={(e) => setTargetBranchId(e.target.value)}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                >
+                                                    <option value="">Select Target Branch</option>
+                                                    {branches.map(branch => (
+                                                        <option key={branch._id} value={branch._id}>{branch.name} ({branch.code})</option>
+                                                    ))}
+                                                </select>
+                                                <p className="text-xs text-slate-500 mt-1">Select the destination site/branch.</p>
+                                            </div>
+
+                                            <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Target Department</label>
                                                 <select
                                                     value={targetDeptId}
@@ -164,28 +223,35 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
                                                 >
                                                     <option value="">Select Target Department</option>
                                                     {departments
-                                                        .filter(d => d._id !== selectedAsset?.departmentId)
+                                                        // Filter out "current" dept ONLY if target branch is also "current" branch
+                                                        // Otherwise it's valid to transfer to same department at different branch (e.g. IT HO -> IT JSO)
+                                                        .filter(d => {
+                                                            const isSameBranch = targetBranchId === (selectedAsset?.branchId?.toString() || user?.branchId?.toString());
+                                                            const isSameDept = d._id === selectedAsset?.departmentId;
+                                                            return !(isSameBranch && isSameDept);
+                                                        })
                                                         .map(dept => (
                                                             <option key={dept._id} value={dept._id}>{dept.name}</option>
                                                         ))}
                                                 </select>
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Transfer Notes</label>
-                                                <textarea
-                                                    value={notes}
-                                                    onChange={(e) => setNotes(e.target.value)}
-                                                    placeholder="Reason for transfer..."
-                                                    rows={3}
-                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
-                                                />
-                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Transfer Notes</label>
+                                            <textarea
+                                                value={notes}
+                                                onChange={(e) => setNotes(e.target.value)}
+                                                placeholder="Reason for transfer..."
+                                                rows={3}
+                                                className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                            />
                                         </div>
 
                                         <div className="p-4 border border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl flex gap-3">
                                             <span className="material-symbols-outlined text-blue-500">info</span>
                                             <p className="text-sm text-blue-700 dark:text-blue-400">
-                                                This will create a transfer request. The asset will remain in its current department until a manager from the destination department approves the request.
+                                                This will create a transfer request. The asset will remain in its current location until a manager from the destination branch/department approves the request.
                                             </p>
                                         </div>
                                     </div>
@@ -202,13 +268,13 @@ export function TransferModal({ isOpen, onClose, onSuccess }: TransferModalProps
                                     {step === 2 && (
                                         <button
                                             onClick={handleSubmit}
-                                            disabled={isLoading || !targetDeptId}
+                                            disabled={isLoading || !targetDeptId || !targetBranchId}
                                             className="px-6 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all flex items-center gap-2 disabled:opacity-50"
                                         >
                                             {isLoading ? (
                                                 <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
                                             ) : (
-                                                'Submit Request'
+                                                editingTransfer ? 'Update Request' : 'Submit Request'
                                             )}
                                         </button>
                                     )}

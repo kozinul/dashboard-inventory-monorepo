@@ -6,6 +6,8 @@ export interface Transfer {
     assetId: Asset | string;
     fromDepartmentId: any;
     toDepartmentId: any;
+    fromBranchId?: any;
+    toBranchId?: any;
     requestedBy: any;
     approvedBy?: any;
     status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed';
@@ -35,6 +37,16 @@ export const transferService = {
 
     reject: async (id: string) => {
         const response = await axios.post<Transfer>(`${API_URL}/${id}/reject`);
+        return response.data;
+    },
+
+    update: async (id: string, data: { toDepartmentId: string, toBranchId: string, notes?: string }) => {
+        const response = await axios.put<Transfer>(`${API_URL}/${id}`, data);
+        return response.data;
+    },
+
+    delete: async (id: string) => {
+        const response = await axios.delete(`${API_URL}/${id}`);
         return response.data;
     }
 };

@@ -4,6 +4,7 @@ import { XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { CreateUserDto } from '@/services/userService';
 import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
+import { branchService, Branch } from '@/services/branchService';
 import { User } from '@dashboard/schemas';
 import { z } from 'zod';
 import { useRoleStore } from '@/store/roleStore';
@@ -37,29 +38,33 @@ interface UserModalProps {
 export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalProps) {
     const [showPassword, setShowPassword] = useState(false);
     const roles = useRoleStore(state => state.roles);
-    const [formData, setFormData] = useState<CreateUserDto>({
+    const [formData, setFormData] = useState<CreateUserDto & { branchId?: string }>({
         username: '',
         name: '',
         email: '',
         role: 'user',
         department: '',
+        branchId: '',
         designation: '',
         status: 'Active',
         avatarUrl: ''
     });
     const [departments, setDepartments] = useState<Department[]>([]);
     const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [deptData, jobData] = await Promise.all([
+                const [deptData, jobData, branchData] = await Promise.all([
                     departmentService.getAll(),
-                    jobTitleService.getAll()
+                    jobTitleService.getAll(),
+                    branchService.getAll()
                 ]);
                 setDepartments(deptData);
                 setJobTitles(jobData);
+                setBranches(branchData);
             } catch (error) {
                 console.error("Failed to fetch dropdown data", error);
             }
@@ -73,6 +78,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                 email: editingUser.email,
                 role: editingUser.role,
                 department: editingUser.department || '',
+                branchId: (editingUser as any).branchId || '',
                 designation: editingUser.designation || '',
                 status: (editingUser.status as any) || 'Active',
                 avatarUrl: editingUser.avatarUrl || ''
@@ -85,6 +91,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                 password: 'password123',
                 role: 'user',
                 department: '',
+                branchId: '',
                 designation: '',
                 status: 'Active',
                 avatarUrl: ''
@@ -264,6 +271,21 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                                         <option value="Away">Away</option>
                                                     </select>
                                                 </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Branch <span className="text-red-500">*</span></label>
+                                                <select
+                                                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:text-white p-2 border"
+                                                    value={formData.branchId || ''}
+                                                    onChange={e => setFormData({ ...formData, branchId: e.target.value })}
+                                                    required
+                                                >
+                                                    <option value="">Select Branch</option>
+                                                    {branches.filter(b => b.status === 'Active').map(branch => (
+                                                        <option key={branch._id} value={branch._id}>{branch.name} ({branch.code})</option>
+                                                    ))}
+                                                </select>
+                                                {errors.branchId && <p className="mt-1 text-sm text-red-600">{errors.branchId}</p>}
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>

@@ -52,6 +52,7 @@ const masterDataNavigation = [
     { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
+    { name: 'Branches', href: '/master-data/branches', icon: BuildingOfficeIcon },
     { name: 'Users', href: '/users', icon: UsersIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
 ]
@@ -165,6 +166,7 @@ function DashboardLayout() {
             'Categories': 'categories',
             'Vendors': 'vendors',
             'Locations': 'locations',
+            'Branches': 'branches',
             'Database': 'settings' // Map database to settings
         };
 

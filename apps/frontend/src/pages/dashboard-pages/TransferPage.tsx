@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { transferService, Transfer } from '../../services/transferService';
 import { TransferModal } from '../../features/transfer/components/TransferModal';
-import { showSuccessToast, showErrorToast } from '../../utils/swal';
+import { showSuccessToast, showErrorToast, showConfirmDelete } from '../../utils/swal';
 import { useAuthStore } from '../../store/authStore';
 import { AssetStatusBadge } from '../../features/inventory/components/AssetTableParts';
 import { clsx } from 'clsx';
@@ -11,6 +11,7 @@ export default function TransferPage() {
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTransfer, setEditingTransfer] = useState<Transfer | null>(null);
     const [activeTab, setActiveTab] = useState<'incoming' | 'outgoing' | 'history'>('incoming');
     const { user } = useAuthStore();
 
@@ -51,6 +52,28 @@ export default function TransferPage() {
         }
     };
 
+    // ... inside component
+
+
+    // ... inside component
+
+    const handleDelete = async (id: string) => {
+        const confirmed = await showConfirmDelete(
+            'Delete Transfer Request',
+            'Are you sure you want to delete this request?'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await transferService.delete(id);
+            showSuccessToast('Transfer request deleted.');
+            fetchTransfers();
+        } catch (error) {
+            showErrorToast('Failed to delete transfer.');
+        }
+    };
+
     const incomingPending = transfers.filter(t =>
         t.status === 'Pending' &&
         (t.toDepartmentId?._id === user?.departmentId || t.toDepartmentId === user?.departmentId)
@@ -58,7 +81,10 @@ export default function TransferPage() {
 
     const outgoingPending = transfers.filter(t =>
         t.status === 'Pending' &&
-        (t.fromDepartmentId?._id === user?.departmentId || t.fromDepartmentId === user?.departmentId)
+        (
+            (t.fromDepartmentId?._id === user?.departmentId || t.fromDepartmentId === user?.departmentId) ||
+            (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)
+        )
     );
 
     const history = transfers.filter(t => t.status !== 'Pending');
@@ -80,7 +106,10 @@ export default function TransferPage() {
                     </p>
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        setEditingTransfer(null);
+                        setIsModalOpen(true);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                 >
                     <span className="material-symbols-outlined text-sm">add</span>
@@ -148,6 +177,7 @@ export default function TransferPage() {
                                     <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
                                     <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
                                     {activeTab === 'incoming' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
+                                    {activeTab === 'outgoing' && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -169,14 +199,24 @@ export default function TransferPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                                {transfer.fromDepartmentId?.name || 'Unknown'}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                                    {transfer.fromDepartmentId?.name || 'Unknown'}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                                                    {transfer.fromBranchId?.code || 'N/A'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                                                {transfer.toDepartmentId?.name || 'Unknown'}
-                                            </span>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                                    {transfer.toDepartmentId?.name || 'Unknown'}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                                                    {transfer.toBranchId?.code || 'N/A'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
@@ -223,6 +263,32 @@ export default function TransferPage() {
                                                 </div>
                                             </td>
                                         )}
+                                        {activeTab === 'outgoing' && transfer.status === 'Pending' && (
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingTransfer(transfer);
+                                                            setIsModalOpen(true);
+                                                        }}
+                                                        className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center transition-all"
+                                                        title="Edit Request"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">edit</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(transfer._id)}
+                                                        className="size-8 rounded-lg border border-slate-200 dark:border-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center transition-all"
+                                                        title="Cancel Transfer"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        )}
+                                        {activeTab === 'outgoing' && transfer.status !== 'Pending' && (
+                                            <td className="px-6 py-4 text-right"></td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -235,6 +301,7 @@ export default function TransferPage() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchTransfers}
+                editingTransfer={editingTransfer}
             />
         </div>
     );
