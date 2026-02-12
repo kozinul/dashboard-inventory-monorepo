@@ -88,6 +88,11 @@ const maintenanceRecordSchema = new mongoose.Schema({
         enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled', 'On Hold', 'External Service', 'Pending', 'Escalated'],
         default: 'Draft'
     },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
+    },
     beforePhotos: [String],
     afterPhotos: [String],
     suppliesUsed: [{

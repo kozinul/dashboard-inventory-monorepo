@@ -112,11 +112,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
 
     technician: [
         { resource: 'dashboard', actions: viewOnly() },
-        { resource: 'inventory', actions: viewOnly() },
+        { resource: 'inventory', actions: viewCreateEdit() },
+        { resource: 'transfer', actions: viewCreate() },
         { resource: 'maintenance', actions: viewCreateEdit() },
         { resource: 'my_tickets', actions: viewCreateEdit() },
         { resource: 'assigned_tickets', actions: viewCreateEdit() },
-        { resource: 'dept_tickets', actions: viewOnly() },
         { resource: 'my_assets', actions: viewOnly() },
         { resource: 'rental', actions: viewOnly() },
     ],

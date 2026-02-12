@@ -1,7 +1,11 @@
 import { Router } from 'express';
-import * as rentalController from '../controllers/rental.controller';
+import * as rentalController from '../controllers/rental.controller.js';
+
+import { protect } from '../middleware/auth.middleware.js';
 
 const router = Router();
+
+router.use(protect);
 
 router.post('/', rentalController.createRental);
 router.get('/', rentalController.getRentals);

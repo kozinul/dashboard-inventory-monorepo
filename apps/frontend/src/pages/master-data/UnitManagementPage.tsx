@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { useAppStore } from '@/store/appStore';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
@@ -86,10 +87,14 @@ export default function UnitManagementPage() {
         reset();
     };
 
-    const filteredUnits = units.filter(unit =>
-        unit.name.toLowerCase().includes(search.toLowerCase()) ||
-        unit.symbol.toLowerCase().includes(search.toLowerCase())
-    );
+    const { activeBranchId } = useAppStore();
+
+    const filteredUnits = units.filter(unit => {
+        const matchesSearch = unit.name.toLowerCase().includes(search.toLowerCase()) ||
+            unit.symbol.toLowerCase().includes(search.toLowerCase());
+        const matchesBranch = activeBranchId === 'ALL' || (unit.branchId === activeBranchId);
+        return matchesSearch && matchesBranch;
+    });
 
     return (
         <div className="space-y-6">

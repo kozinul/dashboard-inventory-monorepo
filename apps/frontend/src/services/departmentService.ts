@@ -9,6 +9,7 @@ export interface Department {
     status: 'Active' | 'Inactive';
     createdAt: string;
     updatedAt: string;
+    branchId?: string;
 }
 
 export interface CreateDepartmentDto {

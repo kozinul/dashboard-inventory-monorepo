@@ -1,5 +1,6 @@
 import { ChevronDownIcon, ChevronRightIcon, HomeIcon, BuildingOfficeIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
+import { useAppStore } from '@/store/appStore';
 import { BoxLocation, CreateLocationDto, locationService } from '@/services/locationService';
 import { LocationModal } from './LocationModal';
 import { clsx } from "clsx";
@@ -231,9 +232,16 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
         }
     };
 
+    const { activeBranchId } = useAppStore();
+
+    // Filter locations by branch if not ALL
+    const visibleLocations = activeBranchId === 'ALL'
+        ? locations
+        : locations.filter(l => l.branchId === activeBranchId);
+
     // Get root nodes
-    const rootNodes = locations.filter(l => !l.parentId);
-    const getChildren = (parentId: string) => locations.filter(l => l.parentId === parentId);
+    const rootNodes = visibleLocations.filter(l => !l.parentId);
+    const getChildren = (parentId: string) => visibleLocations.filter(l => l.parentId === parentId);
 
     if (loading) return <div className="text-sm text-text-secondary animate-pulse">Loading hierarchy...</div>;
 
@@ -260,7 +268,7 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
                     key={node._id}
                     location={node}
                     childrenLocations={getChildren(node._id)}
-                    allLocations={locations}
+                    allLocations={visibleLocations}
                     level={0}
                     selectedId={selectedId}
                     onSelect={onSelect}

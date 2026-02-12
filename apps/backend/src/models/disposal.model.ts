@@ -26,6 +26,11 @@ const disposalRecordSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
     }
 }, {
     timestamps: true

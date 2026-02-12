@@ -1,7 +1,8 @@
 import axios from '@/lib/axios';
 import { Department } from './departmentService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+// Ensure this matches the backend route prefix: /api/v1/categories
+const API_URL = '/categories';
 
 export interface Category {
     _id: string;
@@ -25,21 +26,21 @@ export interface CreateCategoryDto {
 
 export const categoryService = {
     getAll: async (): Promise<Category[]> => {
-        const response = await axios.get(`${API_URL}/categories`);
+        const response = await axios.get(API_URL);
         return response.data;
     },
 
     create: async (data: CreateCategoryDto): Promise<Category> => {
-        const response = await axios.post(`${API_URL}/categories`, data);
+        const response = await axios.post(API_URL, data);
         return response.data;
     },
 
     update: async (id: string, data: Partial<CreateCategoryDto>): Promise<Category> => {
-        const response = await axios.put(`${API_URL}/categories/${id}`, data);
+        const response = await axios.put(`${API_URL}/${id}`, data);
         return response.data;
     },
 
     delete: async (id: string): Promise<void> => {
-        await axios.delete(`${API_URL}/categories/${id}`);
+        await axios.delete(`${API_URL}/${id}`);
     }
 };

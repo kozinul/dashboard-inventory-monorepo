@@ -16,7 +16,6 @@ import {
     CubeIcon,
     TagIcon,
     CircleStackIcon,
-    DocumentIcon,
     ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
@@ -92,7 +91,7 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
-    const { activeBranchId, branches, setActiveBranch, initialize, isLoading: isBranchLoading } = useAppStore()
+    const { activeBranchId, branches, setActiveBranch, initialize, isLoading: isBranchLoading, isSwitching } = useAppStore()
     const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0, userAction: 0 });
 
     useEffect(() => {
@@ -246,6 +245,15 @@ function DashboardLayout() {
 
     return (
         <>
+            {/* Loading overlay when switching branches */}
+            {isSwitching && (
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl flex flex-col items-center gap-3">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <p className="text-gray-900 dark:text-white font-medium">Switching branch...</p>
+                    </div>
+                </div>
+            )}
             <div>
                 <Transition.Root show={sidebarOpen} as={Fragment}>
                     <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
@@ -293,11 +301,11 @@ function DashboardLayout() {
                                         <div className="flex h-16 shrink-0 items-center px-4">
                                             {user?.role === 'superuser' ? (
                                                 <div className="w-full">
-                                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading}>
+                                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading || isSwitching}>
                                                         <div className="relative mt-1">
                                                             <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
                                                                 <span className="block truncate text-white">
-                                                                    {isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name)}
+                                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name))}
                                                                 </span>
                                                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                                                     <ChevronUpDownIcon
@@ -369,11 +377,11 @@ function DashboardLayout() {
                                                     </Listbox>
                                                 </div>
                                             ) : (
-                                                <img
-                                                    className="h-8 w-auto"
-                                                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                                                    alt="Your Company"
-                                                />
+                                                <div className="w-full">
+                                                    <h2 className="text-white text-lg font-semibold">
+                                                        {(user as any)?.branchId?.name || 'Your Company'}
+                                                    </h2>
+                                                </div>
                                             )}
                                         </div>
                                         <nav className="flex flex-1 flex-col">
@@ -463,11 +471,11 @@ function DashboardLayout() {
                         <div className="flex h-16 shrink-0 items-center px-4">
                             {user?.role === 'superuser' ? (
                                 <div className="w-full">
-                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading}>
+                                    <Listbox value={activeBranchId} onChange={setActiveBranch} disabled={isBranchLoading || isSwitching}>
                                         <div className="relative mt-1">
                                             <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
                                                 <span className="block truncate text-white">
-                                                    {isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name)}
+                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name))}
                                                 </span>
                                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                                     <ChevronUpDownIcon
@@ -539,11 +547,11 @@ function DashboardLayout() {
                                     </Listbox>
                                 </div>
                             ) : (
-                                <img
-                                    className="h-8 w-auto"
-                                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                                    alt="Your Company"
-                                />
+                                <div className="w-full">
+                                    <h2 className="text-white text-lg font-semibold">
+                                        {(user as any)?.branchId?.name || 'Your Company'}
+                                    </h2>
+                                </div>
                             )}
                         </div>
                         <nav className="flex flex-1 flex-col">

@@ -4,7 +4,13 @@ import { SupplyHistory } from '../models/supplyHistory.model.js';
 
 export const createSupply = async (req: Request, res: Response) => {
     try {
-        const supply = new Supply(req.body);
+        const supply = new Supply({
+            ...req.body,
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
+        });
         await supply.save();
 
         // Create initial history
@@ -40,6 +46,13 @@ export const getAllSupplies = async (req: Request, res: Response) => {
             }
         }
 
+        // Filter by branch
+        if (req.user.role !== 'superuser') {
+            query.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            query.branchId = req.query.branchId;
+        }
+
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -64,6 +77,7 @@ export const getAllSupplies = async (req: Request, res: Response) => {
 
         res.json(supplies);
     } catch (error: any) {
+        console.error('Error fetching supplies:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -111,9 +125,18 @@ export const updateSupply = async (req: Request, res: Response) => {
             }
         }
 
+        const updateData = { ...req.body };
+        // Superusers can change branchId if provided
+        if (req.user.role === 'superuser' && req.body.branchId) {
+            updateData.branchId = req.body.branchId;
+        } else {
+            // Non-superusers cannot change branchId
+            delete updateData.branchId;
+        }
+
         const supply = await Supply.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
 

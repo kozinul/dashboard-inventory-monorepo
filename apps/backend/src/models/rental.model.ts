@@ -25,7 +25,8 @@ const RentalSchema: Schema = new Schema({
         enum: ['active', 'returned', 'overdue'],
         default: 'active'
     },
-    notes: { type: String }
+    notes: { type: String },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: false }
 }, {
     timestamps: true
 });

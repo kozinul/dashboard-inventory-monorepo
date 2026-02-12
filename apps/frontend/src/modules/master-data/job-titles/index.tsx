@@ -1,24 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { Section } from '../../../components/common/Section';
 import { DataTable } from '../../../components/common/DataTable';
 import Modal from '../../../components/common/Modal';
-
-const mockJobTitles = [
-    { id: '1', title: 'Software Engineer', code: 'SE001', department: 'Engineering' },
-    { id: '2', title: 'Product Manager', code: 'PM001', department: 'Product' },
-    { id: '3', title: 'UI/UX Designer', code: 'DS001', department: 'Design' },
-];
+import { jobTitleService, JobTitle } from '@/services/jobTitleService';
+import { Department } from '@/services/departmentService';
+import { useAppStore } from '@/store/appStore';
 
 export function JobTitlesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [data] = useState(mockJobTitles);
+    const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { activeBranchId } = useAppStore();
+
+    const fetchJobTitles = async () => {
+        try {
+            setLoading(true);
+            const data = await jobTitleService.getAll();
+
+            // Filter by branch
+            const filteredData = activeBranchId === 'ALL'
+                ? data
+                : data.filter(j => j.branchId === activeBranchId);
+
+            setJobTitles(filteredData);
+        } catch (error) {
+            console.error("Failed to fetch job titles", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchJobTitles();
+    }, [activeBranchId]);
 
     const columns = [
         { header: 'Job Title', accessorKey: 'title' as const },
-        { header: 'Code', accessorKey: 'code' as const },
-        { header: 'Department', accessorKey: 'department' as const },
+        {
+            header: 'Department',
+            cell: (item: JobTitle) => {
+                if (!item.departmentId) return '-';
+                if (typeof item.departmentId === 'string') return item.departmentId;
+                return (item.departmentId as Department).name || '-';
+            }
+        },
+        { header: 'Status', accessorKey: 'status' as const },
     ];
 
     return (
@@ -39,13 +67,17 @@ export function JobTitlesPage() {
             />
 
             <Section>
-                <DataTable
-                    data={data}
-                    columns={columns}
-                    actions={() => (
-                        <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
-                    )}
-                />
+                {loading ? (
+                    <div className="text-center py-4">Loading job titles...</div>
+                ) : (
+                    <DataTable
+                        data={jobTitles}
+                        columns={columns}
+                        actions={() => (
+                            <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
+                        )}
+                    />
+                )}
             </Section>
 
             <Modal
@@ -60,7 +92,6 @@ export function JobTitlesPage() {
                             <input type="text" name="title" id="title" className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" placeholder="Software Engineer" />
                         </div>
                     </div>
-                    {/* More fields would go here */}
                 </div>
                 <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                     <button

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
+import { useAppStore } from '@/store/appStore';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
 interface Department {
     _id: string;
@@ -18,6 +17,7 @@ interface Category {
     code?: string;
     authorizedDepartments: Department[];
     icon?: string;
+    branchId?: string;
 }
 
 export default function CategoryManagement() {
@@ -47,7 +47,7 @@ export default function CategoryManagement() {
 
     const fetchData = async () => {
         try {
-            const response = await axios.get(`${API_URL}/categories`);
+            const response = await axios.get('/categories');
             setCategories(response.data);
             setLoading(false);
         } catch (error) {
@@ -58,7 +58,7 @@ export default function CategoryManagement() {
 
     const fetchDepartments = async () => {
         try {
-            const response = await axios.get(`${API_URL}/departments`);
+            const response = await axios.get('/departments');
             setDepartments(response.data);
         } catch (error) {
             console.error('Error fetching departments:', error);
@@ -69,9 +69,9 @@ export default function CategoryManagement() {
         e.preventDefault();
         try {
             if (editingCategory) {
-                await axios.put(`${API_URL}/categories/${editingCategory._id}`, formData);
+                await axios.put(`/categories/${editingCategory._id}`, formData);
             } else {
-                await axios.post(`${API_URL}/categories`, formData);
+                await axios.post('/categories', formData);
             }
             fetchData();
             closeModal();
@@ -92,7 +92,7 @@ export default function CategoryManagement() {
 
         if (result.isConfirmed) {
             try {
-                await axios.delete(`${API_URL}/categories/${id}`);
+                await axios.delete(`/categories/${id}`);
                 fetchData();
                 showSuccessToast('Category has been deleted.');
             } catch (error) {
@@ -140,10 +140,16 @@ export default function CategoryManagement() {
         });
     };
 
+    const { activeBranchId } = useAppStore();
+
     const filteredCategories = categories.filter(cat => {
         const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesDept = selectedDept ? cat.authorizedDepartments.some(d => d._id === selectedDept) : true;
-        return matchesSearch && matchesDept;
+
+        // Filter by Branch (if not ALL)
+        const matchesBranch = activeBranchId === 'ALL' || (cat.branchId === activeBranchId);
+
+        return matchesSearch && matchesDept && matchesBranch;
     });
 
     const handleTemplateFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

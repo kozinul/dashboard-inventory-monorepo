@@ -37,24 +37,40 @@ export default function MyMaintenanceTicketsPage() {
             const ticketsData = await maintenanceService.getMyTickets();
             setTickets(ticketsData);
 
-            // Superuser/admin can access all assets, others only assigned assets
+            // Fetch BOTH department assets and specifically assigned assets
             if (isPrivileged) {
-                const allAssets = await assetService.getAll();
-                // Filter out assets that are under maintenance (checking both values to be safe)
+                // Admins see everything
+                const allAssets = await assetService.getAll({ limit: 1000 });
                 const available = (allAssets.data || []).filter((a: any) =>
                     a.status !== 'maintenance' && a.status !== 'under maintenance' && a.status !== 'request maintenance'
                 );
                 setMyAssets(available);
             } else {
-                const assignmentsData = await assignmentService.getAll();
-                const assignedAssets = assignmentsData
+                // Non-admins see their department inventory + specific assignments
+                const [deptAssetsResponse, myAssignments] = await Promise.all([
+                    assetService.getAll({ limit: 1000 }),
+                    assignmentService.getUserAssignments(user!._id)
+                ]);
+
+                // 1. Department Assets (Inventory)
+                const deptAssets = (deptAssetsResponse.data || []).filter((a: any) =>
+                    a.status !== 'maintenance' && a.status !== 'under maintenance' && a.status !== 'request maintenance'
+                );
+
+                // 2. Specific Assignments (e.g. laptop from another department)
+                const assignedAssets = myAssignments
                     .filter((a: any) => a.status === 'assigned')
                     .map((a: any) => a.assetId)
                     .filter((a: any) =>
                         a && a.status !== 'maintenance' && a.status !== 'under maintenance' && a.status !== 'request maintenance'
                     );
 
-                setMyAssets(assignedAssets);
+                // Merge and remove duplicates by ID
+                const combinedMap = new Map();
+                deptAssets.forEach(a => combinedMap.set(a._id, a));
+                assignedAssets.forEach(a => combinedMap.set(a._id, a));
+
+                setMyAssets(Array.from(combinedMap.values()));
             }
         } catch (error) {
             console.error('Failed to fetch data:', error);

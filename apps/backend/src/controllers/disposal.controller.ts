@@ -3,7 +3,15 @@ import { DisposalRecord } from '../models/disposal.model.js';
 
 export const getDisposalRecords = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const records = await DisposalRecord.find()
+        const filter: any = {};
+
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
+        const records = await DisposalRecord.find(filter)
             .populate('asset', 'name serial')
             .populate('requestedBy', 'name')
             .sort({ createdAt: -1 });
@@ -15,7 +23,13 @@ export const getDisposalRecords = async (req: Request, res: Response, next: Next
 
 export const createDisposalRecord = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const record = new DisposalRecord(req.body);
+        const record = new DisposalRecord({
+            ...req.body,
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
+        });
         await record.save();
         res.status(201).json(record);
     } catch (error) {

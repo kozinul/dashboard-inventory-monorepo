@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Asset } from '@/services/assetService';
+import { userService, User } from '@/services/userService';
 import { assignmentService } from '@/services/assignmentService';
 import { locationService, BoxLocation } from '@/services/locationService';
 import Swal from 'sweetalert2';
@@ -38,9 +39,15 @@ export function AssignmentModal({
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    // User Selection
+    const [users, setUsers] = useState<User[]>([]);
+    const [selectedUserId, setSelectedUserId] = useState<string>('');
+    const [isRegisteredUser, setIsRegisteredUser] = useState(true);
+
     useEffect(() => {
         if (isOpen) {
             loadLocations();
+            loadUsers();
             resetForm();
             if (preSelectedAssetId) {
                 // If we have an ID, we should ideally fetch it or if passed from parent, use it.
@@ -60,9 +67,19 @@ export function AssignmentModal({
         }
     };
 
+    const loadUsers = async () => {
+        try {
+            const data = await userService.getAll();
+            setUsers(data);
+        } catch (error) {
+            console.error("Failed to load users", error);
+        }
+    };
+
     const resetForm = () => {
         setRecipientName('');
         setRecipientTitle('');
+        setSelectedUserId('');
         setNotes('');
         setAssignedDate(new Date().toISOString().split('T')[0]);
         setSelectedBuildingId('');
@@ -72,17 +89,13 @@ export function AssignmentModal({
     };
 
     // Location filtering helpers
-    // Building: Top-level locations (usually type 'Building')
-    const buildings = locations.filter(l => l.type?.toLowerCase() === 'building');
+    // Building: Top-level locations (no parent, usually 'Building' or 'Branch')
+    const buildings = locations.filter(l => !l.parentId || l.parentId === null);
 
-    // Floor: Children of selected building. Usually type 'Floor', but '1st' in data was 'Room'. 
-    // To be safe and show everything under the building, we could remove type check, 
-    // but typically Floor selector expects Floors. Let's keep strict for Floor for now unless '1st' is an issue.
-    // The user complained about "Room" dropdown.
-    const floors = locations.filter(l => l.type?.toLowerCase() === 'floor' && String(l.parentId) === selectedBuildingId);
+    // Floor: Children of selected building.
+    const floors = locations.filter(l => String(l.parentId) === selectedBuildingId);
 
-    // Room: Children of selected floor. Can be 'Office', 'Panel Room', 'Room', etc.
-    // Remove strict type check to show all children.
+    // Room: Children of selected floor.
     const rooms = locations.filter(l => String(l.parentId) === selectedFloorId);
 
     const handleAssetsSelected = (assets: Asset[]) => {
@@ -117,12 +130,13 @@ export function AssignmentModal({
             await Promise.all(selectedAssets.map(asset =>
                 assignmentService.create({
                     assetId: asset._id,
+                    userId: isRegisteredUser ? selectedUserId : undefined,
                     assignedTo: recipientName,
                     assignedToTitle: recipientTitle,
                     locationId: selectedRoomId, // Use room ID as the final location
                     notes,
                     assignedDate: assignedDate ? new Date(assignedDate) : new Date()
-                } as any) // Type assertion until service type catches up fully
+                })
             ));
 
             Swal.fire({
@@ -159,32 +173,81 @@ export function AssignmentModal({
                     <form id="assignment-form" onSubmit={handleSubmit} className="space-y-6">
                         {/* Recipient Section */}
                         <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl space-y-4">
-                            <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary">person</span>
-                                Recipient Details
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Name</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
-                                        value={recipientName}
-                                        onChange={e => setRecipientName(e.target.value)}
-                                        placeholder="e.g. John Doe"
-                                    />
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">person</span>
+                                    Recipient Details
+                                </h3>
+                                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsRegisteredUser(true)}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${isRegisteredUser ? 'bg-primary text-white' : 'text-slate-500'}`}
+                                    >
+                                        Registered User
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsRegisteredUser(false)}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${!isRegisteredUser ? 'bg-primary text-white' : 'text-slate-500'}`}
+                                    >
+                                        Manual
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Job Title</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
-                                        value={recipientTitle}
-                                        onChange={e => setRecipientTitle(e.target.value)}
-                                        placeholder="e.g. Software Engineer"
-                                    />
-                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {isRegisteredUser ? (
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Select User</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                            value={selectedUserId}
+                                            required={isRegisteredUser}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setSelectedUserId(val);
+                                                const u = users.find(u => u._id === val);
+                                                if (u) {
+                                                    setRecipientName(u.name);
+                                                    setRecipientTitle(u.designation || '');
+                                                } else {
+                                                    setRecipientName('');
+                                                    setRecipientTitle('');
+                                                }
+                                            }}
+                                        >
+                                            <option value="">-- Select Person --</option>
+                                            {users.map(u => (
+                                                <option key={u._id} value={u._id}>{u.name} ({u.username})</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                                value={recipientName}
+                                                onChange={e => setRecipientName(e.target.value)}
+                                                placeholder="e.g. John Doe"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Job Title / Dept</label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                                value={recipientTitle}
+                                                onChange={e => setRecipientTitle(e.target.value)}
+                                                placeholder="e.g. Finance Staff"
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 

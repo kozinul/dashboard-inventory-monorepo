@@ -16,6 +16,10 @@ export default function TransferPage() {
     const { user } = useAuthStore();
     const { activeBranchId } = useAppStore();
 
+    // Permission check
+    const hasCreatePermission = user?.permissions?.find(p => p.resource === 'transfer')?.actions.create || false;
+    const canCreateTransfer = ['superuser', 'admin', 'manager', 'technician'].includes(user?.role || '') || hasCreatePermission;
+
     const fetchTransfers = async () => {
         setIsLoading(true);
         try {
@@ -163,16 +167,18 @@ export default function TransferPage() {
                         Manage equipment movement between departments
                     </p>
                 </div>
-                <button
-                    onClick={() => {
-                        setEditingTransfer(null);
-                        setIsModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-                >
-                    <span className="material-symbols-outlined text-sm">add</span>
-                    New Transfer Request
-                </button>
+                {canCreateTransfer && (
+                    <button
+                        onClick={() => {
+                            setEditingTransfer(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+                    >
+                        <span className="material-symbols-outlined text-sm">add</span>
+                        New Transfer Request
+                    </button>
+                )}
             </div>
 
             {/* Tabs */}

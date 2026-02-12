@@ -21,6 +21,7 @@ export interface Assignment {
 export const assignmentService = {
     create: async (data: {
         assetId: string;
+        userId?: string;
         assignedTo?: string;
         assignedToTitle?: string;
         locationId?: string;
@@ -32,6 +33,7 @@ export const assignmentService = {
     },
 
     update: async (id: string, data: {
+        userId?: string;
         assignedTo?: string;
         assignedToTitle?: string;
         locationId?: string;

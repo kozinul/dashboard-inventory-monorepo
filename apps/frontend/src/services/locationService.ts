@@ -11,6 +11,7 @@ export interface BoxLocation {
     description?: string;
     status: 'Active' | 'Inactive' | 'Maintenance';
     children?: BoxLocation[];
+    branchId?: string;
 }
 
 export interface CreateLocationDto {

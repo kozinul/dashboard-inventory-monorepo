@@ -26,7 +26,7 @@ export const transferService = {
         return response.data;
     },
 
-    create: async (data: { assetId: string, toDepartmentId: string, notes?: string }) => {
+    create: async (data: { assetId: string, toDepartmentId: string, toBranchId: string, notes?: string }) => {
         const response = await axios.post<Transfer>(API_URL, data);
         return response.data;
     },

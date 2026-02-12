@@ -10,6 +10,7 @@ export interface Unit {
     status: 'Active' | 'Inactive';
     createdAt?: string;
     updatedAt?: string;
+    branchId?: string;
 }
 
 export const getUnits = async () => {

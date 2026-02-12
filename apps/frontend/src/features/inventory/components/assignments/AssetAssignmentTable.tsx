@@ -26,9 +26,11 @@ export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {assignments.map((assignment) => {
                             // Helper to get user details (either from object or manual fields)
-                            const userName = assignment.assignedTo || 'Unknown';
-                            const userRole = assignment.assignedToTitle || 'Staff';
-                            const userAvatar = undefined; // No avatar for manual assignments
+                            const userObj = assignment.userId as any;
+                            const userName = (userObj && userObj.name) || assignment.assignedTo || 'Unknown';
+                            const userRole = assignment.assignedToTitle || (userObj && userObj.designation) || 'Staff';
+                            const userEmail = userObj && userObj.email;
+                            const userAvatar = userObj && userObj.avatarUrl;
                             const userInitials = userName.substring(0, 2).toUpperCase();
                             const assetName = assignment.assetId?.name || 'Unknown Asset';
                             const assetSerial = assignment.assetId?.serial || '-';
@@ -60,10 +62,11 @@ export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {userAvatar ? (
-                                                <div
-                                                    className="size-8 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700"
-                                                    style={{ backgroundImage: `url('${userAvatar}')` }}
-                                                ></div>
+                                                <img
+                                                    src={userAvatar}
+                                                    alt={userName}
+                                                    className="size-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
+                                                />
                                             ) : (
                                                 <div className={`size-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white shadow-sm`}>
                                                     {userInitials}
@@ -71,7 +74,7 @@ export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }
                                             )}
                                             <div>
                                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{userName}</p>
-                                                <p className="text-[11px] text-slate-500">{userRole}</p>
+                                                <p className="text-[11px] text-slate-500">{userEmail || userRole}</p>
                                             </div>
                                         </div>
                                     </td>

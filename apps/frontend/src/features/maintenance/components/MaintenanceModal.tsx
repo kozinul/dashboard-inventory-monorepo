@@ -71,10 +71,9 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                 setAssets(availableAssets);
             } else if (assets.length === 0) {
                 assetService.getAll().then((res) => {
-                    const filtered = (res.data || []).filter((a: any) =>
-                        a.status !== 'maintenance' && a.status !== 'under maintenance' && a.status !== 'request maintenance'
-                    );
-                    setAssets(filtered);
+                    // Show all assets, let backend handle permission filtering
+                    // Removed status filter to debug visibility
+                    setAssets(res.data || []);
                 });
             }
         }

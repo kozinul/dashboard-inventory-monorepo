@@ -2,6 +2,7 @@ import { MapPinIcon, EllipsisVerticalIcon, ServerIcon } from '@heroicons/react/2
 import { ArchiveBoxIcon, StopIcon, LockClosedIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { clsx } from "clsx";
 import { useState, useEffect } from 'react';
+import { useAppStore } from '@/store/appStore';
 import { BoxLocation, CreateLocationDto, locationService } from '@/services/locationService';
 import { LocationModal } from './LocationModal';
 import Swal from 'sweetalert2';
@@ -162,7 +163,11 @@ export function LocationGrid({ parentId, viewMode = 'grid', onViewDetails }: { p
         return () => window.removeEventListener('location-update', fetchLocations);
     }, []);
 
-    const filteredLocations = locations.filter(l => l.parentId === parentId);
+    const { activeBranchId } = useAppStore();
+
+    const filteredLocations = locations
+        .filter(l => activeBranchId === 'ALL' || l.branchId === activeBranchId)
+        .filter(l => l.parentId === parentId);
 
     const handleCreate = () => {
         setEditingLocation(null);

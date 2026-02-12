@@ -13,6 +13,7 @@ export interface Vendor {
     website?: string;
     tags?: string[];
     status: 'active' | 'inactive';
+    branchId?: string;
 }
 
 export const vendorService = {

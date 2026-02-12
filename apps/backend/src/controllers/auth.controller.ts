@@ -13,7 +13,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const { username, password } = req.body;
 
     try {
-        const user = await User.findOne({ username: username.toLowerCase() });
+        const user = await User.findOne({ username: username.toLowerCase() }).populate('branchId');
 
         if (user && (await (user as any).matchPassword(password))) {
             // Get merged permissions based on role and custom permissions
@@ -30,6 +30,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 role: user.role,
                 departmentId: user.departmentId,
                 department: user.department,
+                branchId: (user as any).branchId,
                 token: generateToken(user._id.toString()),
                 permissions
             });
@@ -44,7 +45,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.user._id).populate('branchId');
         if (user) {
             // Get merged permissions based on role and custom permissions
             const permissions = getMergedPermissions(
@@ -60,6 +61,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
                 role: user.role,
                 departmentId: user.departmentId,
                 department: user.department,
+                branchId: (user as any).branchId,
                 permissions
             });
         } else {

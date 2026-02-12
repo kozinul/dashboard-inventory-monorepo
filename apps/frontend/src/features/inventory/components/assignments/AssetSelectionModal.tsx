@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Asset } from '@/services/assetService';
 import { assetService } from '@/services/assetService';
+import { departmentService, Department } from '@/services/departmentService';
 
 interface AssetSelectionModalProps {
     isOpen: boolean;
@@ -12,6 +13,8 @@ interface AssetSelectionModalProps {
 export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelectedIds }: AssetSelectionModalProps) {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [filteredAssets, setFilteredAssets] = useState<Asset[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -19,10 +22,25 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
     useEffect(() => {
         if (isOpen) {
             loadAssets();
+            loadDepartments();
             setSelectedIds(new Set());
             setSearchTerm('');
+            setSelectedDepartmentId('');
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        loadAssets(); // Re-fetch when department changes for better synchronization
+    }, [selectedDepartmentId]);
+
+    const loadDepartments = async () => {
+        try {
+            const data = await departmentService.getAll();
+            setDepartments(data);
+        } catch (error) {
+            console.error("Failed to load departments", error);
+        }
+    };
 
     useEffect(() => {
         filterAssets();
@@ -31,14 +49,14 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
     const loadAssets = async () => {
         setLoading(true);
         try {
-            const response = await assetService.getAll();
-            // Filter only available assets (active and not in maintenance/retired)
-            // And also filter out already selected ones in the parent form (optional, but good UX)
-            // Actually, keep them but disable or mark as selected if we pass them.
-            // For now, simple filter for status.
+            const response = await assetService.getAll({
+                status: 'active',
+                departmentId: selectedDepartmentId || undefined,
+                limit: 100 // Get a good batch for client-side searching
+            });
 
-            // Backend should theoretically handle "assignable" logic but let's filter 'active'
-            const available = response.data.filter((a: Asset) => a.status === 'active' && !alreadySelectedIds.includes(a._id));
+            // Filter out already selected ones in the parent form
+            const available = response.data.filter((a: Asset) => !alreadySelectedIds.includes(a._id));
             setAssets(available);
         } catch (error) {
             console.error("Failed to load assets", error);
@@ -94,16 +112,30 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
                 </div>
 
                 {/* Filters */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700 space-y-4">
-                    <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                        <input
-                            type="text"
-                            placeholder="Search by name, serial, or category..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-card-dark">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="relative">
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search by name, serial..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <div className="relative">
+                            <select
+                                className="w-full p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                                value={selectedDepartmentId}
+                                onChange={e => setSelectedDepartmentId(e.target.value)}
+                            >
+                                <option value="">All Departments</option>
+                                {departments.map(d => (
+                                    <option key={d._id} value={d._id}>{d.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -120,7 +152,7 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
                                     <th className="p-4 w-12">
                                         <input
                                             type="checkbox"
-                                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                                            className="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5"
                                             onChange={(e) => {
                                                 if (e.target.checked) {
                                                     setSelectedIds(new Set(filteredAssets.map(a => a._id)));
@@ -132,9 +164,8 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
                                         />
                                     </th>
                                     <th className="p-4">Asset</th>
-                                    <th className="p-4">Category</th>
                                     <th className="p-4">Serial</th>
-                                    <th className="p-4">Status</th>
+                                    <th className="p-4 text-right">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -143,30 +174,49 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
                                         <td colSpan={5} className="p-8 text-center text-gray-500">No assets found matching your search.</td>
                                     </tr>
                                 ) : (
-                                    filteredAssets.map(asset => (
-                                        <tr
-                                            key={asset._id}
-                                            className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors ${selectedIds.has(asset._id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
-                                            onClick={() => toggleSelection(asset._id)}
-                                        >
-                                            <td className="p-4 relative" onClick={e => e.stopPropagation()}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5 cursor-pointer"
-                                                    checked={selectedIds.has(asset._id)}
-                                                    onChange={() => toggleSelection(asset._id)}
-                                                />
-                                            </td>
-                                            <td className="p-4 font-medium text-gray-900 dark:text-white">{asset.name}</td>
-                                            <td className="p-4 text-gray-500 dark:text-gray-400">{asset.category}</td>
-                                            <td className="p-4 font-mono text-xs text-gray-500">{asset.serial}</td>
-                                            <td className="p-4">
-                                                <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded text-xs font-bold uppercase">
-                                                    {asset.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    filteredAssets.map(asset => {
+                                        const imageUrl = asset.images && asset.images.length > 0
+                                            ? (typeof asset.images[0] === 'string' ? asset.images[0] : (asset.images[0] as any).url)
+                                            : null;
+
+                                        return (
+                                            <tr
+                                                key={asset._id}
+                                                className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors ${selectedIds.has(asset._id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
+                                                onClick={() => toggleSelection(asset._id)}
+                                            >
+                                                <td className="p-4 relative" onClick={e => e.stopPropagation()}>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5 cursor-pointer"
+                                                        checked={selectedIds.has(asset._id)}
+                                                        onChange={() => toggleSelection(asset._id)}
+                                                    />
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+                                                            {imageUrl ? (
+                                                                <img src={imageUrl} alt={asset.name} className="size-full object-cover" />
+                                                            ) : (
+                                                                <span className="material-symbols-outlined text-gray-400">inventory_2</span>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-gray-900 dark:text-white">{asset.name}</div>
+                                                            <div className="text-xs text-gray-500">{asset.category} • {asset.model}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 font-mono text-xs text-gray-500">{asset.serial}</td>
+                                                <td className="p-4 text-right">
+                                                    <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded text-[10px] font-bold uppercase tracking-wider">
+                                                        {asset.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>

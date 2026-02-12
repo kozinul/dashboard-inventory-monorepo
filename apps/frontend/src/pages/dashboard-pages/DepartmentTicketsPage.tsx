@@ -1,4 +1,7 @@
+
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { userService, User } from '@/services/userService';
 import { showSuccessToast, showErrorToast, showInputDialog } from '@/utils/swal';
@@ -25,10 +28,22 @@ export default function DepartmentTicketsPage() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState<MaintenanceTicket | null>(null);
 
+    const navigate = useNavigate();
+    const { user } = useAuthStore();
+
     useEffect(() => {
+        // Permission check
+        const hasDeptTicketPermission = user?.permissions?.find(p => p.resource === 'dept_tickets')?.actions.view;
+        const isAuthorized = ['superuser', 'admin', 'manager'].includes(user?.role || '') || hasDeptTicketPermission;
+
+        if (!isAuthorized) {
+            navigate('/');
+            return;
+        }
+
         fetchData();
         fetchTechnicians();
-    }, []);
+    }, [user, navigate]);
 
     const fetchData = async () => {
         try {
@@ -90,6 +105,20 @@ export default function DepartmentTicketsPage() {
     };
 
 
+    const handleComplete = async (id: string) => {
+        const result = await showConfirmDialog('Complete Ticket?', 'This will mark the ticket as Done and update asset status.');
+        if (!result.isConfirmed) return;
+
+        try {
+            await maintenanceService.completeTicket(id);
+            showSuccessToast('Ticket completed successfully');
+            fetchData();
+        } catch (error: any) {
+            console.error('Failed to complete ticket:', error);
+            showErrorToast(error.response?.data?.message || 'Failed to complete ticket');
+        }
+    };
+
     const filteredTickets = filter === 'all'
         ? tickets
         : tickets.filter(t => t.status === filter);
@@ -100,7 +129,7 @@ export default function DepartmentTicketsPage() {
 
     return (
         <div className="space-y-8 pb-12">
-            {/* Header */}
+            {/* Header ... */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Department Tickets</h2>
@@ -125,7 +154,7 @@ export default function DepartmentTicketsPage() {
                 </div>
             </div>
 
-            {/* Stats */}
+            {/* Stats ... */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="bg-white dark:bg-card-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark">
                     <div className="text-sm text-slate-500">Total</div>
@@ -196,6 +225,14 @@ export default function DepartmentTicketsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            {ticket.status === 'In Progress' && (
+                                                <button
+                                                    onClick={() => handleComplete(ticket._id)}
+                                                    className="px-3 py-1 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 rounded-lg text-xs font-bold text-green-700 dark:text-green-400 transition-colors"
+                                                >
+                                                    Complete
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleView(ticket)}
                                                 className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"

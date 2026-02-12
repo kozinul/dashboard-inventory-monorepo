@@ -6,10 +6,11 @@ interface MaintenanceTableProps {
     tasks: any[];
     onEdit: (task: any) => void;
     onDelete: (id: string) => void;
+    onComplete?: (id: string) => void;
     userRole?: string;
 }
 
-export function MaintenanceTable({ tasks, onEdit, onDelete, userRole }: MaintenanceTableProps) {
+export function MaintenanceTable({ tasks, onEdit, onDelete, onComplete, userRole }: MaintenanceTableProps) {
     const isAdmin = ['superuser', 'system_admin', 'admin', 'manager'].includes(userRole || '');
     const canDelete = ['superuser', 'administrator', 'admin'].includes(userRole || '');
 
@@ -111,6 +112,16 @@ export function MaintenanceTable({ tasks, onEdit, onDelete, userRole }: Maintena
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            {onComplete && task.status === 'In Progress' && (
+                                                <button
+                                                    onClick={() => onComplete(task._id || task.id)}
+                                                    className="p-1 text-slate-400 hover:text-green-500 transition-colors"
+                                                    title="Complete Ticket"
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">check_circle</span>
+                                                </button>
+                                            )}
+
                                             <button
                                                 onClick={() => window.location.href = `/maintenance/${task._id || task.id}`}
                                                 className="p-1 text-slate-400 hover:text-blue-500 transition-colors"

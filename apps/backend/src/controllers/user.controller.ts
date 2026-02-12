@@ -7,13 +7,14 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     try {
         const filter: any = {};
 
-        // RBAC: Department filtering for managers
-        if (req.user && req.user.role === 'manager' && req.user.departmentId) {
-            filter.departmentId = req.user.departmentId;
-        }
+        // RBAC: Previously Managers were restricted to their department.
+        // Removed to allow cross-department assignments.
+        // if (req.user && req.user.role === 'manager' && req.user.departmentId) {
+        //     filter.departmentId = req.user.departmentId;
+        // }
         // Superuser/Admin see all users
 
-        const users = await User.find(filter).select('-password');
+        const users = await User.find(filter).select('-password').populate('branchId');
         res.json(users);
     } catch (error) {
         next(error);
@@ -22,7 +23,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
+        const user = await User.findById(req.params.id).select('-password').populate('branchId');
         if (!user) {
             res.status(404);
             throw new Error('User not found');
@@ -30,7 +31,11 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 
         // RBAC: Managers can only view users from their department
         if (req.user && req.user.role === 'manager') {
-            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                (user.department && req.user.department && user.department === req.user.department);
+
+            if (!isDeptMatch) {
                 res.status(403);
                 throw new Error('Access denied');
             }
@@ -83,14 +88,22 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 
         // RBAC: Managers can only edit users from their department
         if (req.user && req.user.role === 'manager') {
-            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                (user.department && req.user.department && user.department === req.user.department);
+
+            if (!isDeptMatch) {
                 res.status(403);
                 throw new Error('You can only edit users from your department');
             }
-            // Prevent changing department
+            // Prevent changing department to one you don't own
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
-                res.status(403);
-                throw new Error('You cannot transfer users to other departments');
+                if (req.user.departmentId) {
+                    req.body.departmentId = req.user.departmentId;
+                } else {
+                    res.status(403);
+                    throw new Error('You cannot transfer users to other departments');
+                }
             }
         }
 
@@ -143,7 +156,11 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 
         // RBAC: Managers can only delete users from their department
         if (req.user && req.user.role === 'manager') {
-            if (user.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                (user.department && req.user.department && user.department === req.user.department);
+
+            if (!isDeptMatch) {
                 res.status(403);
                 throw new Error('You can only delete users from your department');
             }

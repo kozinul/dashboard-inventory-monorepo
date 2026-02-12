@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { assignmentService, Assignment } from '@/services/assignmentService';
+import { userService, User } from '@/services/userService';
 import Swal from 'sweetalert2';
 
 interface EditAssignmentModalProps {
@@ -21,12 +22,38 @@ export function EditAssignmentModal({
     const [assignedDate, setAssignedDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const [selectedUserId, setSelectedUserId] = useState('');
+    const [isRegisteredUser, setIsRegisteredUser] = useState(false);
+    const [users, setUsers] = useState<User[]>([]);
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        try {
+            const data = await userService.getAll();
+            setUsers(data);
+        } catch (error) {
+            console.error("Failed to load users", error);
+        }
+    };
+
     useEffect(() => {
         if (isOpen && assignment) {
             setRecipientName(assignment.assignedTo || '');
             setRecipientTitle(assignment.assignedToTitle || '');
             setNotes(assignment.notes || '');
             setAssignedDate(assignment.assignedDate ? new Date(assignment.assignedDate).toISOString().split('T')[0] || '' : '');
+
+            if (assignment.userId) {
+                const uId = typeof assignment.userId === 'object' ? (assignment.userId as any)._id : assignment.userId;
+                setSelectedUserId(uId);
+                setIsRegisteredUser(true);
+            } else {
+                setSelectedUserId('');
+                setIsRegisteredUser(false);
+            }
         }
     }, [isOpen, assignment]);
 
@@ -38,6 +65,7 @@ export function EditAssignmentModal({
 
         try {
             await assignmentService.update(assignment._id, {
+                userId: isRegisteredUser ? selectedUserId : null as any,
                 assignedTo: recipientName,
                 assignedToTitle: recipientTitle,
                 notes,
@@ -74,28 +102,74 @@ export function EditAssignmentModal({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
+                <form id="edit-assignment-form" onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
                     {/* Recipient Section */}
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assigned To (Name)</label>
-                            <input
-                                type="text"
-                                required
-                                className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
-                                value={recipientName}
-                                onChange={e => setRecipientName(e.target.value)}
-                            />
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl space-y-4">
+                        <div className="flex justify-between items-center">
+                            <label className="text-xs font-bold uppercase text-slate-500">Recipient</label>
+                            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRegisteredUser(true)}
+                                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${isRegisteredUser ? 'bg-primary text-white' : 'text-slate-500'}`}
+                                >
+                                    User
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRegisteredUser(false)}
+                                    className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${!isRegisteredUser ? 'bg-primary text-white' : 'text-slate-500'}`}
+                                >
+                                    Manual
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Job Title / Role</label>
-                            <input
-                                type="text"
-                                className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
-                                value={recipientTitle}
-                                onChange={e => setRecipientTitle(e.target.value)}
-                            />
-                        </div>
+
+                        {isRegisteredUser ? (
+                            <div>
+                                <select
+                                    className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                    value={selectedUserId}
+                                    required={isRegisteredUser}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        setSelectedUserId(val);
+                                        const u = users.find(u => u._id === val);
+                                        if (u) {
+                                            setRecipientName(u.name);
+                                            setRecipientTitle(u.designation || '');
+                                        }
+                                    }}
+                                >
+                                    <option value="">-- Select Person --</option>
+                                    {users.map(u => (
+                                        <option key={u._id} value={u._id}>{u.name} ({u.username})</option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={recipientName}
+                                        onChange={e => setRecipientName(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Title / Dept</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-primary outline-none transition-all"
+                                        value={recipientTitle}
+                                        onChange={e => setRecipientTitle(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Date & Notes */}
@@ -130,7 +204,8 @@ export function EditAssignmentModal({
                         Cancel
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        type="submit"
+                        form="edit-assignment-form"
                         disabled={isLoading}
                         className="flex-1 py-3 bg-primary text-white hover:bg-primary/90 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >

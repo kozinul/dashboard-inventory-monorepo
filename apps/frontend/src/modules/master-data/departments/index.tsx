@@ -1,23 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { Section } from '../../../components/common/Section';
 import { DataTable } from '../../../components/common/DataTable';
 import Modal from '../../../components/common/Modal';
-
-const mockDepartments = [
-    { id: '1', name: 'Engineering', manager: 'Lindsay Walton' },
-    { id: '2', name: 'Product', manager: 'Tom Cook' },
-    { id: '3', name: 'Design', manager: 'Floyd Miles' },
-];
+import { departmentService, Department } from '@/services/departmentService';
+import { useAppStore } from '@/store/appStore';
 
 export function DepartmentsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [data] = useState(mockDepartments);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { activeBranchId } = useAppStore();
+
+    const fetchDepartments = async () => {
+        try {
+            setLoading(true);
+            const data = await departmentService.getAll();
+
+            // Filter by branch
+            const filteredData = activeBranchId === 'ALL'
+                ? data
+                : data.filter(d => d.branchId === activeBranchId);
+
+            setDepartments(filteredData);
+        } catch (error) {
+            console.error("Failed to fetch departments", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchDepartments();
+    }, [activeBranchId]);
 
     const columns = [
         { header: 'Department Name', accessorKey: 'name' as const },
-        { header: 'Manager', accessorKey: 'manager' as const },
+        { header: 'Code', accessorKey: 'code' as const },
+        { header: 'Status', accessorKey: 'status' as const },
     ];
 
     return (
@@ -38,13 +59,17 @@ export function DepartmentsPage() {
             />
 
             <Section>
-                <DataTable
-                    data={data}
-                    columns={columns}
-                    actions={() => (
-                        <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
-                    )}
-                />
+                {loading ? (
+                    <div className="text-center py-4">Loading departments...</div>
+                ) : (
+                    <DataTable
+                        data={departments}
+                        columns={columns}
+                        actions={() => (
+                            <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
+                        )}
+                    />
+                )}
             </Section>
 
             <Modal

@@ -3,16 +3,34 @@ import { Location } from '../models/location.model.js';
 
 export const getLocations = async (req: Request, res: Response) => {
     try {
-        const locations = await Location.find().sort({ name: 1 });
+        // Build filter based on user role and branch
+        const filter: any = {};
+
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
+        const locations = await Location.find(filter).sort({ name: 1 });
         res.json(locations);
     } catch (error) {
+        console.error('Error fetching locations:', error);
         res.status(500).json({ message: 'Error fetching locations', error });
     }
 };
 
 export const createLocation = async (req: Request, res: Response) => {
     try {
-        const location = new Location(req.body);
+        // Set branchId based on user role
+        const branchId = req.user.role === 'superuser'
+            ? (req.body.branchId || (req.user as any).branchId)
+            : (req.user as any).branchId;
+
+        const location = new Location({
+            ...req.body,
+            branchId
+        });
         await location.save();
         res.status(201).json(location);
     } catch (error) {
@@ -23,7 +41,17 @@ export const createLocation = async (req: Request, res: Response) => {
 export const updateLocation = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const location = await Location.findByIdAndUpdate(id, req.body, { new: true });
+        const updateData = { ...req.body };
+
+        // Superusers can change branchId if provided
+        if (req.user.role === 'superuser' && req.body.branchId) {
+            updateData.branchId = req.body.branchId;
+        } else {
+            // Non-superusers cannot change branchId
+            delete updateData.branchId;
+        }
+
+        const location = await Location.findByIdAndUpdate(id, updateData, { new: true });
         if (!location) {
             return res.status(404).json({ message: 'Location not found' });
         }

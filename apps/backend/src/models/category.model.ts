@@ -31,6 +31,11 @@ const categorySchema = new mongoose.Schema({
         type: Map,
         of: String,
         default: {}
+    },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
     }
 }, {
     timestamps: true

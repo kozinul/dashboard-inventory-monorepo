@@ -21,6 +21,14 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         if (req.query.supply) {
             filter['suppliesUsed.supply'] = req.query.supply;
         }
+
+        // Filter by branch
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
         // Filtering unassigned tickets for non-admin users
         const userRole = req.user.role;
         const userId = req.user._id;
@@ -203,6 +211,10 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
             requestedBy: userId,
             requestedAt: new Date(),
             status: 'Draft',
+            // Set branchId based on user role (or inherit from user)
+            branchId: userRole === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId,
             beforePhotos: beforePhotos,
             history: [{
                 status: 'Draft',
@@ -238,6 +250,10 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
             ...req.body,
             requestedBy: req.body.requestedBy || req.user._id,
             requestedAt: new Date(),
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId,
             history: [{
                 status: req.body.status || 'Draft',
                 changedBy: req.body.requestedBy || req.user._id,
@@ -485,11 +501,35 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
 export const completeTicket = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const managerId = req.user._id;
+        const userId = req.user._id;
+        const userRole = req.user.role;
 
-        const record = await MaintenanceRecord.findById(id);
+        const record = await MaintenanceRecord.findById(id).populate('asset'); // Populate asset to check department
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        // Permission Check
+        let isAuthorized = false;
+        if (userRole === 'superuser' || userRole === 'admin') {
+            isAuthorized = true;
+        } else if (userRole === 'technician') {
+            // Technician must be assigned
+            if (record.technician?.toString() === userId.toString()) {
+                isAuthorized = true;
+            }
+        } else if (userRole === 'manager') {
+            // Manager matches department (either assigned dept or asset dept)
+            if (req.user.departmentId && (
+                record.assignedDepartment?.toString() === req.user.departmentId.toString() ||
+                (record.asset as any)?.departmentId?.toString() === req.user.departmentId.toString()
+            )) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized) {
+            return res.status(403).json({ message: 'Not authorized to complete this ticket' });
         }
 
         if (record.status !== 'In Progress') {

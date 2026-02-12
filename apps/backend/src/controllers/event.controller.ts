@@ -6,7 +6,13 @@ import { Asset } from '../models/asset.model.js';
 
 export const createEvent = async (req: Request, res: Response) => {
     try {
-        const event = new Event(req.body);
+        const event = new Event({
+            ...req.body,
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
+        });
         await event.save();
         res.status(201).json(event);
     } catch (error) {
@@ -16,7 +22,15 @@ export const createEvent = async (req: Request, res: Response) => {
 
 export const getEvents = async (req: Request, res: Response) => {
     try {
-        let events = await Event.find().sort({ startTime: 1 });
+        const filter: any = {};
+
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
+        let events = await Event.find(filter).sort({ startTime: 1 });
 
         // RBAC: Filter by department for non-admin users
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
@@ -41,6 +55,7 @@ export const getEvents = async (req: Request, res: Response) => {
 
         res.status(200).json(events);
     } catch (error) {
+        console.error('Error fetching events:', error);
         res.status(500).json({ message: 'Error fetching events', error });
     }
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAppStore } from '@/store/appStore';
 import { vendorService, Vendor } from '@/services/vendorService';
 import { VendorTable } from '@/features/vendors/components/VendorTable';
 import { AddVendorModal, EditVendorModal } from '@/features/vendors/components/VendorModals';
@@ -9,11 +10,17 @@ export default function VendorManagementPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editVendor, setEditVendor] = useState<Vendor | null>(null);
 
+    const { activeBranchId } = useAppStore();
+
     const fetchVendors = async () => {
         try {
             setLoading(true);
             const data = await vendorService.getAll();
-            setVendors(data);
+            // Filter by branch
+            const filteredData = activeBranchId === 'ALL'
+                ? data
+                : data.filter(v => v.branchId === activeBranchId);
+            setVendors(filteredData);
         } catch (error) {
             console.error("Failed to fetch vendors", error);
         } finally {
@@ -23,7 +30,7 @@ export default function VendorManagementPage() {
 
     useEffect(() => {
         fetchVendors();
-    }, []);
+    }, [activeBranchId]);
 
     const handleAddVendor = async (data: Omit<Vendor, '_id' | 'status'>) => {
         try {

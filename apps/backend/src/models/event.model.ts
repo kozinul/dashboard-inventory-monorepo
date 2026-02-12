@@ -41,7 +41,8 @@ const EventSchema: Schema = new Schema({
         supplyId: { type: Schema.Types.ObjectId, ref: 'Supply' },
         quantity: Number,
         cost: Number
-    }]
+    }],
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: false }
 }, {
     timestamps: true
 });

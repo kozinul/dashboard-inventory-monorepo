@@ -11,10 +11,7 @@ export function Sidebar() {
         // Superuser and admin have access to everything
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
 
-        // Technician permissions
-        if (user?.role === 'technician') {
-            return ['dashboard', 'maintenance', 'my_tickets'].includes(resource);
-        }
+
 
         // Standard User permissions
         if (user?.role === 'user') {
@@ -33,6 +30,7 @@ export function Sidebar() {
         { name: 'Barang Masuk', href: '/incoming', icon: 'input', resource: 'incoming' },
         { name: 'Transfer', href: '/transfer', icon: 'move_item', resource: 'transfer' },
         { name: 'Maintenance', href: '/maintenance', icon: 'build', resource: 'maintenance' },
+        { name: 'Dept Tickets', href: '/department-tickets', icon: 'business', resource: 'dept_tickets' },
         { name: 'My Tickets', href: '/my-tickets', icon: 'confirmation_number', resource: 'my_tickets' },
         { name: 'Services', href: '/services', icon: 'medical_services', resource: 'services' },
         { name: 'History', href: '/history', icon: 'history', resource: 'history' },

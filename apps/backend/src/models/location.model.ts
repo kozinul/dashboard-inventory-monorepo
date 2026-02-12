@@ -27,6 +27,11 @@ const locationSchema = new mongoose.Schema({
         type: String,
         enum: ['Active', 'Inactive', 'Maintenance'],
         default: 'Active'
+    },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
     }
 }, {
     timestamps: true

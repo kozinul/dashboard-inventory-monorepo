@@ -4,7 +4,16 @@ import { Department } from '../models/department.model.js';
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const categories = await Category.find()
+        // Build filter based on user role and branch
+        const filter: any = {};
+
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
+        const categories = await Category.find(filter)
             .populate('authorizedDepartments', 'name code')
             .sort({ name: 1 });
         res.json(categories);
@@ -36,7 +45,11 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
             authorizedDepartments,
             description,
             icon,
-            ...(code && { code }) // Only include code if it's truthy
+            ...(code && { code }), // Only include code if it's truthy
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
         };
 
         const category = await Category.create(categoryData);
@@ -56,6 +69,12 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
 
         // Clean up data
         const updateData: any = { ...otherData };
+
+        // Superusers can change branchId if provided
+        if (req.user.role === 'superuser' && req.body.branchId) {
+            updateData.branchId = req.body.branchId;
+        }
+
         if (code) {
             updateData.code = code;
         } else {

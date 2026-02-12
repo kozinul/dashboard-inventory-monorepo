@@ -6,7 +6,11 @@ import {
     getDisposalStats
 } from '../controllers/disposal.controller.js';
 
+import { protect } from '../middleware/auth.middleware.js';
+
 const router = express.Router();
+
+router.use(protect);
 
 router.get('/', getDisposalRecords);
 router.post('/', createDisposalRecord);

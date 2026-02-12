@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import Rental from '../models/rental.model';
-import { Asset } from '../models/asset.model';
+import Rental from '../models/rental.model.js';
+import { Asset } from '../models/asset.model.js';
 
 export const createRental = async (req: Request, res: Response) => {
     try {
@@ -12,7 +12,13 @@ export const createRental = async (req: Request, res: Response) => {
             }
         }
 
-        const rental = new Rental(req.body);
+        const rental = new Rental({
+            ...req.body,
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
+        });
         await rental.save();
         // Populate references for the response
         await rental.populate(['assetId', 'userId', 'eventId']);
@@ -29,6 +35,13 @@ export const getRentals = async (req: Request, res: Response) => {
             .populate('userId')
             .populate('eventId')
             .sort({ rentalDate: -1 });
+
+        // Filter by branch
+        if (req.user.role !== 'superuser') {
+            rentals = rentals.filter((r: any) => r.branchId?.toString() === (req.user as any).branchId?.toString());
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            rentals = rentals.filter((r: any) => r.branchId?.toString() === req.query.branchId);
+        }
 
         // RBAC: Filter by department for non-admin users
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {

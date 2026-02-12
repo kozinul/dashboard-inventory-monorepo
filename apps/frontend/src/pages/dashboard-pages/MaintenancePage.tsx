@@ -79,8 +79,11 @@ export default function MaintenancePage() {
     const filteredTasks = activeBranchId === 'ALL'
         ? tasks
         : tasks.filter(t => {
-            // Check asset branch (populated object or ID)
-            const branchId = typeof t.asset?.branchId === 'object' ? t.asset?.branchId._id : t.asset?.branchId;
+            // Check ticket branch (populated object or ID)
+            // Fallback to asset branch if ticket branch is missing (legacy)
+            const branchId = (typeof t.branchId === 'object' ? t.branchId?._id : t.branchId) ||
+                (typeof t.asset?.branchId === 'object' ? t.asset?.branchId?._id : t.asset?.branchId);
+
             return branchId === activeBranchId;
         });
 
@@ -91,10 +94,7 @@ export default function MaintenancePage() {
         completed: filteredTasks.filter(t => ['Done', 'Closed'].includes(t.status)).length
     };
 
-    const handleCreate = () => {
-        setSelectedTask(null);
-        setIsCreateModalOpen(true);
-    };
+
 
     const handleEdit = (task: MaintenanceTicket) => {
         setSelectedTask(task);
@@ -111,6 +111,20 @@ export default function MaintenancePage() {
         }
 
         setIsCreateModalOpen(true);
+    };
+
+    const handleComplete = async (id: string) => {
+        const result = await showConfirmDialog('Complete Ticket?', 'This will mark the ticket as Done and update asset status.');
+        if (!result.isConfirmed) return;
+
+        try {
+            await maintenanceService.completeTicket(id);
+            showSuccessToast('Ticket completed successfully');
+            fetchData();
+        } catch (error: any) {
+            console.error('Failed to complete ticket:', error);
+            showErrorToast(error.response?.data?.message || 'Failed to complete ticket');
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -181,15 +195,7 @@ export default function MaintenancePage() {
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-3 items-end md:items-center">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={handleCreate}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-                        >
-                            <span className="material-symbols-outlined text-sm">add</span>
-                            New Ticket
-                        </button>
-                    </div>
+                    {/* New Ticket button removed from here, centralized in My Tickets */}
                 </div>
             </div>
 
@@ -201,6 +207,7 @@ export default function MaintenancePage() {
                 tasks={filteredTasks}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onComplete={handleComplete}
                 userRole={user?.role}
             />
 

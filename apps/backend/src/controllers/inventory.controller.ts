@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
 import Event from '../models/event.model.js';
+import { Assignment } from '../models/assignment.model.js';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -12,24 +12,25 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         const filters: any = {};
         const andConditions: any[] = [];
 
+        // Manual departmentId filter (useful for Admin/Superuser)
+        if (req.query.departmentId) {
+            filters.departmentId = req.query.departmentId;
+        }
+
         // RBAC / Department Filtering
         // req.user is populated by authMiddleware
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            console.log('DEBUG FILTER: User:', req.user.username, 'Role:', req.user.role, 'DeptID:', req.user.departmentId);
-            const deptConditions = [];
-
-            if (req.user.departmentId) {
-                deptConditions.push({ departmentId: req.user.departmentId });
-            }
-            // Fallback to string match if department ID is verified but data might be legacy
-            if (req.user.department) {
-                deptConditions.push({ department: req.user.department });
-            }
-
-            if (deptConditions.length > 0) {
+            if (req.user.departmentId || req.user.department) {
+                const deptConditions = [];
+                if (req.user.departmentId) {
+                    deptConditions.push({ departmentId: req.user.departmentId });
+                }
+                if (req.user.department) {
+                    deptConditions.push({ department: req.user.department });
+                }
                 andConditions.push({ $or: deptConditions });
             } else {
-                // User has no department assigned, explicit deny for assets
+                // User has no department assigned
                 return res.json({
                     data: [],
                     pagination: {
@@ -40,6 +41,13 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                     }
                 });
             }
+        }
+
+        // Filter by branch
+        if (req.user.role !== 'superuser') {
+            filters.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filters.branchId = req.query.branchId;
         }
 
         if (req.query.category) filters.category = req.query.category;
@@ -92,7 +100,11 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
 
         // RBAC: Check if user can access this asset
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
+                (asset.department && req.user.department && asset.department === req.user.department);
+
+            if (!isDeptMatch) {
                 return res.status(403).json({ message: 'Access denied' });
             }
         }
@@ -116,7 +128,13 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
-        const asset = new Asset(req.body);
+        const asset = new Asset({
+            ...req.body,
+            // Set branchId based on user role
+            branchId: req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId
+        });
         await asset.save();
         res.status(201).json(asset);
     } catch (error) {
@@ -133,16 +151,34 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
 
         // RBAC: Check if user can update this asset
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (existingAsset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
+                (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
+
+            if (!isDeptMatch) {
                 return res.status(403).json({ message: 'You can only update assets from your department' });
             }
-            // Prevent changing department
+            // Prevent changing department to one you don't own
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
-                return res.status(403).json({ message: 'You cannot transfer assets to other departments' });
+                // If they have no departmentId yet but matching string, we should probably allow setting it to THEIR departmentId
+                if (req.user.departmentId) {
+                    req.body.departmentId = req.user.departmentId;
+                } else {
+                    return res.status(403).json({ message: 'You cannot transfer assets to other departments' });
+                }
             }
         }
 
-        const asset = await Asset.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updateData = { ...req.body };
+        // Superusers can change branchId if provided
+        if (req.user.role === 'superuser' && req.body.branchId) {
+            updateData.branchId = req.body.branchId;
+        } else {
+            // Non-superusers cannot change branchId
+            delete updateData.branchId;
+        }
+
+        const asset = await Asset.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.json(asset);
     } catch (error) {
         next(error);
@@ -158,7 +194,11 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
 
         // RBAC: Check if user can delete this asset
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (existingAsset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const isDeptMatch =
+                (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
+                (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
+
+            if (!isDeptMatch) {
                 return res.status(403).json({ message: 'You can only delete assets from your department' });
             }
         }
@@ -176,6 +216,14 @@ import Rental from '../models/rental.model.js';
 export const getInventoryStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: any = {};
+
+        // Filter by branch
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
         let assetIds: any[] = [];
 
         // RBAC: Filter stats by department for non-admin users

@@ -3,7 +3,15 @@ import { Unit } from '../models/unit.model.js';
 
 export const createUnit = async (req: Request, res: Response) => {
     try {
-        const unit = new Unit(req.body);
+        // Set branchId based on user role
+        const branchId = req.user.role === 'superuser'
+            ? (req.body.branchId || (req.user as any).branchId)
+            : (req.user as any).branchId;
+
+        const unit = new Unit({
+            ...req.body,
+            branchId
+        });
         await unit.save();
         res.status(201).json(unit);
     } catch (error: any) {
@@ -16,7 +24,16 @@ export const createUnit = async (req: Request, res: Response) => {
 
 export const getAllUnits = async (req: Request, res: Response) => {
     try {
-        const units = await Unit.find().sort({ name: 1 });
+        // Build filter based on user role and branch
+        const filter: any = {};
+
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
+            filter.branchId = req.query.branchId;
+        }
+
+        const units = await Unit.find(filter).sort({ name: 1 });
         res.json(units);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -37,9 +54,19 @@ export const getUnitById = async (req: Request, res: Response) => {
 
 export const updateUnit = async (req: Request, res: Response) => {
     try {
+        const updateData = { ...req.body };
+
+        // Superusers can change branchId if provided
+        if (req.user.role === 'superuser' && req.body.branchId) {
+            updateData.branchId = req.body.branchId;
+        } else {
+            // Non-superusers cannot change branchId
+            delete updateData.branchId;
+        }
+
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         );
         if (!unit) {

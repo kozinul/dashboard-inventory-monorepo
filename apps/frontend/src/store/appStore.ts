@@ -6,6 +6,7 @@ interface AppState {
     activeBranchId: string | 'ALL';
     branches: Branch[];
     isLoading: boolean;
+    isSwitching: boolean;
     isInitialized: boolean;
 
     setActiveBranch: (id: string | 'ALL') => void;
@@ -20,9 +21,16 @@ export const useAppStore = create<AppState>()(
             activeBranchId: 'ALL',
             branches: [],
             isLoading: false,
+            isSwitching: false,
             isInitialized: false,
 
-            setActiveBranch: (id) => set({ activeBranchId: id }),
+            setActiveBranch: (id) => {
+                set({ isSwitching: true });
+                // Simulate a brief delay to show loading state
+                setTimeout(() => {
+                    set({ activeBranchId: id, isSwitching: false });
+                }, 300);
+            },
             setLoading: (loading) => set({ isLoading: loading }),
 
             initialize: async () => {

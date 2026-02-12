@@ -17,7 +17,17 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
         // RBAC: Check if user can assign this asset (department check)
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             const asset = await Asset.findById(assetId);
-            if (!asset || asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            if (!asset) {
+                res.status(404);
+                throw new Error('Asset not found');
+            }
+
+            // Check department match (robust check)
+            const isDeptMatch =
+                (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
+                (asset.department && req.user.department && asset.department === req.user.department);
+
+            if (!isDeptMatch) {
                 res.status(403);
                 throw new Error('You can only assign assets from your department');
             }
@@ -108,12 +118,15 @@ export const getUserAssignments = async (req: Request, res: Response, next: Next
     try {
         const { userId } = req.params;
 
-        // RBAC: Check if user can access this user's assignments
+        // RBAC: Previously managers were blocked from seeing users in other departments.
+        // Relaxed to support cross-department assignments.
+        // We still check if the user exists.
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             const targetUser = await User.findById(userId);
-            if (!targetUser || targetUser.departmentId?.toString() !== req.user.departmentId?.toString()) {
-                return res.status(403).json({ message: 'Access denied' });
+            if (!targetUser) {
+                return res.status(404).json({ message: 'User not found' });
             }
+            // Logic: Manager can view anyone's assignments so they can track cross-department handovers.
         }
 
         const assignments = await Assignment.find({ userId })
@@ -207,7 +220,7 @@ export const deleteAssignment = async (req: Request, res: Response, next: NextFu
 export const updateAssignment = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { assignedTo, assignedToTitle, notes, assignedDate, locationId } = req.body;
+        const { userId, assignedTo, assignedToTitle, notes, assignedDate, locationId } = req.body;
 
         const assignment = await Assignment.findById(id);
 
@@ -217,6 +230,7 @@ export const updateAssignment = async (req: Request, res: Response, next: NextFu
         }
 
         // Update fields
+        if (userId !== undefined) assignment.userId = userId || undefined;
         if (assignedTo !== undefined) assignment.assignedTo = assignedTo;
         if (assignedToTitle !== undefined) assignment.assignedToTitle = assignedToTitle;
         if (notes !== undefined) assignment.notes = notes;
