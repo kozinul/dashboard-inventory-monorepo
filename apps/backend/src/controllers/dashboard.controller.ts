@@ -55,8 +55,28 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 
 export const getRecentActivity = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const branchId = req.query.branchId as string;
+        const branchFilter: any = {};
+
+        // Apply branch scoping based on role and query
+        if (req.user.role !== 'superuser') {
+            branchFilter.branchId = (req.user as any).branchId;
+        } else if (branchId && branchId !== 'ALL') {
+            branchFilter.branchId = branchId;
+        }
+
+        // Apply department scoping for non-admin/superuser
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                branchFilter.departmentId = req.user.departmentId;
+            } else if (req.user.department) {
+                branchFilter.department = req.user.department;
+            }
+        }
+
         // Fetch recent tickets excluding Closed and Done status
         const recentMaintenance = await MaintenanceRecord.find({
+            ...branchFilter,
             status: { $nin: ['Closed', 'Done'] }
         })
             .sort({ updatedAt: -1 })
