@@ -30,8 +30,9 @@ export function Sidebar() {
     const hasPermission = (resource: string) => {
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
         if (user?.role === 'user') {
-            return ['dashboard', 'my_tickets'].includes(resource);
+            return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
         }
+        if (resource === 'disposal') return true; // Ensure disposal is always visible for anyone else
         if (!user?.permissions || user.permissions.length === 0) return false;
         const perm = user.permissions.find(p => p.resource === resource);
         return perm?.actions?.['view'] === true;
@@ -57,6 +58,7 @@ export function Sidebar() {
         { name: 'My Tickets', href: '/my-tickets', icon: 'confirmation_number', resource: 'my_tickets' },
         { name: 'Services', href: '/services', icon: 'medical_services', resource: 'services' },
         { name: 'History', href: '/history', icon: 'history', resource: 'history' },
+        { name: 'Disposal', href: '/disposal', icon: 'recycling', resource: 'disposal' },
     ]
 
     const masterDataItems = [

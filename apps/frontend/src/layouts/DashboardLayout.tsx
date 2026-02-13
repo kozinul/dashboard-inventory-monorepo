@@ -186,6 +186,8 @@ function DashboardLayout() {
 
         const resource = resourceMap[item.name];
 
+        if (resource === 'disposal') return true; // Force visibility for disposal menu
+
         // Check custom permissions if available
         if (user?.permissions && user.permissions.length > 0) {
             // Logic: IF specific permission exists for this resource, use it.
@@ -210,22 +212,22 @@ function DashboardLayout() {
 
         // Manager permissions
         if (user?.role === 'manager') {
-            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors'].includes(resource || '');
+            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal'].includes(resource || '');
         }
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal'].includes(resource || '');
         }
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history', 'data_management'].includes(resource || '');
+            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history', 'data_management', 'disposal'].includes(resource || '');
         }
 
         // Auditor permissions
         if (user?.role === 'auditor') {
-            return ['dashboard', 'inventory', 'history', 'reports'].includes(resource || '');
+            return ['dashboard', 'inventory', 'history', 'reports', 'disposal'].includes(resource || '');
         }
 
         // Fallback or explicit deny if no role matches above

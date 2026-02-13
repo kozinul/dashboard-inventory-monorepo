@@ -2,7 +2,7 @@ import express from 'express';
 import {
     getDisposalRecords,
     createDisposalRecord,
-    updateDisposalStatus,
+    approveDisposal,
     getDisposalStats
 } from '../controllers/disposal.controller.js';
 
@@ -14,7 +14,7 @@ router.use(protect);
 
 router.get('/', getDisposalRecords);
 router.post('/', createDisposalRecord);
-router.put('/:id', updateDisposalStatus);
+router.put('/:id/approve', approveDisposal);
 router.get('/stats', getDisposalStats);
 
 export default router;

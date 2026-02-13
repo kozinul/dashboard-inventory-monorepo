@@ -14,6 +14,8 @@ export const getDisposalRecords = async (req: Request, res: Response, next: Next
         const records = await DisposalRecord.find(filter)
             .populate('asset', 'name serial')
             .populate('requestedBy', 'name')
+            .populate('managerApproval.approvedBy', 'name')
+            .populate('auditorApproval.approvedBy', 'name')
             .sort({ createdAt: -1 });
         res.json(records);
     } catch (error) {
@@ -25,7 +27,7 @@ export const createDisposalRecord = async (req: Request, res: Response, next: Ne
     try {
         const record = new DisposalRecord({
             ...req.body,
-            // Set branchId based on user role
+            status: 'Pending Manager Approval',
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId
@@ -37,16 +39,56 @@ export const createDisposalRecord = async (req: Request, res: Response, next: Ne
     }
 };
 
-export const updateDisposalStatus = async (req: Request, res: Response, next: NextFunction) => {
+export const approveDisposal = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const record = await DisposalRecord.findByIdAndUpdate(
-            req.params.id,
-            { status: req.body.status },
-            { new: true }
-        );
+        const { id } = req.params;
+        const { approved, comment } = req.body;
+        const user = req.user as any;
+
+        const record = await DisposalRecord.findById(id);
         if (!record) {
             return res.status(404).json({ message: 'Record not found' });
         }
+
+        if (!approved) {
+            record.status = 'Rejected';
+            await record.save();
+            return res.json(record);
+        }
+
+        // Superuser/Admin can bypass everything
+        if (user.role === 'superuser' || user.role === 'system_admin') {
+            record.status = 'Approved';
+            record.managerApproval = { approvedBy: user._id, approvedAt: new Date(), comment: comment || 'Approved by system administrator' };
+            record.auditorApproval = { approvedBy: user._id, approvedAt: new Date(), comment: comment || 'Final approval by system administrator' };
+
+            // Update Asset status
+            const { Asset } = await import('../models/asset.model.js');
+            await Asset.findByIdAndUpdate(record.asset, { status: 'disposed' });
+
+            await record.save();
+            return res.json(record);
+        }
+
+        if (record.status === 'Pending Manager Approval') {
+            if (user.role !== 'manager') {
+                return res.status(403).json({ message: 'Only managers can perform this step' });
+            }
+            record.managerApproval = { approvedBy: user._id, approvedAt: new Date(), comment };
+            record.status = 'Pending Auditor Approval';
+        } else if (record.status === 'Pending Auditor Approval') {
+            if (user.role !== 'auditor') {
+                return res.status(403).json({ message: 'Only auditors can perform this step' });
+            }
+            record.auditorApproval = { approvedBy: user._id, approvedAt: new Date(), comment };
+            record.status = 'Approved';
+
+            // Update Asset status
+            const { Asset } = await import('../models/asset.model.js');
+            await Asset.findByIdAndUpdate(record.asset, { status: 'disposed' });
+        }
+
+        await record.save();
         res.json(record);
     } catch (error) {
         next(error);
@@ -55,18 +97,21 @@ export const updateDisposalStatus = async (req: Request, res: Response, next: Ne
 
 export const getDisposalStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const pending = await DisposalRecord.countDocuments({ status: { $regex: 'Pending', $options: 'i' } });
-        const decommissioned = await DisposalRecord.countDocuments({ status: 'Disposed' });
-        const complianceIssues = await DisposalRecord.countDocuments({ status: 'Compliance Check' });
+        const filter: any = {};
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        }
 
-        // Placeholder for value recovered (would need to track this field)
-        const valueRecovered = 12450;
+        const pendingManager = await DisposalRecord.countDocuments({ ...filter, status: 'Pending Manager Approval' });
+        const pendingAuditor = await DisposalRecord.countDocuments({ ...filter, status: 'Pending Auditor Approval' });
+        const approved = await DisposalRecord.countDocuments({ ...filter, status: 'Approved' });
+        const rejected = await DisposalRecord.countDocuments({ ...filter, status: 'Rejected' });
 
         res.json({
-            pending,
-            decommissioned,
-            valueRecovered,
-            complianceIssues
+            pendingManager,
+            pendingAuditor,
+            approved,
+            rejected
         });
     } catch (error) {
         next(error);

@@ -1,20 +1,20 @@
-import { DisposalRecord } from '../data/mock-disposal';
+import { DisposalRecord } from '../services/disposalService';
 import { cn } from '@/lib/utils';
 
 export function AssetCell({ record }: { record: DisposalRecord }) {
     return (
         <div>
             <div className="flex items-center gap-2">
-                <span className="font-bold dark:text-slate-100">{record.assetName}</span>
+                <span className="font-bold dark:text-slate-100">{record.asset.name}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5 font-mono">
-                {record.assetId}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5 font-mono text-[10px]">
+                {record.asset.serial}
             </div>
         </div>
     );
 }
 
-export function ReasonBadge({ reason }: { reason: DisposalRecord['reason'] }) {
+export function ReasonBadge({ reason }: { reason: string }) {
     return (
         <span className={cn(
             "px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border",
@@ -30,18 +30,18 @@ export function ReasonBadge({ reason }: { reason: DisposalRecord['reason'] }) {
 
 export function WorkflowStatusIndicator({ status }: { status: DisposalRecord['status'] }) {
     const statusConfig = {
-        'Pending Approval': { color: 'bg-amber-500', text: 'text-amber-500', label: 'Pending Approval' },
-        'Scheduled': { color: 'bg-blue-500', text: 'text-blue-500', label: 'Scheduled' },
-        'Disposed': { color: 'bg-emerald-500', text: 'text-emerald-500', label: 'Disposed' },
-        'Compliance Check': { color: 'bg-purple-500', text: 'text-purple-500', label: 'Compliance Check' }
+        'Pending Manager Approval': { color: 'bg-amber-500', text: 'text-amber-500', label: 'Mgr Approval' },
+        'Pending Auditor Approval': { color: 'bg-blue-500', text: 'text-blue-500', label: 'Auditor Approval' },
+        'Approved': { color: 'bg-emerald-500', text: 'text-emerald-500', label: 'Approved' },
+        'Rejected': { color: 'bg-rose-500', text: 'text-rose-500', label: 'Rejected' }
     };
 
     const config = statusConfig[status];
 
     return (
         <div className="flex items-center gap-2">
-            <span className={cn("size-2 rounded-full", config.color, status === 'Pending Approval' ? 'animate-pulse' : '')}></span>
-            <span className={cn("text-xs font-bold uppercase", config.text)}>
+            <span className={cn("size-2 rounded-full", config.color, status.includes('Pending') ? 'animate-pulse' : '')}></span>
+            <span className={cn("text-[10px] font-bold uppercase", config.text)}>
                 {config.label}
             </span>
         </div>

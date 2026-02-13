@@ -19,8 +19,18 @@ const disposalRecordSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending Approval', 'Scheduled', 'Disposed', 'Compliance Check'],
-        default: 'Pending Approval'
+        enum: ['Pending Manager Approval', 'Pending Auditor Approval', 'Approved', 'Rejected'],
+        default: 'Pending Manager Approval'
+    },
+    managerApproval: {
+        approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        approvedAt: Date,
+        comment: String
+    },
+    auditorApproval: {
+        approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        approvedAt: Date,
+        comment: String
     },
     location: String,
     date: {

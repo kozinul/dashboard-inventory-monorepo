@@ -9,7 +9,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
 
-        const filters: any = {};
+        const filters: any = { status: { $ne: 'disposed' } };
         const andConditions: any[] = [];
 
         // Manual departmentId filter (useful for Admin/Superuser)
