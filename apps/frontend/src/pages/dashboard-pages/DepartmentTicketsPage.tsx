@@ -1,135 +1,101 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
-import { userService, User } from '@/services/userService';
-import { showSuccessToast, showErrorToast, showInputDialog } from '@/utils/swal';
-import { DepartmentTicketActionModal } from '@/features/maintenance/components/DepartmentTicketActionModal';
-
-const statusColors: Record<string, string> = {
-    'Draft': 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300',
-    'Sent': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-    'Accepted': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
-    'Pending': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-    'In Progress': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    'Done': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'Rejected': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    'Cancelled': 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-400'
-};
+import { maintenanceService, MaintenanceTicket, NavCounts } from '@/services/maintenanceService';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
+import { MaintenanceDetailModal } from '@/features/maintenance/components/MaintenanceDetailModal';
+import { cn } from '@/lib/utils';
 
 export default function DepartmentTicketsPage() {
-    const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
-    const [technicians, setTechnicians] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<string>('all');
-
-    // Assign Modal State
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [selectedTicket, setSelectedTicket] = useState<MaintenanceTicket | null>(null);
-
     const navigate = useNavigate();
     const { user } = useAuthStore();
 
-    useEffect(() => {
-        // Permission check
-        const hasDeptTicketPermission = user?.permissions?.find(p => p.resource === 'dept_tickets')?.actions.view;
-        const isAuthorized = ['superuser', 'admin', 'manager'].includes(user?.role || '') || hasDeptTicketPermission;
-
-        if (!isAuthorized) {
-            navigate('/');
-            return;
-        }
-
-        fetchData();
-        fetchTechnicians();
-    }, [user, navigate]);
+    const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
+    const [counts, setCounts] = useState<NavCounts | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState<string>('Sent');
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await maintenanceService.getDepartmentTickets();
-            setTickets(data);
+            const [ticketsData, countsData] = await Promise.all([
+                maintenanceService.getDepartmentTickets(),
+                maintenanceService.getNavCounts()
+            ]);
+            setTickets(ticketsData);
+            setCounts(countsData);
         } catch (error) {
             console.error('Failed to fetch department tickets:', error);
-            showErrorToast('Failed to load department tickets');
+            showErrorToast('Failed to load tickets');
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchTechnicians = async () => {
-        try {
-            const users = await userService.getAll();
-            // Filter users with role 'technician'
-            setTechnicians(users.filter(u => u.role === 'technician'));
-        } catch (error) {
-            console.error('Failed to fetch technicians:', error);
+    useEffect(() => {
+        // Permission check
+        const hasDeptTicketPermission = user?.permissions?.find(p => p.resource === 'dept_tickets')?.actions.view;
+        const isAdmin = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager';
+
+        if (!isAdmin && !hasDeptTicketPermission) {
+            navigate('/');
+            return;
         }
+
+        fetchData();
+    }, [user, navigate]);
+
+    const handleView = (id: string) => {
+        setSelectedTicketId(id);
+        setIsDetailModalOpen(true);
     };
-
-    const handleView = (ticket: MaintenanceTicket) => {
-        setSelectedTicket(ticket);
-        setIsViewModalOpen(true);
-    };
-
-    const handleAcceptTicket = async (ticketId: string, technicianId: string, type: string) => {
-        try {
-            await maintenanceService.acceptTicket(ticketId, technicianId, type);
-            showSuccessToast('Ticket accepted and technician assigned');
-            setIsViewModalOpen(false);
-            fetchData();
-        } catch (error: any) {
-            showErrorToast(error.response?.data?.message || 'Failed to accept ticket');
-            throw error;
-        }
-    };
-
-    const handleReject = async (id: string) => {
-        const result = await showInputDialog(
-            'Reject Ticket',
-            'Reason for rejection',
-            'text'
-        );
-
-        if (result.isConfirmed && result.value) {
-            try {
-                await maintenanceService.rejectTicket(id, result.value);
-                showSuccessToast('Ticket rejected');
-                fetchData();
-            } catch (error: any) {
-                showErrorToast(error.response?.data?.message || 'Failed to reject');
-                throw error;
-            }
-        }
-    };
-
 
     const handleComplete = async (id: string) => {
-        const result = await showConfirmDialog('Complete Ticket?', 'This will mark the ticket as Done and update asset status.');
+        const result = await showConfirmDialog('Complete Ticket?', 'Mark this ticket as Done.');
         if (!result.isConfirmed) return;
-
         try {
             await maintenanceService.completeTicket(id);
-            showSuccessToast('Ticket completed successfully');
+            showSuccessToast('Ticket marked as Done');
             fetchData();
-        } catch (error: any) {
-            console.error('Failed to complete ticket:', error);
-            showErrorToast(error.response?.data?.message || 'Failed to complete ticket');
+        } catch (error) {
+            showErrorToast('Failed to complete ticket');
         }
     };
 
-    const filteredTickets = filter === 'all'
-        ? tickets
-        : tickets.filter(t => t.status === filter);
+    const handleClose = async (id: string) => {
+        const result = await showConfirmDialog('Close Ticket?', 'This will permanently close the ticket.');
+        if (!result.isConfirmed) return;
+        try {
+            await maintenanceService.updateStatus(id, 'Closed', 'Ticket closed by department manager.');
+            showSuccessToast('Ticket closed successfully');
+            fetchData();
+        } catch (error) {
+            showErrorToast('Failed to close ticket');
+        }
+    };
 
-    if (loading) {
-        return <div className="p-8 text-center">Loading department tickets...</div>;
+    const filteredTickets = tickets.filter(t => t.status === statusFilter);
+
+    const filterStatusList = [
+        { id: 'Sent', label: 'New/Sent', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+        { id: 'Accepted', label: 'Accepted', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+        { id: 'In Progress', label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+        { id: 'Done', label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+        { id: 'Closed', label: 'Closed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    ];
+
+    const getStatusCount = (status: string) => {
+        return counts?.deptTickets?.breakdown?.[status] || 0;
+    };
+
+    if (loading && tickets.length === 0) {
+        return <div className="p-8 text-center text-slate-500">Loading department tickets...</div>;
     }
 
     return (
         <div className="space-y-8 pb-12">
-            {/* Header ... */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Department Tickets</h2>
@@ -138,90 +104,65 @@ export default function DepartmentTicketsPage() {
                         Manage maintenance requests from your department
                     </p>
                 </div>
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-                    {['all', 'Sent', 'Accepted', 'In Progress', 'Done'].map(status => (
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+                {filterStatusList.map((status) => {
+                    const count = getStatusCount(status.id);
+                    return (
                         <button
-                            key={status}
-                            onClick={() => setFilter(status)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filter === status
-                                ? 'bg-primary text-white'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-                                }`}
+                            key={status.id}
+                            onClick={() => setStatusFilter(status.id)}
+                            className={cn(
+                                "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
+                                statusFilter === status.id
+                                    ? status.color
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                            )}
                         >
-                            {status === 'all' ? 'All' : status}
+                            {status.label}
+                            {count > 0 && (
+                                <span className="bg-white/50 dark:bg-black/20 px-1.5 py-0.5 rounded text-[10px] min-w-[20px] text-center">
+                                    {count}
+                                </span>
+                            )}
                         </button>
-                    ))}
-                </div>
+                    );
+                })}
             </div>
 
-            {/* Stats ... */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="bg-white dark:bg-card-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark">
-                    <div className="text-sm text-slate-500">Total</div>
-                    <div className="text-2xl font-bold">{tickets.length}</div>
-                </div>
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
-                    <div className="text-sm text-purple-600">New Requests</div>
-                    <div className="text-2xl font-bold text-purple-600">{tickets.filter(t => t.status === 'Sent').length}</div>
-                </div>
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                    <div className="text-sm text-indigo-600">Accepted</div>
-                    <div className="text-2xl font-bold text-indigo-600">{tickets.filter(t => t.status === 'Accepted').length}</div>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <div className="text-sm text-blue-600">In Progress</div>
-                    <div className="text-2xl font-bold text-blue-600">{tickets.filter(t => t.status === 'In Progress').length}</div>
-                </div>
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800">
-                    <div className="text-sm text-green-600">Completed</div>
-                    <div className="text-2xl font-bold text-green-600">{tickets.filter(t => t.status === 'Done').length}</div>
-                </div>
-            </div>
-
-            {/* Tickets Table */}
             <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-slate-200 dark:border-border-dark overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-slate-50 dark:bg-slate-800">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Ticket #</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Asset</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Requested By</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Technician</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Requestor</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
                             <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                         {filteredTickets.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                                    <span className="material-symbols-outlined text-4xl mb-2">inbox</span>
-                                    <p>No tickets found</p>
+                                <td colSpan={5} className="px-6 py-12 text-center text-slate-500 italic">
+                                    No tickets found in this status
                                 </td>
                             </tr>
                         ) : (
                             filteredTickets.map((ticket) => (
                                 <tr key={ticket._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                    <td className="px-6 py-4 font-mono text-sm">{ticket.ticketNumber}</td>
+                                    <td className="px-6 py-4 font-mono text-sm">{ticket.ticketNumber || '-'}</td>
                                     <td className="px-6 py-4">
                                         <div className="font-medium">{ticket.asset?.name}</div>
                                         <div className="text-xs text-slate-500">{ticket.asset?.serial}</div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="font-medium">{ticket.requestedBy?.name}</div>
-                                        <div className="text-xs text-slate-500">{ticket.requestedBy?.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm">
-                                        {ticket.technician?.name || '-'}
+                                        <div className="text-xs text-slate-500">{ticket.requestedBy?.department}</div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[ticket.status]}`}>
-                                            {ticket.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
-                                        {new Date(ticket.createdAt).toLocaleDateString()}
+                                        <div className="text-sm line-clamp-1">{ticket.title}</div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
@@ -233,8 +174,16 @@ export default function DepartmentTicketsPage() {
                                                     Complete
                                                 </button>
                                             )}
+                                            {ticket.status === 'Done' && (
+                                                <button
+                                                    onClick={() => handleClose(ticket._id)}
+                                                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold text-white transition-colors"
+                                                >
+                                                    Close
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => handleView(ticket)}
+                                                onClick={() => handleView(ticket._id)}
                                                 className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
                                             >
                                                 View
@@ -248,14 +197,11 @@ export default function DepartmentTicketsPage() {
                 </table>
             </div>
 
-            {/* View/Action Modal */}
-            <DepartmentTicketActionModal
-                isOpen={isViewModalOpen}
-                onClose={() => setIsViewModalOpen(false)}
-                ticket={selectedTicket}
-                technicians={technicians}
-                onAccept={handleAcceptTicket}
-                onReject={handleReject}
+            <MaintenanceDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                ticketId={selectedTicketId}
+                onSuccess={fetchData}
             />
         </div>
     );

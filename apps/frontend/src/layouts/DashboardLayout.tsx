@@ -17,6 +17,7 @@ import {
     TagIcon,
     CircleStackIcon,
     ArrowsRightLeftIcon,
+    DocumentArrowUpIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation } from 'react-router-dom'
@@ -45,6 +46,7 @@ const mainNavigation = [
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
+    { name: 'Data Management', href: '/data-management', icon: DocumentArrowUpIcon },
     { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
@@ -178,7 +180,8 @@ function DashboardLayout() {
             'Vendors': 'vendors',
             'Locations': 'locations',
             'Branches': 'branches',
-            'Database': 'settings' // Map database to settings
+            'Database': 'settings', // Map database to settings
+            'Data Management': 'data_management'
         };
 
         const resource = resourceMap[item.name];
@@ -217,7 +220,7 @@ function DashboardLayout() {
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history'].includes(resource || '');
+            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history', 'data_management'].includes(resource || '');
         }
 
         // Auditor permissions

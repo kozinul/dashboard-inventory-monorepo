@@ -35,42 +35,36 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         // RBAC / Department Filtering
         // req.user is populated by authMiddleware
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            // Find assets assigned to this user
-            const userAssignments = await Assignment.find({
-                userId: req.user._id,
-                status: 'assigned',
-                isDeleted: false
-            }).select('assetId');
-
-            const assignedAssetIds = userAssignments.map(a => a.assetId);
-
             const accessConditions: any[] = [];
             const userBranchId = (req.user as any).branchId;
 
             // 1. Department Access (Scoped to User's Branch)
+            // 1. Department Access (Scoped to User's Branch)
             // Users can only see department assets IN THEIR BRANCH
-            if (req.user.departmentId) {
-                accessConditions.push({
-                    departmentId: req.user.departmentId,
-                    branchId: userBranchId
-                });
-            }
-            if (req.user.department) {
-                accessConditions.push({
-                    department: req.user.department,
-                    branchId: userBranchId
-                });
+            // Nuance: Only the 'user' role should have assigned assets hidden.
+            // Managers and Technicians should see them for management/repairs.
+            const shouldHideAssigned = req.user.role === 'user';
+            const deptFilter: any = { branchId: userBranchId };
+            if (shouldHideAssigned) {
+                deptFilter.status = { $ne: 'assigned' };
             }
 
-            // 2. Personal Assignment Access (Any Branch)
-            if (assignedAssetIds.length > 0) {
-                accessConditions.push({ _id: { $in: assignedAssetIds } });
+            if (req.user.departmentId) {
+                accessConditions.push({
+                    ...deptFilter,
+                    departmentId: req.user.departmentId
+                });
+            } else if (req.user.department) {
+                accessConditions.push({
+                    ...deptFilter,
+                    department: req.user.department
+                });
             }
 
             if (accessConditions.length > 0) {
                 andConditions.push({ $or: accessConditions });
             } else {
-                // No department and no assignments -> see nothing
+                // No department -> see nothing
                 return res.json({
                     data: [],
                     pagination: {

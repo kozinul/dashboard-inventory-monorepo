@@ -34,6 +34,7 @@
         "sweetalert2": "^11.26.17",
         "sweetalert2-react-content": "^5.1.1",
         "tailwind-merge": "^2.2.2",
+        "xlsx": "^0.18.5",
         "zod": "^3.22.4",
         "zustand": "^4.5.2"
     },

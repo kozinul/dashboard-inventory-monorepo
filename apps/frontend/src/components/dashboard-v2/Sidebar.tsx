@@ -1,27 +1,50 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
+import { maintenanceService, NavCounts } from '@/services/maintenanceService'
 
 export function Sidebar() {
     const location = useLocation()
     const { user } = useAuthStore()
+    const [counts, setCounts] = useState<NavCounts | null>(null)
+
+    useEffect(() => {
+        const fetchCounts = async () => {
+            try {
+                const data = await maintenanceService.getNavCounts()
+                setCounts(data)
+            } catch (error) {
+                console.error('Failed to fetch nav counts:', error)
+            }
+        }
+
+        if (user) {
+            fetchCounts()
+            const interval = setInterval(fetchCounts, 60000)
+            return () => clearInterval(interval)
+        }
+    }, [user])
 
     // Check if user has permission for a resource
     const hasPermission = (resource: string) => {
-        // Superuser and admin have access to everything
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
-
-
-
-        // Standard User permissions
         if (user?.role === 'user') {
             return ['dashboard', 'my_tickets'].includes(resource);
         }
-
-        // Fallback for custom permissions
         if (!user?.permissions || user.permissions.length === 0) return false;
         const perm = user.permissions.find(p => p.resource === resource);
         return perm?.actions?.['view'] === true;
+    };
+
+    const getBadgeCount = (resource: string) => {
+        if (!counts) return 0;
+        switch (resource) {
+            case 'my_tickets': return counts.myTickets.actionable;
+            case 'dept_tickets': return counts.deptTickets.actionable;
+            case 'maintenance': return counts.assignedTickets.actionable;
+            default: return 0;
+        }
     };
 
     const navItems = [
@@ -49,7 +72,6 @@ export function Sidebar() {
         { name: 'Settings', href: '/settings', icon: 'settings', resource: 'settings' },
     ]
 
-    // Filter items based on permissions
     const filteredNavItems = navItems.filter(item => hasPermission(item.resource));
     const filteredMasterDataItems = masterDataItems.filter(item => hasPermission(item.resource));
     const filteredSystemItems = systemItems.filter(item => hasPermission(item.resource));
@@ -69,21 +91,27 @@ export function Sidebar() {
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
                 {filteredNavItems.map((item) => {
                     const isActive = location.pathname === item.href
+                    const badgeCount = getBadgeCount(item.resource)
                     return (
                         <Link
                             key={item.name}
                             to={item.href}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group",
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                                 isActive
                                     ? "bg-primary/10 text-primary"
                                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark"
                             )}
                         >
                             <span className="material-symbols-outlined !text-[20px]">{item.icon}</span>
-                            <span className={cn("text-sm transition-all", isActive ? "font-semibold tracking-wide" : "font-medium")}>
+                            <span className={cn("text-sm transition-all flex-1", isActive ? "font-semibold tracking-wide" : "font-medium")}>
                                 {item.name}
                             </span>
+                            {badgeCount > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-in zoom-in-50 duration-200">
+                                    {badgeCount > 99 ? '99+' : badgeCount}
+                                </span>
+                            )}
                         </Link>
                     )
                 })}

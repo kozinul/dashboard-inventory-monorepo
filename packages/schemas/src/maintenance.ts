@@ -11,7 +11,8 @@ export const MaintenanceStatusSchema = z.enum([
     'On Hold',
     'External Service',
     'Pending',
-    'Escalated'
+    'Escalated',
+    'Closed'
 ]);
 
 export type MaintenanceStatus = z.infer<typeof MaintenanceStatusSchema>;

@@ -39,6 +39,7 @@ import SuppliesPage from '../features/inventory/pages/SuppliesPage';
 import SupplyDetailsPage from '../features/inventory/pages/SupplyDetailsPage';
 import EventDetailsPage from '../pages/dashboard-pages/EventDetailsPage';
 import UserDetailsPage from '../features/users/pages/UserDetailsPage';
+import DataManagementPage from '../pages/dashboard-pages/DataManagementPage';
 import ErrorPage from '../pages/ErrorPage';
 
 // Auth Imports
@@ -213,6 +214,10 @@ export const router = createBrowserRouter([
                             {
                                 path: 'master-data/database',
                                 element: <DatabaseManagement />,
+                            },
+                            {
+                                path: 'data-management',
+                                element: <DataManagementPage />,
                             },
 
                         ],

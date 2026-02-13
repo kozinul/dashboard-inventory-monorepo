@@ -65,6 +65,24 @@ export interface MaintenanceTicket {
     }[];
 }
 
+export interface NavCounts {
+    myTickets: {
+        total: number;
+        breakdown: Record<string, number>;
+        actionable: number;
+    };
+    deptTickets: {
+        total: number;
+        breakdown: Record<string, number>;
+        actionable: number;
+    };
+    assignedTickets: {
+        total: number;
+        breakdown: Record<string, number>;
+        actionable: number;
+    };
+}
+
 export interface CreateTicketDto {
     asset: string;
     title: string;
@@ -99,7 +117,7 @@ export const maintenanceService = {
         return response.data;
     },
 
-    getNavCounts: async () => {
+    getNavCounts: async (): Promise<NavCounts> => {
         const response = await axios.get(`${API_URL}/nav-counts`);
         return response.data;
     },
@@ -157,11 +175,10 @@ export const maintenanceService = {
     },
 
     updateTicketWork: async (id: string, data: any, onUploadProgress?: (progressEvent: any) => void): Promise<MaintenanceTicket> => {
-        // Axios automatically handles FormData content-type header
         const response = await axios.put(`${API_URL}/${id}/work`, data, {
             onUploadProgress,
             headers: {
-                'Content-Type': undefined // Unset default JSON header to let browser set multipart/form-data with boundary
+                'Content-Type': undefined
             }
         });
         return response.data;

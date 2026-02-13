@@ -904,57 +904,61 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
             return res.status(404).json({ message: 'User not found' });
         }
 
-        let pendingDeptTickets = 0;
-        let assignedTickets = 0;
-        let activeTickets = 0;
-        let pendingUserAction = 0;
+        const myTickets: any = {};
+        const deptTickets: any = {};
+        const assignedTickets: any = {};
 
-        // Count pending department tickets (Sent status)
-        if (user.role === 'admin' || user.role === 'superuser') {
-            // Admins see all sent tickets
-            pendingDeptTickets = await MaintenanceRecord.countDocuments({ status: 'Sent' });
+        // 1. My Tickets breakdown (all statuses for tickets requested by me)
+        const myTicketsCounts = await MaintenanceRecord.aggregate([
+            { $match: { requestedBy: userId } },
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+        myTicketsCounts.forEach(c => { myTickets[c._id] = c.count; });
 
-            // Active tickets for admins (Accepted + In Progress)
-            activeTickets = await MaintenanceRecord.countDocuments({
-                status: { $in: ['Accepted', 'In Progress'] }
-            });
-        } else if (user.departmentId && (user.role === 'manager' || user.role === 'technician')) {
-            // Managers/Technicians see tickets from their department
-            const departmentUsers = await User.find({ departmentId: user.departmentId }).select('_id');
-            const userIds = departmentUsers.map(u => u._id);
-            pendingDeptTickets = await MaintenanceRecord.countDocuments({
-                status: 'Sent',
-                requestedBy: { $in: userIds }
-            });
-
-            // Active tickets for managers (Accepted + In Progress for their dept)
-            if (user.role === 'manager') {
-                activeTickets = await MaintenanceRecord.countDocuments({
-                    status: { $in: ['Accepted', 'In Progress'] },
-                    requestedBy: { $in: userIds }
-                });
+        // 2. Department Tickets breakdown
+        if (user.role === 'admin' || user.role === 'superuser' || (user.departmentId && user.role === 'manager')) {
+            const deptFilter: any = {};
+            if (user.role !== 'admin' && user.role !== 'superuser') {
+                const departmentUsers = await User.find({ departmentId: user.departmentId }).select('_id');
+                const userIds = departmentUsers.map(u => u._id);
+                deptFilter.requestedBy = { $in: userIds };
             }
+            const deptCounts = await MaintenanceRecord.aggregate([
+                { $match: deptFilter },
+                { $group: { _id: '$status', count: { $sum: 1 } } }
+            ]);
+            deptCounts.forEach(c => { deptTickets[c._id] = c.count; });
         }
 
-        // Count assigned tickets for technicians (Accepted status, ready to work)
-        if (user.role === 'technician') {
-            assignedTickets = await MaintenanceRecord.countDocuments({
-                technician: userId,
-                status: { $in: ['Accepted'] } // Count 'Accepted' as new/actionable.
-            });
+        // 3. Assigned Tickets breakdown (for technicians)
+        if (user.role === 'technician' || user.role === 'admin' || user.role === 'superuser') {
+            const assignedFilter: any = {};
+            if (user.role === 'technician') {
+                assignedFilter.technician = userId;
+            }
+            const assignedCounts = await MaintenanceRecord.aggregate([
+                { $match: assignedFilter },
+                { $group: { _id: '$status', count: { $sum: 1 } } }
+            ]);
+            assignedCounts.forEach(c => { assignedTickets[c._id] = c.count; });
         }
-
-        // Count pending actions for all users (tickets waiting for their input)
-        pendingUserAction = await MaintenanceRecord.countDocuments({
-            requestedBy: userId,
-            status: 'Pending'
-        });
 
         res.json({
-            pendingDeptTickets,
-            assignedTickets,
-            activeTickets,
-            pendingUserAction
+            myTickets: {
+                total: Object.values(myTickets).reduce((a: any, b: any) => a + b, 0),
+                breakdown: myTickets,
+                actionable: (myTickets['Pending'] || 0) + (myTickets['Rejected'] || 0)
+            },
+            deptTickets: {
+                total: Object.values(deptTickets).reduce((a: any, b: any) => a + b, 0),
+                breakdown: deptTickets,
+                actionable: deptTickets['Sent'] || 0
+            },
+            assignedTickets: {
+                total: Object.values(assignedTickets).reduce((a: any, b: any) => a + b, 0),
+                breakdown: assignedTickets,
+                actionable: (assignedTickets['Accepted'] || 0) + (assignedTickets['In Progress'] || 0)
+            }
         });
     } catch (error) {
         next(error);
