@@ -45,7 +45,7 @@ const DEFAULT_ROLES: Role[] = [
         permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
     },
     {
-        id: '3', name: 'Manager', slug: 'manager', color: '#3b82f6',
+        id: '4', name: 'Manager', slug: 'manager', color: '#3b82f6',
         description: 'Managerial access', isSystem: false, usersCount: 5,
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
@@ -59,7 +59,7 @@ const DEFAULT_ROLES: Role[] = [
         ]
     },
     {
-        id: '4', name: 'User', slug: 'user', color: '#22c55e',
+        id: '5', name: 'User', slug: 'user', color: '#22c55e',
         description: 'Standard user access', isSystem: false, usersCount: 12,
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
@@ -69,23 +69,23 @@ const DEFAULT_ROLES: Role[] = [
         ]
     },
     {
-        id: '6', name: 'Technician', slug: 'technician', color: '#06b6d4',
-        description: 'Maintenance technician access', isSystem: false, usersCount: 0,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'maintenance', actions: viewOnly() },
-            { resource: 'assigned_tickets', actions: viewCreateEdit() }, // Custom resource
-            { resource: 'my_assets', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '5', name: 'Auditor', slug: 'auditor', color: '#a855f7',
+        id: '6', name: 'Auditor', slug: 'auditor', color: '#a855f7',
         description: 'Read-only audit access', isSystem: false, usersCount: 2,
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
             { resource: 'inventory', actions: viewOnly() },
             { resource: 'history', actions: viewOnly() },
             { resource: 'reports', actions: viewOnly() },
+        ]
+    },
+    {
+        id: '7', name: 'Technician', slug: 'technician', color: '#06b6d4',
+        description: 'Maintenance technician access', isSystem: false, usersCount: 0,
+        permissions: [
+            { resource: 'dashboard', actions: viewOnly() },
+            { resource: 'maintenance', actions: viewOnly() },
+            { resource: 'assigned_tickets', actions: viewCreateEdit() }, // Custom resource
+            { resource: 'my_assets', actions: viewOnly() },
         ]
     }
 ];

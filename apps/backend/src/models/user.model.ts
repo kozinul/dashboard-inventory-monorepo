@@ -61,7 +61,12 @@ const userSchema = new mongoose.Schema({
             edit: { type: Boolean, default: false },
             delete: { type: Boolean, default: false }
         }
-    }]
+    }],
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    lastLogin: Date
 }, {
     timestamps: true
 });

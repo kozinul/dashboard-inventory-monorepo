@@ -114,6 +114,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         user.designation = req.body.designation || user.designation;
         user.status = req.body.status || user.status;
         user.role = req.body.role || user.role;
+        user.branchId = req.body.branchId || user.branchId;
         user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
 
         if (req.body.password) {
@@ -132,7 +133,10 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             departmentId: updatedUser.departmentId,
             designation: updatedUser.designation,
             status: updatedUser.status,
+            branchId: updatedUser.branchId,
             avatarUrl: updatedUser.avatarUrl,
+            isActive: (updatedUser as any).isActive,
+            lastLogin: (updatedUser as any).lastLogin,
         });
     } catch (error) {
         next(error);

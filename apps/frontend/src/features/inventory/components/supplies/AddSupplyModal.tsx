@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
-import axios from 'axios';
+import axios from '../../../../lib/axios';
 
 interface AddSupplyModalProps {
     isOpen: boolean;
@@ -26,14 +26,40 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
     const [units, setUnits] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Location Cascade State
+    const [selectedBuilding, setSelectedBuilding] = useState<string>('');
+    const [selectedFloor, setSelectedFloor] = useState<string>('');
+
+    // Filtered lists
+    const buildings = locations.filter(l => l.type === 'Building');
+    const floors = locations.filter(l => l.type === 'Floor' && l.parentId === selectedBuilding);
+
+    // Get all locations that are not Building or Floor
+    const rooms = locations.filter(l => {
+        const isBuildingOrFloor = l.type === 'Building' || l.type === 'Floor';
+        if (isBuildingOrFloor) return false;
+
+        // If a floor is selected, show items belonging to that floor
+        if (selectedFloor) {
+            return l.parentId === selectedFloor;
+        }
+
+        // If only a building is selected, show items belonging directly to that building
+        if (selectedBuilding) {
+            return l.parentId === selectedBuilding;
+        }
+
+        return false;
+    });
+
     useEffect(() => {
         if (isOpen) {
             const fetchData = async () => {
                 try {
                     const [locRes, vendRes, deptRes, unitRes] = await Promise.all([
-                        axios.get('/api/v1/locations'),
-                        axios.get('/api/v1/vendors'),
-                        axios.get('/api/v1/departments'),
+                        axios.get('/locations'),
+                        axios.get('/vendors'),
+                        axios.get('/departments'),
                         getUnits()
                     ]);
                     setLocations(locRes.data);
@@ -65,6 +91,8 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
 
     const handleClose = () => {
         reset();
+        setSelectedBuilding('');
+        setSelectedFloor('');
         onClose();
     };
 
@@ -190,16 +218,52 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
                                             </div>
 
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Building
+                                                </label>
                                                 <select
-                                                    {...register('locationId')}
+                                                    value={selectedBuilding}
+                                                    onChange={e => {
+                                                        setSelectedBuilding(e.target.value);
+                                                        setSelectedFloor('');
+                                                    }}
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 >
-                                                    <option value="">Select Location</option>
-                                                    {locations.map(loc => (
-                                                        <option key={loc._id} value={loc._id}>{loc.name}</option>
+                                                    <option value="">Select Building</option>
+                                                    {buildings.map(b => (
+                                                        <option key={b._id} value={b._id}>{b.name}</option>
                                                     ))}
                                                 </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Floor</label>
+                                                <select
+                                                    value={selectedFloor}
+                                                    onChange={e => setSelectedFloor(e.target.value)}
+                                                    disabled={!selectedBuilding}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                >
+                                                    <option value="">Select Floor</option>
+                                                    {floors.map(f => (
+                                                        <option key={f._id} value={f._id}>{f.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Room / Location</label>
+                                                <select
+                                                    {...register('locationId', { required: 'Location is required' })}
+                                                    disabled={!selectedFloor}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                >
+                                                    <option value="">Select Room</option>
+                                                    {rooms.map(r => (
+                                                        <option key={r._id} value={r._id}>{r.name}</option>
+                                                    ))}
+                                                </select>
+                                                {errors.locationId && <span className="text-xs text-red-500 mt-1">Location is required</span>}
                                             </div>
 
                                             <div>

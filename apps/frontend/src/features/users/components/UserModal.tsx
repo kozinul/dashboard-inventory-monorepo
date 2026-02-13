@@ -5,20 +5,22 @@ import { CreateUserDto } from '@/services/userService';
 import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
 import { branchService, Branch } from '@/services/branchService';
-import { User } from '@dashboard/schemas';
+import { User, UserRoleSchema } from '../../../../../../packages/schemas/src/index';
 import { z } from 'zod';
 import { useRoleStore } from '@/store/roleStore';
+
 
 const userSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
-    role: z.enum(['user', 'admin', 'manager', 'auditor', 'technician', 'superuser', 'system_admin']),
+    role: UserRoleSchema,
     department: z.string().optional(),
     designation: z.string().optional(),
     status: z.enum(['Active', 'Offline', 'Away']),
     avatarUrl: z.string().optional(),
     id: z.string().optional(),
+    branchId: z.string().min(1, 'Branch is required'),
 }).refine(data => {
     // Password is required for new users
     if (!data.password && !data.id) return false;
@@ -33,12 +35,13 @@ interface UserModalProps {
     onClose: () => void;
     onSubmit: (data: CreateUserDto) => Promise<void>;
     editingUser?: User | null;
+    defaultBranchId?: string;
 }
 
-export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalProps) {
+export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranchId }: UserModalProps) {
     const [showPassword, setShowPassword] = useState(false);
     const roles = useRoleStore(state => state.roles);
-    const [formData, setFormData] = useState<CreateUserDto & { branchId?: string }>({
+    const [formData, setFormData] = useState<CreateUserDto & { branchId?: string; departmentId?: string }>({
         username: '',
         name: '',
         email: '',
@@ -78,6 +81,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                 email: editingUser.email,
                 role: editingUser.role,
                 department: editingUser.department || '',
+                departmentId: (editingUser as any).departmentId || undefined,
                 branchId: (editingUser as any).branchId || '',
                 designation: editingUser.designation || '',
                 status: (editingUser.status as any) || 'Active',
@@ -91,13 +95,13 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                 password: 'password123',
                 role: 'user',
                 department: '',
-                branchId: '',
+                branchId: defaultBranchId || '',
                 designation: '',
                 status: 'Active',
                 avatarUrl: ''
             });
         }
-    }, [editingUser, isOpen]);
+    }, [editingUser, isOpen, defaultBranchId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -134,9 +138,11 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                     }
                 });
                 setErrors(apiErrors);
+            } else if (error.response && error.response.data && error.response.data.message) {
+                setErrors({ form: error.response.data.message });
             } else {
                 // Fallback generic error
-                setErrors({ form: 'An unexpected error occurred. Please try again.' });
+                setErrors({ form: error.response.data?.message || 'An unexpected error occurred. Please try again.' });
             }
         }
     };
@@ -183,6 +189,11 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                         <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                                             {editingUser ? 'Edit User' : 'Add New User'}
                                         </Dialog.Title>
+                                        {errors.form && (
+                                            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-600 dark:text-red-400">
+                                                {errors.form}
+                                            </div>
+                                        )}
                                         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
@@ -253,7 +264,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                                         onChange={e => setFormData({ ...formData, role: e.target.value })}
                                                     >
                                                         {roles.map(role => (
-                                                            <option key={role.id} value={role.slug}>
+                                                            <option key={role.slug} value={role.slug}>
                                                                 {role.name}
                                                             </option>
                                                         ))}
@@ -292,7 +303,14 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser }: UserModalP
                                                 <select
                                                     className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:text-white p-2 border"
                                                     value={formData.department}
-                                                    onChange={e => setFormData({ ...formData, department: e.target.value })}
+                                                    onChange={e => {
+                                                        const selectedDept = departments.find(d => d.name === e.target.value);
+                                                        setFormData({
+                                                            ...formData,
+                                                            department: e.target.value,
+                                                            departmentId: selectedDept?._id
+                                                        });
+                                                    }}
                                                 >
                                                     <option value="">Select Department</option>
                                                     {departments.filter(d => d.status === 'Active').map(dept => (

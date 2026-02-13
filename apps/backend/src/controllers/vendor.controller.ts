@@ -9,7 +9,19 @@ export const vendorController = {
             const filter: any = {};
 
             if (req.user.role !== 'superuser') {
-                filter.branchId = (req.user as any).branchId;
+                const userBranchId = (req.user as any).branchId;
+                if (userBranchId) {
+                    filter.$or = [
+                        { branchId: userBranchId },
+                        { branchId: null },
+                        { branchId: { $exists: false } }
+                    ];
+                } else {
+                    filter.$or = [
+                        { branchId: null },
+                        { branchId: { $exists: false } }
+                    ];
+                }
             } else if (req.query.branchId && req.query.branchId !== 'ALL') {
                 filter.branchId = req.query.branchId;
             }

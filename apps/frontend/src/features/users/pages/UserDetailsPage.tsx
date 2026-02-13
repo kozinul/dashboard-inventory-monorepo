@@ -4,6 +4,7 @@ import { userService } from '@/services/userService';
 import { assignmentService, Assignment } from '@/services/assignmentService';
 import { departmentService, Department } from '@/services/departmentService';
 import { jobTitleService, JobTitle } from '@/services/jobTitleService';
+import { branchService, Branch } from '@/services/branchService';
 import { User } from '@dashboard/schemas';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import UserPermissionEditor from '../components/UserPermissionEditor';
@@ -28,10 +29,12 @@ export default function UserDetailsPage() {
         status: 'Active',
         role: 'user',
         password: '',
-        departmentId: ''
+        departmentId: '',
+        branchId: ''
     });
     const [departments, setDepartments] = useState<Department[]>([]);
     const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
@@ -44,16 +47,18 @@ export default function UserDetailsPage() {
         setIsLoading(true);
         try {
             if (!id) return;
-            const [userData, assignmentData, departmentsData, jobTitlesData] = await Promise.all([
+            const [userData, assignmentData, departmentsData, jobTitlesData, branchesData] = await Promise.all([
                 userService.getById(id),
                 assignmentService.getUserAssignments(id),
                 departmentService.getAll(),
-                jobTitleService.getAll()
+                jobTitleService.getAll(),
+                branchService.getAll()
             ]);
             setUser(userData);
             setAssignments(assignmentData);
             setDepartments(departmentsData);
             setJobTitles(jobTitlesData);
+            setBranches(branchesData);
 
             // Initialize edit form
             setEditFormData({
@@ -62,6 +67,7 @@ export default function UserDetailsPage() {
                 email: userData.email,
                 department: userData.department || '',
                 departmentId: userData.departmentId || '',
+                branchId: (userData as any).branchId?._id || (userData as any).branchId || '',
                 designation: userData.designation || '',
                 status: userData.status || 'Active',
                 role: userData.role || 'user',
@@ -225,6 +231,23 @@ export default function UserDetailsPage() {
                                             onChange={e => setEditFormData({ ...editFormData, email: e.target.value })}
                                             required
                                         />
+                                    </div>
+                                    {/* Branch */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Branch <span className="text-red-500">*</span></label>
+                                        <select
+                                            className="w-full p-2.5 border rounded-lg dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-primary/20 transition-all"
+                                            value={editFormData.branchId}
+                                            onChange={e => setEditFormData({ ...editFormData, branchId: e.target.value })}
+                                            required
+                                        >
+                                            <option value="">Select Branch</option>
+                                            {branches.filter(b => b.status === 'Active').map(branch => (
+                                                <option key={branch._id} value={branch._id}>
+                                                    {branch.name} ({branch.code})
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     {/* Department */}
                                     <div>

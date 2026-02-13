@@ -7,12 +7,27 @@ export const getLocations = async (req: Request, res: Response) => {
         const filter: any = {};
 
         if (req.user.role !== 'superuser') {
-            filter.branchId = (req.user as any).branchId;
+            const userBranchId = (req.user as any).branchId;
+            if (userBranchId) {
+                // Determine if we should only show branch locations or also global ones
+                // Assuming locations are strictly branch-bound usually, but for safety let's allow global if any
+                filter.$or = [
+                    { branchId: userBranchId },
+                    { branchId: null },
+                    { branchId: { $exists: false } }
+                ];
+            } else {
+                filter.$or = [
+                    { branchId: null },
+                    { branchId: { $exists: false } }
+                ];
+            }
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
         }
 
         const locations = await Location.find(filter).sort({ name: 1 });
+
         res.json(locations);
     } catch (error) {
         console.error('Error fetching locations:', error);

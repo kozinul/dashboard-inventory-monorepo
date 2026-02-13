@@ -53,62 +53,73 @@ export function UserRow({ user, onEdit, onDelete, onView, onCopyRole }: UserRowP
                 <StatusBadge status={user.status as any} />
             </td>
             <td className="px-6 py-4 text-right relative">
-                <Menu as="div" className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
-                    <Menu.Button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 group-hover:text-primary">
-                        <span className="material-symbols-outlined">more_vert</span>
-                    </Menu.Button>
-                    <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
+                <div className="flex items-center justify-end gap-2">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(user);
+                        }}
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-slate-400 hover:text-red-600"
+                        title="Delete User"
                     >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            <div className="py-1">
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button
-                                            onClick={() => onEdit(user)}
-                                            className={`${active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
-                                                } block w-full px-4 py-2 text-sm text-left`}
-                                        >
-                                            Edit
-                                        </button>
-                                    )}
-                                </Menu.Item>
-                                {onCopyRole && (
+                        <span className="material-symbols-outlined text-xl">delete</span>
+                    </button>
+                    <Menu as="div" className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+                        <Menu.Button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400 group-hover:text-primary">
+                            <span className="material-symbols-outlined">more_vert</span>
+                        </Menu.Button>
+                        <Transition
+                            as={Fragment}
+                            enter="transition ease-out duration-100"
+                            enterFrom="transform opacity-0 scale-95"
+                            enterTo="transform opacity-100 scale-100"
+                            leave="transition ease-in duration-75"
+                            leaveFrom="transform opacity-100 scale-100"
+                            leaveTo="transform opacity-0 scale-95"
+                        >
+                            <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <div className="py-1">
                                     <Menu.Item>
                                         {({ active }) => (
                                             <button
-                                                onClick={() => onCopyRole(user)}
+                                                onClick={() => onEdit(user)}
                                                 className={`${active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                                     } block w-full px-4 py-2 text-sm text-left`}
                                             >
-                                                Copy Role To...
+                                                Edit
                                             </button>
                                         )}
                                     </Menu.Item>
-                                )}
-                                <Menu.Item>
-                                    {({ active }) => (
-                                        <button
-                                            onClick={() => onDelete(user)}
-                                            className={`${active ? 'bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-300' : 'text-red-700 dark:text-red-400'
-                                                } block w-full px-4 py-2 text-sm text-left`}
-                                        >
-                                            Delete
-                                        </button>
+                                    {onCopyRole && (
+                                        <Menu.Item>
+                                            {({ active }) => (
+                                                <button
+                                                    onClick={() => onCopyRole(user)}
+                                                    className={`${active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                                        } block w-full px-4 py-2 text-sm text-left`}
+                                                >
+                                                    Copy Role To...
+                                                </button>
+                                            )}
+                                        </Menu.Item>
                                     )}
-                                </Menu.Item>
-                            </div>
-                        </Menu.Items>
-                    </Transition>
-                </Menu>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={() => onDelete(user)}
+                                                className={`${active ? 'bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-300' : 'text-red-700 dark:text-red-400'
+                                                    } block w-full px-4 py-2 text-sm text-left`}
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                            </Menu.Items>
+                        </Transition>
+                    </Menu>
+                </div>
             </td>
         </tr>
     )
 }
-

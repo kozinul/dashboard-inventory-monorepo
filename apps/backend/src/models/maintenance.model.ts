@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { MaintenanceStatusSchema, MaintenanceTypeSchema, ServiceProviderTypeSchema } from '@dashboard/schemas';
 
 // Helper to generate ticket number
 const generateTicketNumber = async () => {
@@ -58,7 +59,7 @@ const maintenanceRecordSchema = new mongoose.Schema({
     },
     serviceProviderType: {
         type: String,
-        enum: ['Internal', 'Vendor'],
+        enum: ServiceProviderTypeSchema.options,
         default: 'Internal',
         required: true
     },
@@ -76,7 +77,7 @@ const maintenanceRecordSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['Repair', 'Routine', 'Emergency', 'Firmware', 'Installation', 'Inspection', 'Maintenance'],
+        enum: MaintenanceTypeSchema.options,
         required: true
     },
     assignedDepartment: {
@@ -85,7 +86,7 @@ const maintenanceRecordSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Draft', 'Sent', 'Accepted', 'In Progress', 'Done', 'Rejected', 'Cancelled', 'On Hold', 'External Service', 'Pending', 'Escalated'],
+        enum: MaintenanceStatusSchema.options,
         default: 'Draft'
     },
     branchId: {

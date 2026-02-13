@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const UserRoleSchema = z.enum(['superuser', 'admin', 'manager', 'technician', 'user', 'auditor']);
+export const UserRoleSchema = z.enum(['superuser', 'system_admin', 'admin', 'manager', 'technician', 'user', 'auditor']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export const UserSchema = z.object({
@@ -15,6 +15,7 @@ export const UserSchema = z.object({
     departmentId: z.string().optional(),
     designation: z.string().optional(),
     status: z.enum(['Active', 'Inactive', 'Offline', 'Away']).default('Active'),
+    branchId: z.string().optional(),
     avatarUrl: z.string().optional(),
     isActive: z.boolean().default(true),
     lastLogin: z.date().optional(),
@@ -29,8 +30,10 @@ export const CreateUserSchema = UserSchema.pick({
     name: true,
     role: true,
     department: true,
+    departmentId: true,
     designation: true,
     status: true,
+    branchId: true,
     avatarUrl: true
 });
 export const LoginSchema = z.object({

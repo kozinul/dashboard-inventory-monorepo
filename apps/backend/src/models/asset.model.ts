@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { AssetStatusSchema } from '@dashboard/schemas';
 
 const assetSchema = new mongoose.Schema({
     name: {
@@ -49,7 +50,7 @@ const assetSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'maintenance', 'storage', 'retired', 'assigned', 'request maintenance'],
+        enum: AssetStatusSchema.options,
         default: 'active'
     },
     requiresExternalService: {

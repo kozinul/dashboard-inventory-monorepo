@@ -271,6 +271,7 @@ export default function UserManagementPage() {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleCreateOrUpdate}
                 editingUser={editingUser}
+                defaultBranchId={activeBranchId !== 'ALL' ? activeBranchId : undefined}
             />
         </div>
     )

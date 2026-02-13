@@ -17,20 +17,60 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             filters.departmentId = req.query.departmentId;
         }
 
+        // Filter by branch
+        // For superusers, allow filtering by query param
+        if (req.user.role === 'superuser') {
+            if (req.query.branchId && req.query.branchId !== 'ALL') {
+                filters.branchId = req.query.branchId;
+            }
+        } else {
+            // For non-superusers, we handle branch scoping within the access conditions below
+            // to allow seeing assigned assets from other branches
+        }
+
+        if (req.query.category) filters.category = req.query.category;
+        if (req.query.status) filters.status = req.query.status;
+        if (req.query.locationId) filters.locationId = req.query.locationId;
+
         // RBAC / Department Filtering
         // req.user is populated by authMiddleware
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (req.user.departmentId || req.user.department) {
-                const deptConditions = [];
-                if (req.user.departmentId) {
-                    deptConditions.push({ departmentId: req.user.departmentId });
-                }
-                if (req.user.department) {
-                    deptConditions.push({ department: req.user.department });
-                }
-                andConditions.push({ $or: deptConditions });
+            // Find assets assigned to this user
+            const userAssignments = await Assignment.find({
+                userId: req.user._id,
+                status: 'assigned',
+                isDeleted: false
+            }).select('assetId');
+
+            const assignedAssetIds = userAssignments.map(a => a.assetId);
+
+            const accessConditions: any[] = [];
+            const userBranchId = (req.user as any).branchId;
+
+            // 1. Department Access (Scoped to User's Branch)
+            // Users can only see department assets IN THEIR BRANCH
+            if (req.user.departmentId) {
+                accessConditions.push({
+                    departmentId: req.user.departmentId,
+                    branchId: userBranchId
+                });
+            }
+            if (req.user.department) {
+                accessConditions.push({
+                    department: req.user.department,
+                    branchId: userBranchId
+                });
+            }
+
+            // 2. Personal Assignment Access (Any Branch)
+            if (assignedAssetIds.length > 0) {
+                accessConditions.push({ _id: { $in: assignedAssetIds } });
+            }
+
+            if (accessConditions.length > 0) {
+                andConditions.push({ $or: accessConditions });
             } else {
-                // User has no department assigned
+                // No department and no assignments -> see nothing
                 return res.json({
                     data: [],
                     pagination: {
@@ -41,10 +81,8 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                     }
                 });
             }
-        }
-
-        // Filter by branch
-        if (req.user.role !== 'superuser') {
+        } else if (req.user.role === 'admin') {
+            // Admins are restricted to their branch for ALL assets
             filters.branchId = (req.user as any).branchId;
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filters.branchId = req.query.branchId;
@@ -105,7 +143,17 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
                 (asset.department && req.user.department && asset.department === req.user.department);
 
             if (!isDeptMatch) {
-                return res.status(403).json({ message: 'Access denied' });
+                // Check if assigned to user
+                const assignment = await Assignment.findOne({
+                    assetId: asset._id,
+                    userId: req.user._id,
+                    status: 'assigned',
+                    isDeleted: false
+                });
+
+                if (!assignment) {
+                    return res.status(403).json({ message: 'Access denied' });
+                }
             }
         }
 
@@ -125,6 +173,9 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             // Auto-assign to user's department if not specified
             if (!req.body.departmentId) {
                 req.body.departmentId = req.user.departmentId;
+                if (!req.body.department && req.user.department) {
+                    req.body.department = req.user.department;
+                }
             }
         }
 

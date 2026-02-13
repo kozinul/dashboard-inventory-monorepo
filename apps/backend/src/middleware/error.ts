@@ -5,7 +5,7 @@ import { ZodError } from 'zod';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     // Handle Zod Validation Errors
-    if (err instanceof ZodError) {
+    if (err instanceof ZodError || err.name === 'ZodError') {
         res.status(400).json({
             message: 'Validation Error',
             errors: err.errors,

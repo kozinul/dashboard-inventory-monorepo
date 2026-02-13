@@ -75,7 +75,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Clear any other potential keys or just clear everything to be safe
+        localStorage.clear();
+        sessionStorage.clear();
         set({ user: null, token: null });
+        // Force reload to clear in-memory state
+        window.location.href = '/login';
     },
 
     initialize: async () => {

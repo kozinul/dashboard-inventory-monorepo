@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { TransferStatusSchema } from '@dashboard/schemas';
 
 const transferSchema = new mongoose.Schema({
     assetId: {
@@ -42,7 +43,7 @@ const transferSchema = new mongoose.Schema({
     managerApprovedAt: Date,
     status: {
         type: String,
-        enum: ['Pending', 'WaitingApproval', 'InTransit', 'Completed', 'Rejected', 'Cancelled'],
+        enum: TransferStatusSchema.options,
         default: 'Pending'
     },
     notes: {

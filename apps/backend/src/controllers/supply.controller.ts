@@ -4,8 +4,19 @@ import { SupplyHistory } from '../models/supplyHistory.model.js';
 
 export const createSupply = async (req: Request, res: Response) => {
     try {
+        const supplyData = { ...req.body };
+
+        // RBAC: Auto-assign department for non-privileged users
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            supplyData.departmentId = req.user.departmentId;
+            // Also assign department name if available, to keep data consistent
+            if (req.user.department) {
+                supplyData.department = req.user.department;
+            }
+        }
+
         const supply = new Supply({
-            ...req.body,
+            ...supplyData,
             // Set branchId based on user role
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)

@@ -139,30 +139,7 @@ export default function SuppliesPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredSupplies.filter(item => {
-                                // Robust Frontend Filter (Extra Security)
-                                const user = useAuthStore.getState().user;
-                                if (!user) return true;
-                                if (['superuser', 'admin'].includes(user.role)) return true;
-
-                                const userDeptId = user.departmentId;
-                                const userDeptObjId = user.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
-
-                                const sDeptId = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any)._id : item.departmentId;
-                                const sDeptRef = item.department && typeof item.department === 'object' ? (item.department as any)._id : item.department;
-
-                                const validSupplyIds = [sDeptId, sDeptRef].filter(Boolean);
-
-                                let match = false;
-                                if (userDeptId && validSupplyIds.includes(userDeptId)) match = true;
-                                if (userDeptObjId && validSupplyIds.includes(userDeptObjId)) match = true;
-
-                                const userDeptName = user.department && typeof user.department === 'object' ? (user.department as any).name : user.department;
-                                const sName = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any).name : (item.department as any)?.name;
-                                if (!match && userDeptName && sName === userDeptName) match = true;
-
-                                return match;
-                            }).length === 0 ? (
+                            ) : filteredSupplies.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center gap-2">
@@ -172,29 +149,7 @@ export default function SuppliesPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredSupplies.filter(item => {
-                                    // Same Filter Logic for Mapping
-                                    const user = useAuthStore.getState().user;
-                                    if (!user) return true;
-                                    if (['superuser', 'admin'].includes(user.role)) return true;
-
-                                    const userDeptId = user.departmentId;
-                                    const userDeptObjId = user.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
-
-                                    const sDeptId = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any)._id : item.departmentId;
-                                    const sDeptRef = item.department && typeof item.department === 'object' ? (item.department as any)._id : item.department;
-
-                                    const validSupplyIds = [sDeptId, sDeptRef].filter(Boolean);
-                                    let match = false;
-                                    if (userDeptId && validSupplyIds.includes(userDeptId)) match = true;
-                                    if (userDeptObjId && validSupplyIds.includes(userDeptObjId)) match = true;
-
-                                    const userDeptName = user.department && typeof user.department === 'object' ? (user.department as any).name : user.department;
-                                    const sName = item.departmentId && typeof item.departmentId === 'object' ? (item.departmentId as any).name : (item.department as any)?.name;
-                                    if (!match && userDeptName && sName === userDeptName) match = true;
-
-                                    return match;
-                                }).map((item) => (
+                                filteredSupplies.map((item) => (
                                     <tr key={item._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div>
