@@ -1,27 +1,52 @@
 import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
-import { DisposalRecord } from '../models/disposal.model.js';
+import Rental from '../models/rental.model.js';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const branchId = req.query.branchId as string;
+        const branchFilter: any = {};
+
+        // Apply branch scoping based on role and query
+        if (req.user.role !== 'superuser') {
+            branchFilter.branchId = (req.user as any).branchId;
+        } else if (branchId && branchId !== 'ALL') {
+            branchFilter.branchId = branchId;
+        }
+
+        // Apply department scoping for non-admin/superuser
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                branchFilter.departmentId = req.user.departmentId;
+            } else if (req.user.department) {
+                branchFilter.department = req.user.department;
+            }
+        }
+
         const [
-            totalAssets,
-            totalValueAgg,
-            activeRepairs,
-            pendingDisposal
+            activeAssets,
+            rentalAssets,
+            activeTickets,
+            outsideService
         ] = await Promise.all([
-            Asset.countDocuments(),
-            Asset.aggregate([{ $group: { _id: null, total: { $sum: '$value' } } }]),
-            MaintenanceRecord.countDocuments({ status: 'In Progress' }),
-            DisposalRecord.countDocuments({ status: 'Pending Approval' })
+            Asset.countDocuments({ ...branchFilter, status: 'active' }),
+            Rental.countDocuments({ ...branchFilter, status: { $in: ['active', 'overdue'] } }),
+            MaintenanceRecord.countDocuments({
+                ...branchFilter,
+                status: { $nin: ['Closed', 'Done', 'Cancelled', 'Rejected'] }
+            }),
+            MaintenanceRecord.countDocuments({
+                ...branchFilter,
+                status: 'External Service'
+            })
         ]);
 
         res.json({
-            totalAssets,
-            totalValue: totalValueAgg[0]?.total || 0,
-            activeRepairs,
-            pendingDisposal
+            activeAssets,
+            rentalAssets,
+            activeTickets,
+            outsideService
         });
     } catch (error) {
         next(error);

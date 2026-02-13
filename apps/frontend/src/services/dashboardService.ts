@@ -1,40 +1,18 @@
-import axios from '@/lib/axios';
+import axios from 'axios';
 
-const API_URL = '/dashboard';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/dashboard';
 
-export interface RecentTicket {
-    _id: string;
-    ticketNumber: string;
-    title: string;
-    description?: string;
-    status: string;
-    type: string;
-    asset: {
-        _id: string;
-        name: string;
-        serial?: string;
-    };
-    requestedBy?: {
-        _id: string;
-        name: string;
-        email?: string;
-    };
-    technician?: {
-        _id: string;
-        name: string;
-    };
-    createdAt: string;
-    updatedAt: string;
+export interface DashboardStats {
+    activeAssets: number;
+    rentalAssets: number;
+    activeTickets: number;
+    outsideService: number;
 }
 
 export const dashboardService = {
-    getRecentActivity: async (): Promise<RecentTicket[]> => {
-        const response = await axios.get(`${API_URL}/recent-activity`);
-        return response.data;
-    },
-
-    getStats: async () => {
-        const response = await axios.get(`${API_URL}/stats`);
+    getStats: async (branchId?: string): Promise<DashboardStats> => {
+        const params = branchId && branchId !== 'ALL' ? { branchId } : {};
+        const response = await axios.get(`${API_URL}/stats`, { params });
         return response.data;
     }
 };
