@@ -15,7 +15,8 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
         }
 
         // RBAC: Check if user can assign this asset (department check)
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // UPDATE: Technicians and Managers can assign assets across departments in their branch
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             const asset = await Asset.findById(assetId);
             if (!asset) {
                 res.status(404);
@@ -55,7 +56,8 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
             locationId,
             notes,
             assignedDate: assignedDate || new Date(),
-            status: 'assigned'
+            status: 'assigned',
+            branchId: (req.user as any).branchId
         });
 
         // Update Asset status and Location
@@ -143,7 +145,8 @@ export const getAssetHistory = async (req: Request, res: Response, next: NextFun
         const { assetId } = req.params;
 
         // RBAC: Check if user can access this asset's history
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // UPDATE: Technicians and Managers can view history for any asset in their branch
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             const asset = await Asset.findById(assetId);
             if (!asset || asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'Access denied' });
@@ -164,8 +167,13 @@ export const getAllAssignments = async (req: Request, res: Response, next: NextF
     try {
         const filter: any = { isDeleted: { $ne: true } };
 
-        // RBAC: Department filtering for non-admin users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // Branch filtering
+        if (req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        }
+
+        // RBAC: Department filtering for non-admin/manager/technician users
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             if (req.user.departmentId) {
                 // Get assets from user's department
                 const deptAssets = await Asset.find({ departmentId: req.user.departmentId }).select('_id');

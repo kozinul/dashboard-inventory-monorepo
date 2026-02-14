@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+import axios from '@/lib/axios';
 
 export interface DisposalRecord {
     _id: string;
@@ -44,21 +42,23 @@ export interface DisposalStats {
     rejected: number;
 }
 
+const API_URL = '/disposal';
+
 export const disposalService = {
     getRecords: async () => {
-        const response = await axios.get(`${API_URL}/disposal`, { withCredentials: true });
+        const response = await axios.get(API_URL);
         return response.data;
     },
     getStats: async () => {
-        const response = await axios.get(`${API_URL}/disposal/stats`, { withCredentials: true });
+        const response = await axios.get(`${API_URL}/stats`);
         return response.data;
     },
     createRecord: async (data: any) => {
-        const response = await axios.post(`${API_URL}/disposal`, data, { withCredentials: true });
+        const response = await axios.post(API_URL, data);
         return response.data;
     },
     approveRecord: async (id: string, approved: boolean, comment?: string) => {
-        const response = await axios.put(`${API_URL}/disposal/${id}/approve`, { approved, comment }, { withCredentials: true });
+        const response = await axios.put(`${API_URL}/${id}/approve`, { approved, comment });
         return response.data;
     }
 };

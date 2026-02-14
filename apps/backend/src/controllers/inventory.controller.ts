@@ -160,7 +160,8 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
 export const createAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // RBAC: Non-admin users can only create assets in their department
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // UPDATE: Technicians and Managers can create assets for ANY department in their branch
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
                 return res.status(403).json({ message: 'You can only create assets in your department' });
             }
@@ -195,7 +196,8 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC: Check if user can update this asset
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // UPDATE: Technicians and Managers can update assets regardless of department (in their branch)
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
@@ -238,7 +240,8 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC: Check if user can delete this asset
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // UPDATE: Technicians and Managers can delete assets regardless of department
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);

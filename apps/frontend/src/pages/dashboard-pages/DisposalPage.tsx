@@ -24,7 +24,7 @@ export default function DisposalPage() {
         fetchStats();
     }, []);
 
-    const canRequest = user?.role === 'technician' || user?.role === 'superuser' || user?.role === 'system_admin';
+    const canRequest = !!user;
 
     return (
         <div className="space-y-8">

@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
-import axios from 'axios';
+import axios from '@/lib/axios';
 
 interface EditSupplyModalProps {
     isOpen: boolean;
@@ -35,9 +35,9 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
             const fetchData = async () => {
                 try {
                     const [locRes, vendRes, deptRes, unitRes] = await Promise.all([
-                        axios.get('/api/v1/locations'),
-                        axios.get('/api/v1/vendors'),
-                        axios.get('/api/v1/departments'),
+                        axios.get('/locations'),
+                        axios.get('/vendors'),
+                        axios.get('/departments'),
                         getUnits()
                     ]);
                     setLocations(locRes.data);

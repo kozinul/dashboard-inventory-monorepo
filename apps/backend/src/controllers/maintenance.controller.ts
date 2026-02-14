@@ -436,9 +436,13 @@ export const updateTicketStatus = async (req: Request, res: Response, next: Next
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
 
         if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(status)) {
-            console.log(`[Maintenance] Maintenance ended (${status}), setting asset ${assetId} to active`);
-            await Asset.findByIdAndUpdate(assetId, { status: 'active' });
-            await Assignment.findOneAndUpdate({ assetId, status: 'maintenance' }, { status: 'assigned' });
+            console.log(`[Maintenance] Maintenance ended (${status}), checking assignment for asset ${assetId}`);
+            const assignment = await Assignment.findOneAndUpdate(
+                { assetId, status: 'maintenance' },
+                { status: 'assigned' }
+            );
+            const finalStatus = assignment ? 'assigned' : 'active';
+            await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
         } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(status)) {
             console.log(`[Maintenance] Maintenance active (${status}), setting asset ${assetId} to maintenance`);
             await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
@@ -487,9 +491,12 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Restore asset status
-        // FIX: Use 'active' to be consistent with user request
-        await Asset.findByIdAndUpdate(record.asset, { status: 'active' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
+        const assignment = await Assignment.findOneAndUpdate(
+            { assetId: record.asset, status: 'maintenance' },
+            { status: 'assigned' }
+        );
+        const finalStatus = assignment ? 'assigned' : 'active';
+        await Asset.findByIdAndUpdate(record.asset, { status: finalStatus });
 
         res.json(record);
     } catch (error) {
@@ -551,10 +558,15 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
 
         await record.save();
 
-        // Update asset status to active and add history
-        // Update asset status to active and add history
+        // Update asset status and add history
+        const assignment = await Assignment.findOneAndUpdate(
+            { assetId: record.asset, status: 'maintenance' },
+            { status: 'assigned' }
+        );
+        const finalStatus = assignment ? 'assigned' : 'active';
+
         await Asset.findByIdAndUpdate(record.asset, {
-            status: 'active',
+            status: finalStatus,
             $push: {
                 maintenanceHistory: {
                     ticketId: record._id,
@@ -566,7 +578,6 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
                 }
             }
         });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
 
         res.json(record);
     } catch (error) {
@@ -605,9 +616,12 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Restore asset status
-        // FIX: Use 'active' to be consistent with user request
-        await Asset.findByIdAndUpdate(record.asset, { status: 'active' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'maintenance' }, { status: 'assigned' });
+        const assignment = await Assignment.findOneAndUpdate(
+            { assetId: record.asset, status: 'maintenance' },
+            { status: 'assigned' }
+        );
+        const finalStatus = assignment ? 'assigned' : 'active';
+        await Asset.findByIdAndUpdate(record.asset, { status: finalStatus });
 
         res.json(record);
     } catch (error) {
@@ -678,9 +692,13 @@ export const updateMaintenanceRecord = async (req: Request, res: Response, next:
             const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
 
             if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(req.body.status)) {
-                console.log(`[Maintenance] Maintenance ended (${req.body.status}), setting asset ${assetId} to active`);
-                await Asset.findByIdAndUpdate(assetId, { status: 'active' });
-                await Assignment.findOneAndUpdate({ assetId, status: 'maintenance' }, { status: 'assigned' });
+                console.log(`[Maintenance] Maintenance ended (${req.body.status}), checking assignment for asset ${assetId}`);
+                const assignment = await Assignment.findOneAndUpdate(
+                    { assetId, status: 'maintenance' },
+                    { status: 'assigned' }
+                );
+                const finalStatus = assignment ? 'assigned' : 'active';
+                await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
             } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(req.body.status)) {
                 console.log(`[Maintenance] Maintenance active (${req.body.status}), setting asset ${assetId} to maintenance`);
                 await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });

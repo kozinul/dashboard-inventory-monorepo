@@ -3,10 +3,13 @@ import { useAuthStore } from '@/store/authStore';
 import { disposalService, DisposalRecord } from '../services/disposalService';
 import { AssetCell, ReasonBadge, WorkflowStatusIndicator } from './DisposalTableParts';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
+import { DisposalDetailModal } from './DisposalDetailModal';
 
 export function DisposalTable() {
     const [records, setRecords] = useState<DisposalRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedRecord, setSelectedRecord] = useState<DisposalRecord | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     const { user } = useAuthStore();
 
     const fetchRecords = async () => {
@@ -138,7 +141,13 @@ export function DisposalTable() {
                                             </button>
                                         </div>
                                     ) : (
-                                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedRecord(record);
+                                                setIsDetailOpen(true);
+                                            }}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors"
+                                        >
                                             <span className="material-symbols-outlined text-lg">info</span>
                                         </button>
                                     )}
@@ -148,6 +157,12 @@ export function DisposalTable() {
                     </tbody>
                 </table>
             </div>
+
+            <DisposalDetailModal
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                record={selectedRecord}
+            />
         </div>
     );
 }

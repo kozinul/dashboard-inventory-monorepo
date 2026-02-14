@@ -32,6 +32,9 @@ export function Sidebar() {
         if (user?.role === 'user') {
             return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
         }
+        if (user?.role === 'technician') {
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer'].includes(resource);
+        }
         if (resource === 'disposal') return true; // Ensure disposal is always visible for anyone else
         if (!user?.permissions || user.permissions.length === 0) return false;
         const perm = user.permissions.find(p => p.resource === resource);
@@ -53,6 +56,7 @@ export function Sidebar() {
         { name: 'Master Barang', href: '/inventory', icon: 'package_2', resource: 'inventory' },
         { name: 'Barang Masuk', href: '/incoming', icon: 'input', resource: 'incoming' },
         { name: 'Transfer', href: '/transfer', icon: 'move_item', resource: 'transfer' },
+        { name: 'Assignments', href: '/assignments', icon: 'assignment_ind', resource: 'assignments' },
         { name: 'Maintenance', href: '/maintenance', icon: 'build', resource: 'maintenance' },
         { name: 'Dept Tickets', href: '/department-tickets', icon: 'business', resource: 'dept_tickets' },
         { name: 'My Tickets', href: '/my-tickets', icon: 'confirmation_number', resource: 'my_tickets' },

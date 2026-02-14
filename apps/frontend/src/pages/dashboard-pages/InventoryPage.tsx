@@ -128,7 +128,7 @@ export default function InventoryPage() {
 
     const { user } = useAuthStore.getState();
     const hasInventoryPermission = user?.permissions?.find(p => p.resource === 'inventory')?.actions.create || false;
-    const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager' || hasInventoryPermission;
+    const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager' || user?.role === 'technician' || hasInventoryPermission;
 
     return (
         <div className="space-y-8">

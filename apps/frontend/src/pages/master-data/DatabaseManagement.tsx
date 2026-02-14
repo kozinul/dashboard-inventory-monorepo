@@ -5,7 +5,7 @@ import {
     ArrowPathIcon,
     PlusIcon,
 } from '@heroicons/react/24/outline';
-import axios from 'axios';
+import axios from '@/lib/axios';
 
 interface Backup {
     filename: string;
@@ -20,12 +20,12 @@ export default function DatabaseManagement() {
     const [restoring, setRestoring] = useState<string | null>(null);
     const [deleting, setDeleting] = useState<string | null>(null);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+    const API_URL = '/database';
 
     const fetchBackups = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/database`);
+            const response = await axios.get(`${API_URL}`);
             setBackups(response.data.data);
         } catch (error) {
             console.error('Failed to fetch backups', error);

@@ -11,6 +11,17 @@ export const getDisposalRecords = async (req: Request, res: Response, next: Next
             filter.branchId = req.query.branchId;
         }
 
+        // DEPT FILTERING: Only show disposal for assets in same department for non-auditors/admins
+        if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
+            const { Asset } = await import('../models/asset.model.js');
+            const deptAssets = await Asset.find({
+                departmentId: req.user.departmentId,
+                branchId: (req.user as any).branchId
+            }).select('_id');
+            const assetIds = deptAssets.map(a => a._id);
+            filter.asset = { $in: assetIds };
+        }
+
         const records = await DisposalRecord.find(filter)
             .populate('asset', 'name serial')
             .populate('requestedBy', 'name')
@@ -27,6 +38,7 @@ export const createDisposalRecord = async (req: Request, res: Response, next: Ne
     try {
         const record = new DisposalRecord({
             ...req.body,
+            requestedBy: (req.user as any)._id,
             status: 'Pending Manager Approval',
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
@@ -100,6 +112,17 @@ export const getDisposalStats = async (req: Request, res: Response, next: NextFu
         const filter: any = {};
         if (req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
+        }
+
+        // DEPT FILTERING for stats
+        if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
+            const { Asset } = await import('../models/asset.model.js');
+            const deptAssets = await Asset.find({
+                departmentId: req.user.departmentId,
+                branchId: (req.user as any).branchId
+            }).select('_id');
+            const assetIds = deptAssets.map(a => a._id);
+            filter.asset = { $in: assetIds };
         }
 
         const pendingManager = await DisposalRecord.countDocuments({ ...filter, status: 'Pending Manager Approval' });

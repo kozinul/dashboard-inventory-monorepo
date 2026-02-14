@@ -43,6 +43,11 @@ const assignmentSchema = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false
+    },
+    branchId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branch',
+        required: false
     }
 }, {
     timestamps: true

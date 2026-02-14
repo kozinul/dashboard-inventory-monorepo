@@ -187,6 +187,8 @@ function DashboardLayout() {
         const resource = resourceMap[item.name];
 
         if (resource === 'disposal') return true; // Force visibility for disposal menu
+        if (resource === 'assignments' && user?.role === 'technician') return true; // Force assignments for technicians
+        if (resource === 'transfer' && user?.role === 'technician') return true; // Ensure transfer remains visible
 
         // Check custom permissions if available
         if (user?.permissions && user.permissions.length > 0) {
@@ -217,7 +219,7 @@ function DashboardLayout() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal', 'assignments'].includes(resource || '');
         }
 
         // Standard User permissions
