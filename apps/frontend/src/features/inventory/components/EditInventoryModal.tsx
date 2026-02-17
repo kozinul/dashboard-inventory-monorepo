@@ -6,8 +6,6 @@ import { departmentService, Department } from '../../../services/departmentServi
 import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
-import { locationService } from '../../../services/locationService';
-import { useAuthStore } from '../../../store/authStore';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -23,7 +21,7 @@ interface InventoryFormInputs {
     serial: string;
     departmentId: string;
     // ...
-    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
     parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
     value: string;
@@ -58,119 +56,79 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const selectedDepartmentId = watch('departmentId');
     const filteredCategories = categories.filter(cat =>
         cat.authorizedDepartments.length === 0 ||
-        cat.authorizedDepartments.some(d => d._id === selectedDepartmentId)
+        cat.authorizedDepartments.some(d => d._id === selectedDepartmentId) ||
+        (asset && cat.name === asset.category) // Safety: Always include current category
     );
 
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+    // Phase 1: Fetch master data when modal opens
     useEffect(() => {
         if (isOpen) {
-            departmentService.getAll().then(data => {
-                setDepartments(data);
-            }).catch(err => console.error("Failed to load departments", err));
-
-            categoryService.getAll().then(data => {
-                setCategories(data);
-            }).catch(err => console.error("Failed to load categories", err));
-
-            vendorService.getAll().then(data => {
-                setVendors(data.filter(v => v.status === 'active'));
-            }).catch(err => console.error("Failed to load vendors", err));
-
-            assetService.getAll().then(res => {
-                setAllAssets(res.data);
-            }).catch(err => console.error("Failed to load assets", err));
+            setIsDataLoaded(false);
+            Promise.all([
+                departmentService.getAll(),
+                categoryService.getAll(),
+                vendorService.getAll(),
+                assetService.getAll()
+            ]).then(([depts, cats, vends, allAss]) => {
+                setDepartments(depts);
+                setCategories(cats);
+                setVendors(vends.filter(v => v.status === 'active'));
+                setAllAssets(allAss.data);
+                setIsDataLoaded(true);
+            }).catch(err => {
+                console.error("Failed to load master data", err);
+                setIsDataLoaded(true); // Still set to true to allow form to show what it can
+            });
         }
     }, [isOpen]);
 
-    const { user } = useAuthStore();
-
-    // Auto-select Department and Warehouse for Managers/Technicians
+    // Phase 2: Populate form once data is loaded AND asset is available
     useEffect(() => {
-        if (isOpen && !asset && user) {
-            const isManagerOrTech = user.role === 'manager' || user.role === 'technician';
+        if (isOpen && isDataLoaded && asset) {
+            const deptId = (asset.departmentId && typeof asset.departmentId === 'object') ? (asset.departmentId as any)._id : asset.departmentId;
+            const parentId = (asset.parentAssetId && typeof asset.parentAssetId === 'object') ? (asset.parentAssetId as any)._id : asset.parentAssetId;
 
-            if (isManagerOrTech && user.departmentId) {
-                // 1. Set Department
-                setValue('departmentId', user.departmentId);
+            // Prepare full form data for a synchronized reset
+            const formData: InventoryFormInputs = {
+                name: asset.name,
+                model: asset.model,
+                category: asset.category,
+                serial: asset.serial,
+                departmentId: deptId || '',
+                parentAssetId: parentId || '',
+                status: asset.status,
+                requiresExternalService: asset.requiresExternalService || false,
+                value: asset.value?.toString() || '0',
+                purchaseDate: asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split('T')[0] : '',
+                vendorName: asset.vendor?.name || '',
+                vendorContact: asset.vendor?.contact || '',
+                vendorPhone: asset.vendor?.phone || '',
+                vendorEmail: asset.vendor?.email || '',
+                vendorAddress: asset.vendor?.address || '',
+                vendorWebsite: asset.vendor?.website || '',
+                warrantyExpiration: asset.warranty?.expirationDate ? new Date(asset.warranty.expirationDate).toISOString().split('T')[0] : '',
+                warrantyDetails: asset.warranty?.details || ''
+            };
 
-                // 2. Find and Set Warehouse Location
-                const findWarehouse = async () => {
-                    try {
-                        const locations = await locationService.getAll();
-                        const warehouse = locations.find(l =>
-                            l.departmentId &&
-                            (typeof l.departmentId === 'object' ? l.departmentId._id === user.departmentId : l.departmentId === user.departmentId) &&
-                            l.isWarehouse
-                        );
+            // Small delay to ensure the browser has finished rendering the <option> elements
+            const timer = setTimeout(() => {
+                reset(formData); // Use reset for synchronized state
 
-                        if (warehouse) {
-                            setValue('locationId', warehouse._id);
-                            setValue('status', 'storage'); // Default to storage if in warehouse
-                        }
-                    } catch (err) {
-                        console.error("Failed to find warehouse", err);
-                    }
-                };
-                findWarehouse();
-            }
+                // Fallback: Manually set dependent fields just in case
+                setTimeout(() => {
+                    setValue('departmentId', deptId || '');
+                    setTimeout(() => {
+                        setValue('category', asset.category);
+                    }, 50);
+                }, 50);
+
+            }, 50);
+
+            return () => clearTimeout(timer);
         }
-    }, [isOpen, asset, user, setValue]);
-
-    useEffect(() => {
-        if (asset) {
-            // ... (previous sets)
-            if (asset.parentAssetId) {
-                setValue('parentAssetId', typeof asset.parentAssetId === 'object' ? asset.parentAssetId._id : asset.parentAssetId);
-            } else {
-                setValue('parentAssetId', '');
-            }
-            setValue('name', asset.name);
-            setValue('model', asset.model);
-            setValue('category', asset.category);
-            setValue('serial', asset.serial);
-            setValue('departmentId', asset.departmentId || '');
-            setValue('status', asset.status);
-            setValue('requiresExternalService', asset.requiresExternalService || false);
-            setValue('value', asset.value.toString());
-            // Format date for input type="date"
-            if (asset.purchaseDate) {
-                try {
-                    const date = new Date(asset.purchaseDate);
-                    if (!isNaN(date.getTime())) {
-                        const dateString = date.toISOString().split('T')[0] || '';
-                        setValue('purchaseDate', dateString);
-                    }
-                } catch (e) {
-                    console.error("Invalid purchase date", e);
-                }
-            }
-
-            // Set Vendor Data
-            if (asset.vendor) {
-                setValue('vendorName', asset.vendor.name || '');
-                setValue('vendorContact', asset.vendor.contact || '');
-                setValue('vendorPhone', asset.vendor.phone || '');
-                setValue('vendorEmail', asset.vendor.email || '');
-                setValue('vendorAddress', asset.vendor.address || '');
-                setValue('vendorWebsite', asset.vendor.website || '');
-            }
-
-            // Set Warranty Data
-            if (asset.warranty) {
-                if (asset.warranty.expirationDate) {
-                    try {
-                        const wDate = new Date(asset.warranty.expirationDate);
-                        if (!isNaN(wDate.getTime())) {
-                            const wDateString = wDate.toISOString().split('T')[0] || '';
-                            setValue('warrantyExpiration', wDateString);
-                        }
-                    } catch (e) {
-                        console.error("Invalid warranty date", e);
-                    }
-                }
-                setValue('warrantyDetails', asset.warranty.details || '');
-            }
-        }
-    }, [asset, setValue, isOpen]);
+    }, [isOpen, isDataLoaded, asset, reset, setValue]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -201,8 +159,10 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
 
             onUpdate(asset.id || asset._id, {
                 ...data,
+                departmentId: (data.departmentId || null) as any, // Convert empty string to null for Mongoose
+                parentAssetId: (data.parentAssetId || null) as any, // Convert empty string to null for Mongoose
                 department: selectedDept?.name || asset.department,
-                value: Number(data.value),
+                value: isNaN(Number(data.value)) ? asset.value : Number(data.value),
                 vendor: {
                     name: data.vendorName,
                     contact: data.vendorContact,
@@ -213,10 +173,10 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 },
                 invoice: invoiceData,
                 warranty: {
-                    expirationDate: data.warrantyExpiration,
+                    expirationDate: data.warrantyExpiration || '',
                     details: data.warrantyDetails
                 }
-            });
+            } as Partial<Asset>);
 
             onClose();
             setInvoiceFile(null);

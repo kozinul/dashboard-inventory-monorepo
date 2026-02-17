@@ -14,6 +14,7 @@ import MaintenancePage from '../pages/dashboard-pages/MaintenancePage';
 import MyMaintenanceTicketsPage from '../pages/dashboard-pages/MyMaintenanceTicketsPage';
 import DepartmentTicketsPage from '../pages/dashboard-pages/DepartmentTicketsPage';
 import MaintenanceDetailPage from '../pages/dashboard-pages/MaintenanceDetailPage';
+import ActivityLogPage from '../pages/dashboard-pages/ActivityLogPage';
 
 import ServicePage from '../pages/dashboard-pages/ServicePage';
 import ReportsPage from '../pages/dashboard-pages/ReportsPage';
@@ -176,6 +177,10 @@ export const router = createBrowserRouter([
                             {
                                 path: 'settings',
                                 element: <AccountSettingsPage />,
+                            },
+                            {
+                                path: 'activity-log',
+                                element: <ActivityLogPage />,
                             },
                             {
                                 path: 'master-data/users',

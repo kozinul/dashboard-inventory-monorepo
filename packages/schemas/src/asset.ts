@@ -7,7 +7,8 @@ export const AssetStatusSchema = z.enum([
     'retired',
     'assigned',
     'request maintenance',
-    'disposed'
+    'disposed',
+    'in_use'
 ]);
 
 export type AssetStatus = z.infer<typeof AssetStatusSchema>;

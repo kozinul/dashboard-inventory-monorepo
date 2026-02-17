@@ -117,12 +117,20 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                             <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Current Location</p>
                             <div className="flex items-center gap-1">
                                 <MapPinIcon className="w-4 h-4 text-emerald-500" />
-                                <p className="text-sm font-medium dark:text-slate-200">{currentLocation || 'Unknown'}</p>
+                                <p className="text-sm font-medium dark:text-slate-200">
+                                    {currentLocation && currentLocation !== 'Unassigned' && currentLocation !== 'Unknown'
+                                        ? currentLocation
+                                        : `${asset.department || 'General'} Warehouse`}
+                                </p>
                             </div>
                         </div>
                         <div>
                             <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Purchased Date</p>
                             <p className="text-sm font-medium dark:text-slate-200">{asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Department</p>
+                            <p className="text-sm font-medium dark:text-slate-200">{asset.department || 'N/A'}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Value</p>

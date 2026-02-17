@@ -28,12 +28,17 @@ export function Sidebar() {
 
     // Check if user has permission for a resource
     const hasPermission = (resource: string) => {
+        // Strict restriction for Audit Logs
+        if (resource === 'audit_logs') {
+            return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
+        }
+
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'manager') return true;
         if (user?.role === 'user') {
             return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
         }
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports'].includes(resource);
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports', 'settings'].includes(resource);
         }
         if (resource === 'disposal') return true; // Ensure disposal is always visible for anyone else
         if (!user?.permissions || user.permissions.length === 0) return false;
@@ -75,6 +80,7 @@ export function Sidebar() {
     ]
 
     const systemItems = [
+        { name: 'Activity Log', href: '/activity-log', icon: 'history', resource: 'audit_logs' },
         { name: 'Settings', href: '/settings', icon: 'settings', resource: 'settings' },
     ]
 

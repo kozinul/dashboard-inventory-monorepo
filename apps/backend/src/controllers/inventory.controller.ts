@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
 import Event from '../models/event.model.js';
 import { Assignment } from '../models/assignment.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -43,39 +44,33 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
         if (req.query.locationId) filters.locationId = req.query.locationId;
 
-        // RBAC / Department Filtering
-        // req.user is populated by authMiddleware
-        if (req.user && !['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
-            const accessConditions: any[] = [];
+        // RBAC / Branch Filtering
+        if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId;
 
-            // 1. Department Access (Scoped to User's Branch)
-            const shouldHideAssigned = req.user.role === 'user';
-            const deptFilter: any = { branchId: userBranchId };
-            if (shouldHideAssigned) {
-                deptFilter.status = { $ne: 'assigned' };
-            }
+            // Force branch filter for everyone except superusers
+            filters.branchId = userBranchId;
+
+            const accessConditions: any[] = [];
 
             if (req.user.departmentId) {
                 accessConditions.push({
-                    ...deptFilter,
                     departmentId: req.user.departmentId
                 });
             } else if (req.user.department) {
                 accessConditions.push({
-                    ...deptFilter,
                     department: req.user.department
                 });
             } else {
                 // If user has no department, but has a branch, allow seeing all assets in that branch
-                accessConditions.push(deptFilter);
+                // No extra conditions needed as branchId is already in filters
             }
 
             if (accessConditions.length > 0) {
                 andConditions.push({ $or: accessConditions });
             }
-        } else if (['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
-            // Superusers and Admins can see all branches by default, 
+        } else if (req.user.role === 'superuser') {
+            // Superusers see all branches by default, 
             // but can filter if a specific branchId is provided
             if (req.query.branchId && req.query.branchId !== 'ALL') {
                 filters.branchId = req.query.branchId;
@@ -128,23 +123,34 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
             return res.status(404).json({ message: 'Asset not found' });
         }
 
-        // RBAC: Check if user can access this asset
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            const isDeptMatch =
-                (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
-                (asset.department && req.user.department && asset.department === req.user.department);
+        // RBAC: Check if user can access this asset (Branch + Department)
+        if (req.user && req.user.role !== 'superuser') {
+            const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
+            const assetBranchId = asset.branchId?.toString() || asset.branchId;
 
-            if (!isDeptMatch) {
-                // Check if assigned to user
-                const assignment = await Assignment.findOne({
-                    assetId: asset._id,
-                    userId: req.user._id,
-                    status: 'assigned',
-                    isDeleted: false
-                });
+            // Strict branch check
+            if (userBranchId !== assetBranchId) {
+                return res.status(403).json({ message: 'Access denied: Asset belongs to another branch' });
+            }
 
-                if (!assignment) {
-                    return res.status(403).json({ message: 'Access denied' });
+            // Department check for non-privileged roles
+            if (!['admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+                const isDeptMatch =
+                    (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (asset.department && req.user.department && asset.department === req.user.department);
+
+                if (!isDeptMatch) {
+                    // Check if assigned to user
+                    const assignment = await Assignment.findOne({
+                        assetId: asset._id,
+                        userId: req.user._id,
+                        status: 'assigned',
+                        isDeleted: false
+                    });
+
+                    if (!assignment) {
+                        return res.status(403).json({ message: 'Access denied' });
+                    }
                 }
             }
         }
@@ -152,7 +158,7 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
         // Fetch children (assets contained in this asset)
         const children = await Asset.find({ parentAssetId: asset._id }).select('name serial model category status');
 
-        const assetObj = asset.toObject();
+        const assetObj = asset.toJSON();
         (assetObj as any).children = children;
 
         res.json(assetObj);
@@ -212,6 +218,19 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         await asset.save();
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'create',
+            resourceType: 'Asset',
+            resourceId: asset._id,
+            resourceName: asset.name,
+            details: `Created new asset: ${asset.name} (${asset.serial})`,
+            branchId: req.user.branchId,
+            departmentId: req.user.departmentId
+        });
+
         res.status(201).json(asset);
     } catch (error) {
         next(error);
@@ -256,6 +275,21 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         const asset = await Asset.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+        // Record Audit Log
+        if (asset) {
+            await recordAuditLog({
+                userId: req.user._id,
+                action: 'update',
+                resourceType: 'Asset',
+                resourceId: asset._id,
+                resourceName: asset.name,
+                details: `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`,
+                branchId: req.user.branchId,
+                departmentId: req.user.departmentId
+            });
+        }
+
         res.json(asset);
     } catch (error) {
         next(error);
@@ -282,6 +316,19 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         await Asset.findByIdAndDelete(req.params.id);
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'delete',
+            resourceType: 'Asset',
+            resourceId: existingAsset._id,
+            resourceName: existingAsset.name,
+            details: `Deleted asset: ${existingAsset.name} (${existingAsset.serial})`,
+            branchId: req.user.branchId,
+            departmentId: req.user.departmentId
+        });
+
         res.json({ message: 'Asset deleted successfully' });
     } catch (error) {
         next(error);
@@ -296,10 +343,12 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
         const filter: any = {};
 
         // Filter by branch
-        if (req.user.role !== 'superuser') {
+        if (req.user.role === 'superuser') {
+            if (req.query.branchId && req.query.branchId !== 'ALL') {
+                filter.branchId = req.query.branchId;
+            }
+        } else {
             filter.branchId = (req.user as any).branchId;
-        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
-            filter.branchId = req.query.branchId;
         }
 
         let assetIds: any[] = [];
@@ -318,7 +367,6 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
                 });
             }
         }
-
         // Get all asset IDs matching the filter (to cross-reference with other collections)
         const assets = await Asset.find(filter).select('_id');
         assetIds = assets.map(a => a._id);
@@ -451,6 +499,18 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
 
         await asset.save();
 
+        // Record Audit Log
+        await recordAuditLog({
+            userId: userId,
+            action: 'install',
+            resourceType: 'Asset',
+            resourceId: asset._id,
+            resourceName: asset.name,
+            details: `Installed asset in ${parentName} at Slot ${slotNumber}`,
+            branchId: req.user.branchId,
+            departmentId: req.user.departmentId
+        });
+
         res.status(200).json({ success: true, data: asset });
     } catch (error) {
         next(error);
@@ -515,6 +575,18 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         });
 
         await asset.save();
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: userId,
+            action: 'dismantle',
+            resourceType: 'Asset',
+            resourceId: asset._id,
+            resourceName: asset.name,
+            details: `Dismantled asset from ${parentName} and returned to warehouse`,
+            branchId: req.user.branchId,
+            departmentId: req.user.departmentId
+        });
 
         res.status(200).json({ success: true, data: asset });
     } catch (error) {

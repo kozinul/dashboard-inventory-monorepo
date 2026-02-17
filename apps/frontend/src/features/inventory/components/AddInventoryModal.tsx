@@ -6,6 +6,7 @@ import { departmentService, Department } from '../../../services/departmentServi
 import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
+import { useAuthStore } from '../../../store/authStore';
 
 interface AddInventoryModalProps {
     isOpen: boolean;
@@ -47,10 +48,14 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
 
+    const { user } = useAuthStore();
+    const isNonAdmin = user && !['superuser', 'admin', 'system_admin'].includes(user.role);
+
     // Watch departmentId to filter categories
     const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<InventoryFormInputs>({
         defaultValues: {
-            status: 'active'
+            status: 'active',
+            departmentId: isNonAdmin ? user?.departmentId : ''
         }
     });
 
@@ -62,19 +67,36 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
 
     useEffect(() => {
         if (isOpen) {
-            departmentService.getAll().then(data => {
-                setDepartments(data);
-            }).catch(err => console.error("Failed to load departments", err));
+            // Reset form for fresh state on every open
+            reset({
+                status: 'active',
+                departmentId: isNonAdmin ? user?.departmentId : ''
+            });
 
-            categoryService.getAll().then(data => {
-                setCategories(data);
-            }).catch(err => console.error("Failed to load categories", err));
+            // Fetch all necessary data
+            Promise.all([
+                departmentService.getAll(),
+                categoryService.getAll(),
+                vendorService.getAll()
+            ]).then(([depts, cats, vends]) => {
+                setDepartments(depts);
+                setCategories(cats);
+                setVendors(vends.filter(v => v.status === 'active'));
 
-            vendorService.getAll().then(data => {
-                setVendors(data.filter(v => v.status === 'active'));
-            }).catch(err => console.error("Failed to load vendors", err));
+                // Definitive selection for non-admins after options are rendered
+                if (isNonAdmin && user?.departmentId) {
+                    // Small delay ensures Browser DOM has updated with the <options>
+                    // before we try to set the value.
+                    setTimeout(() => {
+                        setValue('departmentId', user.departmentId, { shouldValidate: true });
+                    }, 100);
+                }
+            }).catch(err => {
+                console.error("Failed to load modal data", err);
+            });
         }
-    }, [isOpen]);
+    }, [isOpen, isNonAdmin, user?.departmentId, setValue, reset]);
+
 
     // Reset category when department changes
     useEffect(() => {
@@ -135,8 +157,11 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
 
             onAdd(assetData);
 
-            // Reset form and local state
-            reset();
+            // Reset form and local state, preserving default department for non-admins
+            reset({
+                status: 'active',
+                departmentId: isNonAdmin ? user?.departmentId : ''
+            });
             setInvoiceFile(null);
             setUploadProgress(0);
             onClose();
@@ -148,7 +173,10 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     };
 
     const handleClose = () => {
-        reset();
+        reset({
+            status: 'active',
+            departmentId: isNonAdmin ? user?.departmentId : ''
+        });
         setInvoiceFile(null);
         onClose();
     };

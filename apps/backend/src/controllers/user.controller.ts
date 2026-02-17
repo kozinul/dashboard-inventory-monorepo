@@ -7,12 +7,10 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     try {
         const filter: any = {};
 
-        // RBAC: Previously Managers were restricted to their department.
-        // Removed to allow cross-department assignments.
-        // if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin') && req.user.departmentId) {
-        //     filter.departmentId = req.user.departmentId;
-        // }
-        // Superuser/Admin see all users
+        // RBAC: Non-superusers only see users from their branch
+        if (req.user && req.user.role !== 'superuser') {
+            filter.branchId = (req.user as any).branchId;
+        }
 
         const users = await User.find(filter).select('-password').populate('branchId');
         res.json(users);
@@ -29,15 +27,26 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
             throw new Error('User not found');
         }
 
-        // RBAC: Managers/Dept Admins can only view users from their department
-        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
-            const isDeptMatch =
-                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
-                (user.department && req.user.department && user.department === req.user.department);
+        // RBAC: Non-superusers can only view users from their branch
+        if (req.user && req.user.role !== 'superuser') {
+            const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
+            const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();
 
-            if (!isDeptMatch) {
+            if (userBranchId !== targetUserBranchId) {
                 res.status(403);
-                throw new Error('Access denied');
+                throw new Error('Access denied: User belongs to another branch');
+            }
+
+            // Department check for managers
+            if (req.user.role === 'manager' || req.user.role === 'dept_admin') {
+                const isDeptMatch =
+                    (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (user.department && req.user.department && user.department === req.user.department);
+
+                if (!isDeptMatch) {
+                    res.status(403);
+                    throw new Error('Access denied');
+                }
             }
         }
 
@@ -86,25 +95,39 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be edited');
         }
 
-        // RBAC: Managers/Dept Admins can only edit users from their department
-        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
-            const isDeptMatch =
-                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
-                (user.department && req.user.department && user.department === req.user.department);
+        // RBAC: Non-superusers can only edit users from their branch
+        if (req.user && req.user.role !== 'superuser') {
+            const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
+            const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();
 
-            if (!isDeptMatch) {
+            if (userBranchId !== targetUserBranchId) {
                 res.status(403);
-                throw new Error('You can only edit users from your department');
+                throw new Error('Access denied: You can only edit users from your branch');
             }
-            // Prevent changing department to one you don't own
-            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
-                if (req.user.departmentId) {
-                    req.body.departmentId = req.user.departmentId;
-                } else {
+
+            // Managers/Dept Admins can only edit users from their department
+            if (req.user.role === 'manager' || req.user.role === 'dept_admin') {
+                const isDeptMatch =
+                    (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (user.department && req.user.department && user.department === req.user.department);
+
+                if (!isDeptMatch) {
                     res.status(403);
-                    throw new Error('You cannot transfer users to other departments');
+                    throw new Error('You can only edit users from your department');
+                }
+                // Prevent changing department to one you don't own
+                if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+                    if (req.user.departmentId) {
+                        req.body.departmentId = req.user.departmentId;
+                    } else {
+                        res.status(403);
+                        throw new Error('You cannot transfer users to other departments');
+                    }
                 }
             }
+
+            // Non-superusers cannot change branchId
+            delete req.body.branchId;
         }
 
         user.name = req.body.name || user.name;
@@ -158,15 +181,26 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be deleted');
         }
 
-        // RBAC: Managers/Dept Admins can only delete users from their department
-        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
-            const isDeptMatch =
-                (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
-                (user.department && req.user.department && user.department === req.user.department);
+        // RBAC: Non-superusers can only delete users from their branch
+        if (req.user && req.user.role !== 'superuser') {
+            const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
+            const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();
 
-            if (!isDeptMatch) {
+            if (userBranchId !== targetUserBranchId) {
                 res.status(403);
-                throw new Error('You can only delete users from your department');
+                throw new Error('Access denied: You can only delete users from your branch');
+            }
+
+            // Managers/Dept Admins can only delete users from their department
+            if (req.user.role === 'manager' || req.user.role === 'dept_admin') {
+                const isDeptMatch =
+                    (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (user.department && req.user.department && user.department === req.user.department);
+
+                if (!isDeptMatch) {
+                    res.status(403);
+                    throw new Error('You can only delete users from your department');
+                }
             }
         }
 

@@ -115,6 +115,13 @@ const assetSchema = new mongoose.Schema({
         expirationDate: Date,
         details: String
     },
+    documents: [{
+        name: { type: String, required: true },
+        url: { type: String, required: true },
+        filename: { type: String, required: true },
+        type: { type: String }, // e.g. 'manual', 'warranty', 'certificate'
+        uploadDate: { type: Date, default: Date.now }
+    }],
     maintenanceHistory: [{
         ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'MaintenanceRecord' },
         ticketNumber: String,

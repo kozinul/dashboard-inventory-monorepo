@@ -39,6 +39,7 @@ import { locationRoutes } from './routes/location.routes.js';
 import { locationTypeRoutes } from './routes/locationType.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import assetTemplateRoutes from './routes/assetTemplate.routes.js';
+import auditLogRoutes from './routes/auditLog.routes.js';
 
 // Routes
 app.get('/health', (req, res) => {
@@ -66,6 +67,7 @@ app.use('/api/v1/locations', locationRoutes);
 app.use('/api/v1/location-types', locationTypeRoutes);
 app.use('/api/v1/database', databaseRoutes);
 app.use('/api/v1/asset-templates', assetTemplateRoutes);
+app.use('/api/v1/audit-logs', auditLogRoutes);
 app.use('/api/v1/vendors', vendorRoutes);
 
 import supplyRoutes from './routes/supply.routes.js';
@@ -88,10 +90,12 @@ app.use('/api/v1/transfers', transferRoutes);
 
 import uploadRoutes from './routes/upload.routes.js';
 import importExportRoutes from './routes/importExport.routes.js';
+import searchRoutes from './routes/search.routes.js';
 import path from 'path';
 
 app.use('/api/v1/upload', uploadRoutes); // Register upload routes
 app.use('/api/v1/data', importExportRoutes); // Register import/export routes
+app.use('/api/v1/search', searchRoutes); // Register search routes
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -62,6 +62,7 @@ export const assetTemplateService = {
 
 // Clone asset function (uses inventory endpoint)
 export const cloneAsset = async (id: string, serial: string) => {
-    const response = await axios.post(`/api/v1/inventory/items/${id}/clone`, { serial });
+    // Using relative path (no leading slash) to ensure it joins with /api/v1 baseURL correctly
+    const response = await axios.post(`inventory/items/${id}/clone`, { serial });
     return response.data;
 };

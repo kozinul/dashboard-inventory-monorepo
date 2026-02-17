@@ -50,6 +50,14 @@ export interface Asset {
         expirationDate: string;
         details: string;
     };
+    documents?: {
+        _id?: string;
+        name: string;
+        url: string;
+        filename: string;
+        type?: string;
+        uploadDate: string;
+    }[];
     maintenanceHistory?: {
         ticketId?: string;
         ticketNumber: string;

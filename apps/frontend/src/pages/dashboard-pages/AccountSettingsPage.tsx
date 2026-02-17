@@ -46,7 +46,7 @@ export default function AccountSettingsPage() {
         if (!user?._id) return;
 
         try {
-            await userService.update(user._id, data);
+            await userService.updateMe(data);
             showSuccessToast('Profile updated successfully');
             // Refresh user data in auth store if needed
             useAuthStore.getState().setUser({ ...user, ...data });

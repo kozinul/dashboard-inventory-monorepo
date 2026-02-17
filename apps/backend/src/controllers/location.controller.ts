@@ -16,6 +16,22 @@ export const getLocations = async (req: Request, res: Response) => {
                     { branchId: null },
                     { branchId: { $exists: false } }
                 ];
+
+                // If user is not admin/superuser, filter by department too
+                if (!['admin', 'system_admin'].includes(req.user.role)) {
+                    const userDeptId = (req.user as any).departmentId;
+                    if (userDeptId) {
+                        filter.$and = [
+                            {
+                                $or: [
+                                    { departmentId: userDeptId },
+                                    { departmentId: null },
+                                    { departmentId: { $exists: false } }
+                                ]
+                            }
+                        ];
+                    }
+                }
             } else {
                 filter.$or = [
                     { branchId: null },

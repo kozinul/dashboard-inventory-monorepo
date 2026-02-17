@@ -36,10 +36,10 @@ const upload = multer({
     },
     fileFilter: (req, file, cb) => {
         // Basic filter, can be improved to check magic numbers
-        if (file.mimetype.startsWith('image/')) {
+        if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
             cb(null, true);
         } else {
-            cb(new Error('Only image files are allowed!'));
+            cb(new Error('Only image and PDF files are allowed!'));
         }
     }
 });

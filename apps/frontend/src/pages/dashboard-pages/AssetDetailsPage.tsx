@@ -62,28 +62,42 @@ export default function AssetDetailsPage() {
     };
 
     const getLocationPath = () => {
-        if (!asset || !asset.locationId) return asset?.location || 'Unassigned';
+        // 1. If we have a specific locationId, build the full path
+        if (asset && asset.locationId) {
+            const path: string[] = [];
+            let currentId = typeof asset.locationId === 'string' ? asset.locationId : (asset.locationId as any)._id;
 
-        const path: string[] = [];
-        let currentId = typeof asset.locationId === 'string' ? asset.locationId : (asset.locationId as any)._id;
+            while (currentId) {
+                const currentLoc = allLocations.find(l => l._id === currentId);
+                if (currentLoc) {
+                    path.unshift(currentLoc.name);
+                    currentId = currentLoc.parentId;
+                } else {
+                    break;
+                }
+            }
 
-        while (currentId) {
-            const currentLoc = allLocations.find(l => l._id === currentId);
-            if (currentLoc) {
-                path.unshift(currentLoc.name);
-                currentId = currentLoc.parentId;
-            } else {
-                break;
+            let fullPath = path.length > 0 ? path.join(' > ') : (asset.location || 'Unassigned');
+            if (asset.slotNumber) {
+                fullPath += ` (Slot ${asset.slotNumber})`;
+            }
+            return fullPath;
+        }
+
+        // 2. If no locationId, look for the department's default warehouse
+        if (asset) {
+            const assetDeptId = typeof asset.departmentId === 'object' ? (asset.departmentId as any)._id : asset.departmentId;
+            const warehouseLoc = allLocations.find(l =>
+                l.isWarehouse === true &&
+                (typeof l.departmentId === 'object' ? l.departmentId._id === assetDeptId : l.departmentId === assetDeptId)
+            );
+
+            if (warehouseLoc) {
+                return warehouseLoc.name;
             }
         }
 
-        // If it's in a slot, add that to the path
-        let fullPath = path.length > 0 ? path.join(' > ') : (asset.location || 'Unassigned');
-        if (asset.slotNumber) {
-            fullPath += ` (Slot ${asset.slotNumber})`;
-        }
-
-        return fullPath;
+        return asset?.location || 'Unassigned';
     };
 
     const handleUpdateAsset = async (assetId: string, updatedData: Partial<Asset>) => {
@@ -184,9 +198,9 @@ export default function AssetDetailsPage() {
                 </div>
 
                 <div className="min-h-[400px] bg-white dark:bg-slate-800 rounded-b-xl p-6 border-x border-b border-gray-200 dark:border-gray-700">
-                    {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} />}
+                    {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} />}
-                    {activeTab === 'documents' && <AssetDocuments asset={asset} />}
+                    {activeTab === 'documents' && <AssetDocuments asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'rental_rates' && <RentalRatesTab asset={asset} />}
                     {activeTab === 'assignments' && <AssetAssignmentTab asset={asset} />}
                     {activeTab === 'rental_history' && id && <BookingHistoryTable assetId={id} />}

@@ -11,10 +11,12 @@ export interface CreateUserDto {
     role: string;
     department?: string;
     departmentId?: string;
-    branchId?: string;
+    branchId?: any;
     designation?: string;
-    status: 'Active' | 'Offline' | 'Away' | 'Inactive';
     avatarUrl?: string;
+    phone?: string;
+    permissions?: any[];
+    status: 'Active' | 'Offline' | 'Away' | 'Inactive';
     password?: string;
 }
 
@@ -34,9 +36,25 @@ export const userService = {
         return response.data;
     },
 
-    update: async (id: string, data: Partial<CreateUserDto>) => {
+    update: async (id: string, data: any): Promise<User> => {
         const response = await axios.put<User>(`${API_URL}/${id}`, data);
         return response.data;
+    },
+
+    async updateMe(data: any): Promise<User> {
+        const response = await axios.put('/auth/me', data);
+        return response.data;
+    },
+
+    async uploadAvatar(file: File): Promise<{ url: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await axios.post('/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data.data;
     },
 
     delete: async (id: string) => {

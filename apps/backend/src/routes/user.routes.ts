@@ -1,22 +1,24 @@
 import express from 'express';
-import { getUsers, createUser, updateUser, deleteUser, getUser, updateUserPermissions } from '../controllers/user.controller.js';
+import {
+    getUsers,
+    getUser,
+    createUser,
+    updateUser,
+    deleteUser,
+    updateUserPermissions
+} from '../controllers/user.controller.js';
+import { checkPermission } from '../middleware/permission.middleware.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 router.use(protect);
 
-router.route('/')
-    .get(getUsers)
-    .post(createUser);
-
-router.route('/:id')
-    .get(getUser)
-    .put(updateUser)
-    .delete(deleteUser);
-
-// Custom permissions route
-router.route('/:id/permissions')
-    .put(protect, authorize('admin', 'superuser'), updateUserPermissions);
+router.get('/', checkPermission('users', 'view'), getUsers);
+router.post('/', checkPermission('users', 'create'), createUser);
+router.get('/:id', checkPermission('users', 'view'), getUser);
+router.put('/:id', checkPermission('users', 'edit'), updateUser);
+router.delete('/:id', checkPermission('users', 'delete'), deleteUser);
+router.put('/:id/permissions', checkPermission('users', 'edit'), updateUserPermissions);
 
 export default router;

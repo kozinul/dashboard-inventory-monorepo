@@ -34,7 +34,7 @@ export function AssetSelectionModal({
             // We want "Available" assets (status: active or storage)
             // Filter by department if user is not superuser/admin
             const params: any = {
-                status: 'active,storage',
+                status: 'active',
                 limit: 50,
                 search: search || undefined,
                 branchId: branchId || undefined,

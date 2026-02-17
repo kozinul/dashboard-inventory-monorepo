@@ -18,10 +18,13 @@ import {
     CircleStackIcon,
     ArrowsRightLeftIcon,
     DocumentArrowUpIcon,
-    ServerIcon
+    ServerIcon,
+    ClockIcon
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import axios from '@/lib/axios'
+import { useDebounce } from '@/hooks/useDebounce'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
@@ -49,13 +52,14 @@ const mainNavigation = [
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
     { name: 'Data Management', href: '/data-management', icon: DocumentArrowUpIcon },
+    { name: 'Activity Log', href: '/activity-log', icon: ClockIcon },
     { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
 // Master data navigation
 const masterDataNavigation = [
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
-    { name: 'Categories', href: '/master-data/categories', icon: TagIcon },
+    { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
     { name: 'Branches', href: '/master-data/branches', icon: BuildingOfficeIcon },
@@ -97,6 +101,54 @@ function DashboardLayout() {
     const { user } = useAuthStore()
     const { activeBranchId, branches, setActiveBranch, initialize, isLoading: isBranchLoading, isSwitching } = useAppStore()
     const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0, userAction: 0 });
+    const navigate = useNavigate();
+
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any>(null);
+    const [isSearching, setIsSearching] = useState(false);
+    const debouncedSearch = useDebounce(searchQuery, 300);
+
+    useEffect(() => {
+        const performSearch = async () => {
+            if (debouncedSearch.length < 2) {
+                setSearchResults(null);
+                return;
+            }
+
+            try {
+                setIsSearching(true);
+                const response = await axios.get(`/search?q=${debouncedSearch}`);
+                setSearchResults(response.data);
+            } catch (error) {
+                console.error('Search failed', error);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        performSearch();
+    }, [debouncedSearch]);
+
+    const handleResultClick = (type: string, id: string) => {
+        setSearchQuery('');
+        setSearchResults(null);
+
+        switch (type) {
+            case 'asset':
+                navigate(`/inventory/asset-details/${id}`);
+                break;
+            case 'user':
+                navigate(`/users/${id}`);
+                break;
+            case 'location':
+                navigate(`/master-data/locations`);
+                break;
+            case 'supply':
+                navigate(`/inventory/supplies/${id}`);
+                break;
+        }
+    };
 
     useEffect(() => {
         if (user?.role === 'superuser' && branches.length === 0) {
@@ -154,8 +206,8 @@ function DashboardLayout() {
 
     // Check if user has permission for a resource
     const hasPermission = (item: any) => {
-        // Superuser and admin have access to everything
-        if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
+        // Superuser still has global bypass for UI convenience
+        if (user?.role === 'superuser') return true;
 
         const resourceMap: Record<string, string> = {
             'Dashboard': 'dashboard',
@@ -177,6 +229,7 @@ function DashboardLayout() {
             'Settings': 'settings',
             'My Assets': 'my_assets',
             'Master Data': 'master_data',
+            'Activity Log': 'audit_logs',
             // Master Data Children
             'Units': 'categories', // Map units to categories resource for now
             'Categories': 'categories',
@@ -661,7 +714,7 @@ function DashboardLayout() {
                         <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
 
                         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-                            <form className="relative flex flex-1" action="#" method="GET">
+                            <div className="relative flex flex-1">
                                 <label htmlFor="search-field" className="sr-only">
                                     Search
                                 </label>
@@ -672,11 +725,93 @@ function DashboardLayout() {
                                 <input
                                     id="search-field"
                                     className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                                    placeholder="Search..."
+                                    placeholder="Search anything (assets, users, locations)..."
                                     type="search"
                                     name="search"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onBlur={() => setTimeout(() => setSearchResults(null), 200)}
                                 />
-                            </form>
+
+                                {/* Search Results Dropdown */}
+                                {searchResults && (
+                                    <div className="absolute top-full left-0 w-full max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-b-lg shadow-xl z-[100] mt-1 p-2">
+                                        {isSearching && (
+                                            <div className="p-4 text-center text-gray-500 flex items-center justify-center gap-2">
+                                                <span className="material-symbols-outlined animate-spin">sync</span>
+                                                Searching...
+                                            </div>
+                                        )}
+
+                                        {!isSearching && (
+                                            <>
+                                                {searchResults.assets?.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <h3 className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Assets</h3>
+                                                        {searchResults.assets.map((asset: any) => (
+                                                            <button
+                                                                key={asset._id}
+                                                                onClick={() => handleResultClick('asset', asset._id)}
+                                                                className="w-full text-left p-2 hover:bg-gray-50 rounded flex flex-col group transition-colors"
+                                                            >
+                                                                <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">{asset.name}</span>
+                                                                <span className="text-xs text-gray-400">{asset.assetTag} | {asset.serialNumber}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {searchResults.users?.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <h3 className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Users</h3>
+                                                        {searchResults.users.map((user: any) => (
+                                                            <button
+                                                                key={user._id}
+                                                                onClick={() => handleResultClick('user', user._id)}
+                                                                className="w-full text-left p-2 hover:bg-gray-50 rounded flex items-center gap-3 group transition-colors"
+                                                            >
+                                                                <div className="w-8 h-8 rounded-full bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                                                    {user.avatarUrl ? (
+                                                                        <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <span className="text-xs font-bold text-slate-400">{user.name?.[0]}</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">{user.name}</span>
+                                                                    <span className="text-xs text-gray-400">@{user.username}</span>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {searchResults.locations?.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <h3 className="text-xs font-bold text-gray-400 uppercase px-2 mb-1">Locations</h3>
+                                                        {searchResults.locations.map((loc: any) => (
+                                                            <button
+                                                                key={loc._id}
+                                                                onClick={() => handleResultClick('location', loc._id)}
+                                                                className="w-full text-left p-2 hover:bg-gray-50 rounded flex flex-col group transition-colors"
+                                                            >
+                                                                <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">{loc.name}</span>
+                                                                <span className="text-xs text-gray-400">{loc.type} | {loc.code}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {Object.values(searchResults).every((arr: any) => arr.length === 0) && (
+                                                    <div className="p-4 text-center text-gray-500 italic">
+                                                        No results found for "{searchQuery}"
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             <div className="flex items-center gap-x-4 lg:gap-x-6">
                                 <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                                     <span className="sr-only">View notifications</span>
@@ -691,9 +826,9 @@ function DashboardLayout() {
                                     <Menu.Button className="-m-1.5 flex items-center p-1.5">
                                         <span className="sr-only">Open user menu</span>
                                         <img
-                                            className="h-8 w-8 rounded-full bg-gray-50"
-                                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                            alt=""
+                                            className="h-8 w-8 rounded-full bg-slate-800 object-cover"
+                                            src={user?.avatarUrl || 'https://www.gravatar.com/avatar?d=mp'}
+                                            alt={user?.name || 'User avatar'}
                                         />
                                         <span className="hidden lg:flex lg:items-center">
                                             <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
@@ -712,34 +847,32 @@ function DashboardLayout() {
                                         leaveTo="transform opacity-0 scale-95"
                                     >
                                         <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                                            <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <Link
-                                                            to="/settings"
-                                                            className={classNames(
-                                                                active ? 'bg-gray-50' : '',
-                                                                'block px-3 py-1 text-sm leading-6 text-gray-900'
-                                                            )}
-                                                        >
-                                                            Your Profile
-                                                        </Link>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({ active }) => (
-                                                        <button
-                                                            onClick={() => useAuthStore.getState().logout()}
-                                                            className={classNames(
-                                                                active ? 'bg-gray-50' : '',
-                                                                'block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900'
-                                                            )}
-                                                        >
-                                                            Sign out
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </Menu.Items>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <Link
+                                                        to="/settings"
+                                                        className={classNames(
+                                                            active ? 'bg-gray-50' : '',
+                                                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                                        )}
+                                                    >
+                                                        Your Profile
+                                                    </Link>
+                                                )}
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                {({ active }) => (
+                                                    <button
+                                                        onClick={() => useAuthStore.getState().logout()}
+                                                        className={classNames(
+                                                            active ? 'bg-gray-50' : '',
+                                                            'block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900'
+                                                        )}
+                                                    >
+                                                        Sign out
+                                                    </button>
+                                                )}
+                                            </Menu.Item>
                                         </Menu.Items>
                                     </Transition>
                                 </Menu>

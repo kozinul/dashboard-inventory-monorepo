@@ -8,6 +8,7 @@
         "build": "tsc",
         "start": "node dist/index.js",
         "seed": "tsx src/scripts/seed.ts",
+        "seed:prod": "tsx src/scripts/init-production.ts",
         "lint": "eslint src --ext .ts",
         "typecheck": "tsc --noEmit"
     },

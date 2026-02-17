@@ -173,7 +173,10 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             value: originalAsset.value,
             technicalSpecifications: originalAsset.technicalSpecifications,
             images: [], // Don't clone images
-            status: 'storage', // New assets start in storage
+            status: 'active', // Cloned assets are set to active by default
+            departmentId: originalAsset.departmentId,
+            department: originalAsset.department,
+            branchId: originalAsset.branchId,
             purchaseDate: new Date()
         });
 
