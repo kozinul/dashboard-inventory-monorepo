@@ -268,14 +268,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
         }
     };
 
-    const handleEdit = () => {
-        if (!ticket) return;
-        if (isTechnician && ((ticket.technician as any)?._id === user?._id || (ticket.technician as any) === user?._id)) {
-            setIsWorkModalOpen(true);
-            return;
-        }
-        setIsCreateModalOpen(true);
-    };
+
 
     const handleDelete = async () => {
         if (!ticket) return;
@@ -314,9 +307,9 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                     <h1 className="text-2xl font-bold dark:text-white">Ticket #{ticket.ticketNumber}</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${ticket.status === 'Done' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                                ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' :
-                                    ticket.status === 'Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30' :
-                                        'bg-slate-100 text-slate-700 dark:bg-slate-800'
+                            ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' :
+                                ticket.status === 'Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30' :
+                                    'bg-slate-100 text-slate-700 dark:bg-slate-800'
                             }`}>
                             {ticket.status}
                         </span>

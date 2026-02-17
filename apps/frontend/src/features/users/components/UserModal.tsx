@@ -268,6 +268,13 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                                                                 {role.name}
                                                             </option>
                                                         ))}
+                                                        <option value="dept_admin">Dept. Admin</option>
+                                                        <option value="supervisor">Supervisor</option>
+                                                        <option value="manager">Manager</option>
+                                                        <option value="technician">Technician</option>
+                                                        <option value="user">User</option>
+                                                        <option value="auditor">Auditor</option>
+                                                        <option value="admin">Admin</option>
                                                     </select>
                                                 </div>
                                                 <div>

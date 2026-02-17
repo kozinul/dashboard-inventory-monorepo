@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "@dashboard/schemas": "workspace:*",
+        "@types/pdfkit": "^0.17.5",
         "bcryptjs": "^2.4.3",
         "cookie-parser": "^1.4.6",
         "cors": "^2.8.5",
@@ -23,6 +24,8 @@
         "mongoose": "^8.3.2",
         "morgan": "^1.10.0",
         "multer": "1.4.5-lts.1",
+        "pdfkit": "^0.17.2",
+        "pdfkit-table": "^0.1.99",
         "xlsx": "^0.18.5",
         "zod": "^3.22.4"
     },

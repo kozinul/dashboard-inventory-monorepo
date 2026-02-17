@@ -144,7 +144,7 @@ export function LocationsPage() {
 
                         {/* Content Switcher */}
                         <LocationGrid
-                            parentId={selectedLocation?._id || null}
+                            parentLocation={selectedLocation}
                             viewMode={viewMode === 'assets' ? 'list' : 'grid'} // Map 'assets' icon to 'list' view of locations
                             onViewDetails={setDetailLocation}
                         />

@@ -4,8 +4,10 @@ import {
     TrashIcon,
     ArrowPathIcon,
     PlusIcon,
+    ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import axios from '@/lib/axios';
+import Swal from 'sweetalert2';
 
 interface Backup {
     filename: string;
@@ -19,6 +21,7 @@ export default function DatabaseManagement() {
     const [creating, setCreating] = useState(false);
     const [restoring, setRestoring] = useState<string | null>(null);
     const [deleting, setDeleting] = useState<string | null>(null);
+    const [resetting, setResetting] = useState(false);
 
     const API_URL = '/database';
 
@@ -29,7 +32,7 @@ export default function DatabaseManagement() {
             setBackups(response.data.data);
         } catch (error) {
             console.error('Failed to fetch backups', error);
-            alert('Failed to fetch backups');
+            // alert('Failed to fetch backups');
         } finally {
             setLoading(false);
         }
@@ -38,49 +41,127 @@ export default function DatabaseManagement() {
     const createBackup = async () => {
         setCreating(true);
         try {
-            await axios.post(`${API_URL}/database`);
+            await axios.post(`${API_URL}`);
             await fetchBackups();
-            alert('Backup created successfully');
+            Swal.fire({ title: 'Success', text: 'Backup created successfully', icon: 'success' });
         } catch (error) {
             console.error('Failed to create backup', error);
-            alert('Failed to create backup');
+            Swal.fire({ title: 'Error', text: 'Failed to create backup', icon: 'error' });
         } finally {
             setCreating(false);
         }
     };
 
     const deleteBackup = async (filename: string) => {
-        if (!confirm(`Are you sure you want to delete backup ${filename}?`)) return;
+        const result = await Swal.fire({
+            title: 'Delete Backup?',
+            text: `Are you sure you want to delete ${filename}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Delete'
+        });
+
+        if (!result.isConfirmed) return;
 
         setDeleting(filename);
         try {
-            await axios.delete(`${API_URL}/database/${filename}`);
+            await axios.delete(`${API_URL}/${filename}`);
             await fetchBackups();
+            Swal.fire({ title: 'Deleted!', text: 'Backup deleted.', icon: 'success' });
         } catch (error) {
             console.error('Failed to delete backup', error);
-            alert('Failed to delete backup');
+            Swal.fire({ title: 'Error', text: 'Failed to delete backup', icon: 'error' });
         } finally {
             setDeleting(null);
         }
     };
 
     const restoreBackup = async (filename: string) => {
-        if (!confirm(`Are you sure you want to restore database from ${filename}? THIS WILL OVERWRITE CURRENT DATA!`)) return;
+        const result = await Swal.fire({
+            title: 'Restore Database?',
+            text: `Are you sure you want to restore from ${filename}? CURRENT DATA WILL BE LOST!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, Restore it!'
+        });
+
+        if (!result.isConfirmed) return;
 
         setRestoring(filename);
         try {
-            await axios.post(`${API_URL}/database/${filename}/restore`);
-            alert('Database restored successfully');
+            await axios.post(`${API_URL}/${filename}/restore`);
+            Swal.fire({ title: 'Restored!', text: 'Database restored successfully.', icon: 'success' });
         } catch (error) {
             console.error('Failed to restore backup', error);
-            alert('Failed to restore backup');
+            Swal.fire({ title: 'Error', text: 'Failed to restore backup', icon: 'error' });
         } finally {
             setRestoring(null);
         }
     };
 
+    const handleResetTransactions = async () => {
+        const result = await Swal.fire({
+            title: 'Reset All Transactions?',
+            text: "This will DELETE ALL Maintenance Records, Transfers, Assignments, Disposals, and history! Only Master Data (Users, Assets, Locations, etc.) will remain. This action CANNOT be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, WIPE IT ALL!'
+        });
+
+        if (result.isConfirmed) {
+            setResetting(true);
+            try {
+                await axios.delete(`${API_URL}/reset-transactions`);
+                Swal.fire(
+                    'Reset Complete!',
+                    'All transactional data has been wiped. Assets are reset.',
+                    'success'
+                );
+            } catch (error) {
+                console.error('Failed to reset transactions', error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to reset data.',
+                    'error'
+                );
+            } finally {
+                setResetting(false);
+            }
+        }
+    };
+
+    const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('backupFile', file);
+
+        setLoading(true); // Re-use loading state or create a new one
+        try {
+            await axios.post(`${API_URL}/upload`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            await fetchBackups();
+            Swal.fire({ title: 'Success', text: 'Backup uploaded successfully', icon: 'success' });
+        } catch (error) {
+            console.error('Failed to upload backup', error);
+            Swal.fire({ title: 'Error', text: 'Failed to upload backup', icon: 'error' });
+        } finally {
+            setLoading(false);
+            // Reset input
+            event.target.value = '';
+        }
+    };
+
     const downloadBackup = (filename: string) => {
-        window.open(`${API_URL}/database/${filename}/download`, '_blank');
+        window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}${API_URL}/${filename}/download`, '_blank');
     };
 
     useEffect(() => {
@@ -101,14 +182,43 @@ export default function DatabaseManagement() {
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
-            <div className="sm:flex sm:items-center">
+            <div className="sm:flex sm:items-center justify-between">
                 <div className="sm:flex-auto">
                     <h1 className="text-base font-semibold leading-6 text-gray-900">Database Management</h1>
                     <p className="mt-2 text-sm text-gray-700">
-                        Manage database backups. Create new backups, restore from existing ones, or download backup files.
+                        Manage backups or reset transactional data for production readiness.
                     </p>
                 </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                    <button
+                        type="button"
+                        onClick={handleResetTransactions}
+                        disabled={resetting}
+                        className="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50"
+                    >
+                        {resetting ? 'Wiping...' : (
+                            <span className="flex items-center gap-2">
+                                <ExclamationTriangleIcon className="h-5 w-5" />
+                                Wipe Transactions
+                            </span>
+                        )}
+                    </button>
+                    <div className="relative">
+                        <input
+                            type="file"
+                            id="upload-backup"
+                            className="hidden"
+                            accept=".json"
+                            onChange={handleUpload}
+                        />
+                        <label
+                            htmlFor="upload-backup"
+                            className="flex items-center gap-2 cursor-pointer bg-white text-gray-700 border border-gray-300 px-3 py-2 rounded-md text-sm font-semibold shadow-sm hover:bg-gray-50"
+                        >
+                            <ArrowDownTrayIcon className="h-5 w-5 transform rotate-180" />
+                            Upload Backup
+                        </label>
+                    </div>
                     <button
                         type="button"
                         onClick={createBackup}

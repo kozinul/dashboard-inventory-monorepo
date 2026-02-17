@@ -3,6 +3,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { BoxLocation, CreateLocationDto } from '@/services/locationService';
 import { locationTypeService } from '@/services/locationTypeService';
+import { departmentService, Department } from '@/services/departmentService';
+import { useAuthStore } from '@/store/authStore';
 
 interface LocationModalProps {
     isOpen: boolean;
@@ -20,11 +22,17 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
         type: 'Building',
         description: '',
         status: 'Active',
-        parentId: null
+        parentId: null,
+        departmentId: '',
+        isWarehouse: false,
+        capacity: 0
     });
 
     const [locationTypes, setLocationTypes] = useState<string[]>([]);
     const [loadingTypes, setLoadingTypes] = useState(false);
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const { user } = useAuthStore();
+    const canManageWarehouse = user?.role === 'superuser' || user?.role === 'admin';
 
     useEffect(() => {
         const fetchTypes = async () => {
@@ -33,24 +41,58 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
             try {
                 const types = await locationTypeService.getAll();
                 setLocationTypes(types.map(t => t.name));
+
+                if (canManageWarehouse) {
+                    const depts = await departmentService.getAll();
+                    setDepartments(depts);
+                }
             } catch (error) {
-                console.error('Failed to fetch location types', error);
+                console.error('Failed to fetch data', error);
             } finally {
                 setLoadingTypes(false);
             }
         };
 
         fetchTypes();
-    }, [isOpen]);
+    }, [isOpen, canManageWarehouse]);
 
     useEffect(() => {
-        if (!editingLocation && locationTypes.length > 0 && !formData.type) {
-            const firstType = locationTypes[0];
-            if (firstType) {
-                setFormData(prev => ({ ...prev, type: firstType }));
+        if (isOpen) {
+            if (editingLocation) {
+                setFormData({
+                    name: editingLocation.name,
+                    type: editingLocation.type,
+                    description: editingLocation.description || '',
+                    status: editingLocation.status,
+                    parentId: editingLocation.parentId,
+                    departmentId: editingLocation.departmentId?._id || editingLocation.departmentId || '',
+                    isWarehouse: editingLocation.isWarehouse || false,
+                    capacity: (editingLocation as any).capacity || 0
+                });
+            } else {
+                // Auto-select type based on parent
+                let defaultType = locationTypes.length > 0 ? locationTypes[0] : 'Building';
+                if (parentLocation?.type === 'Room') {
+                    defaultType = 'Rack'; // or Panel
+                } else if (parentLocation?.type === 'Building') {
+                    defaultType = 'Floor';
+                } else if (parentLocation?.type === 'Floor') {
+                    defaultType = 'Room';
+                }
+
+                setFormData({
+                    name: '',
+                    type: defaultType,
+                    description: '',
+                    status: 'Active',
+                    parentId: parentLocation ? parentLocation._id : null,
+                    departmentId: '',
+                    isWarehouse: false,
+                    capacity: 0
+                });
             }
         }
-    }, [locationTypes, editingLocation]);
+    }, [isOpen, editingLocation, parentLocation, locationTypes]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -142,7 +184,14 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
                                                         name="type"
                                                         className="block w-full rounded-md border-0 bg-background-dark py-1.5 text-white shadow-sm ring-1 ring-inset ring-border-dark focus:ring-2 focus:ring-inset focus:ring-accent-indigo sm:text-sm sm:leading-6"
                                                         value={formData.type}
-                                                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                                        onChange={(e) => {
+                                                            const newType = e.target.value;
+                                                            setFormData({
+                                                                ...formData,
+                                                                type: newType,
+                                                                isWarehouse: newType === 'Warehouse' ? true : formData.isWarehouse
+                                                            });
+                                                        }}
                                                         disabled={loadingTypes}
                                                     >
                                                         {loadingTypes ? (
@@ -155,6 +204,25 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            {(formData.type === 'Rack' || formData.type === 'Panel' || formData.type === 'Panel Box') && (
+                                                <div>
+                                                    <label htmlFor="capacity" className="block text-sm font-medium leading-6 text-white">
+                                                        Capacity (Total Slots)
+                                                    </label>
+                                                    <div className="mt-2">
+                                                        <input
+                                                            type="number"
+                                                            name="capacity"
+                                                            id="capacity"
+                                                            min="0"
+                                                            className="block w-full rounded-md border-0 bg-background-dark py-1.5 text-white shadow-sm ring-1 ring-inset ring-border-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent-indigo sm:text-sm sm:leading-6"
+                                                            value={formData.capacity}
+                                                            onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0 })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div>
                                                 <label htmlFor="description" className="block text-sm font-medium leading-6 text-white">
@@ -171,6 +239,49 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
                                                     />
                                                 </div>
                                             </div>
+
+                                            {canManageWarehouse && (
+                                                <>
+                                                    <div>
+                                                        <label htmlFor="departmentId" className="block text-sm font-medium leading-6 text-white">
+                                                            Department (Owner)
+                                                        </label>
+                                                        <div className="mt-2">
+                                                            <select
+                                                                id="departmentId"
+                                                                name="departmentId"
+                                                                className="block w-full rounded-md border-0 bg-background-dark py-1.5 text-white shadow-sm ring-1 ring-inset ring-border-dark focus:ring-2 focus:ring-inset focus:ring-accent-indigo sm:text-sm sm:leading-6"
+                                                                value={formData.departmentId || ''}
+                                                                onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
+                                                            >
+                                                                <option value="">None (General/Shared)</option>
+                                                                {departments.map((dept) => (
+                                                                    <option key={dept._id} value={dept._id}>{dept.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="relative flex items-start">
+                                                        <div className="flex h-6 items-center">
+                                                            <input
+                                                                id="isWarehouse"
+                                                                name="isWarehouse"
+                                                                type="checkbox"
+                                                                className="h-4 w-4 rounded border-gray-300 text-accent-indigo focus:ring-accent-indigo"
+                                                                checked={formData.isWarehouse || false}
+                                                                onChange={(e) => setFormData({ ...formData, isWarehouse: e.target.checked })}
+                                                            />
+                                                        </div>
+                                                        <div className="ml-3 text-sm leading-6">
+                                                            <label htmlFor="isWarehouse" className="font-medium text-white">
+                                                                Is Warehouse?
+                                                            </label>
+                                                            <p className="text-gray-400">Mark this location as the main storage warehouse for the selected department.</p>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
 
                                             <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                                                 <button

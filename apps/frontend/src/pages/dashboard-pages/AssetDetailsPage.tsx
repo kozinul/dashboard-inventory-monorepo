@@ -11,7 +11,9 @@ import { AssetAssignmentTab } from "../../features/inventory/components/asset-de
 import { AssetServiceTab } from "../../features/inventory/components/asset-details/AssetServiceTab";
 import { AssetDocuments } from "../../features/inventory/components/asset-details/AssetDocuments";
 import { AssetMaintenanceTab } from "../../features/inventory/components/asset-details/AssetMaintenanceTab";
+import { AssetActivityLogTab } from "../../features/inventory/components/asset-details/AssetActivityLogTab";
 import { assetService, Asset } from "../../services/assetService";
+import axios from '@/lib/axios';
 
 import { EditInventoryModal } from "../../features/inventory/components/EditInventoryModal";
 import { showSuccessToast, showErrorToast } from "@/utils/swal";
@@ -21,10 +23,11 @@ import BookingHistoryTable from '@/features/rental/components/BookingHistoryTabl
 export default function AssetDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const [asset, setAsset] = useState<Asset | null>(null);
+    const [allLocations, setAllLocations] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'technical_info' | 'purchasing' | 'documents' | 'rental_rates' | 'assignments' | 'rental_history' | 'external_services' | 'maintenance'>('technical_info');
+    const [activeTab, setActiveTab] = useState<'technical_info' | 'purchasing' | 'documents' | 'rental_rates' | 'assignments' | 'rental_history' | 'external_services' | 'maintenance' | 'activity_log'>('technical_info');
 
     const { setBreadcrumb } = useBreadcrumb();
     const location = useLocation();
@@ -41,18 +44,46 @@ export default function AssetDetailsPage() {
         }
     }, [asset, location.pathname, setBreadcrumb]);
 
-    const loadAsset = (assetId: string) => {
+    const loadAsset = async (assetId: string) => {
         setLoading(true);
-        assetService.getById(assetId)
-            .then(data => {
-                setAsset(data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Failed to fetch asset", err);
-                setError("Failed to load asset details");
-                setLoading(false);
-            });
+        try {
+            // First fetch all locations to compute path
+            const locationsRes = await axios.get('/locations');
+            setAllLocations(locationsRes.data);
+
+            const data = await assetService.getById(assetId);
+            setAsset(data);
+            setLoading(false);
+        } catch (err) {
+            console.error("Failed to fetch asset", err);
+            setError("Failed to load asset details");
+            setLoading(false);
+        }
+    };
+
+    const getLocationPath = () => {
+        if (!asset || !asset.locationId) return asset?.location || 'Unassigned';
+
+        const path: string[] = [];
+        let currentId = typeof asset.locationId === 'string' ? asset.locationId : (asset.locationId as any)._id;
+
+        while (currentId) {
+            const currentLoc = allLocations.find(l => l._id === currentId);
+            if (currentLoc) {
+                path.unshift(currentLoc.name);
+                currentId = currentLoc.parentId;
+            } else {
+                break;
+            }
+        }
+
+        // If it's in a slot, add that to the path
+        let fullPath = path.length > 0 ? path.join(' > ') : (asset.location || 'Unassigned');
+        if (asset.slotNumber) {
+            fullPath += ` (Slot ${asset.slotNumber})`;
+        }
+
+        return fullPath;
     };
 
     const handleUpdateAsset = async (assetId: string, updatedData: Partial<Asset>) => {
@@ -121,7 +152,7 @@ export default function AssetDetailsPage() {
             </header>
 
             <div className="px-8 py-6 space-y-8 flex-1 overflow-y-auto">
-                <AssetHero asset={asset} onEdit={() => setIsEditModalOpen(true)} />
+                <AssetHero asset={asset} onEdit={() => setIsEditModalOpen(true)} currentLocation={getLocationPath()} />
                 <AssetGallery asset={asset} onUpdate={handleUpdateAsset} />
 
                 {/* Tabs */}
@@ -136,6 +167,7 @@ export default function AssetDetailsPage() {
                             { id: 'rental_history', label: 'Rental History' },
                             { id: 'external_services', label: 'External Services' },
                             { id: 'maintenance', label: 'Maintenance' },
+                            { id: 'activity_log', label: 'Activity Log' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -161,6 +193,7 @@ export default function AssetDetailsPage() {
                     {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}
 
                     {activeTab === 'maintenance' && <AssetMaintenanceTab asset={asset} />}
+                    {activeTab === 'activity_log' && <AssetActivityLogTab asset={asset} />}
 
                 </div>
             </div>

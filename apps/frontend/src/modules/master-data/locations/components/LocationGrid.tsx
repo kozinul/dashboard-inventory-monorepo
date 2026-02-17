@@ -111,7 +111,9 @@ function LocationCard({ data, onEdit, onDelete, onViewDetails }: LocationCardPro
                 <div>
                     <div className="flex justify-between text-xs mb-1.5">
                         <span className="text-text-secondary">Capacity</span>
-                        <span className="text-white font-medium">{capacity > 0 ? 'Unlimited' : 'N/A'}</span>
+                        <span className="text-white font-medium">
+                            {capacity > 0 ? (data.type === 'Rack' ? `${capacity}U` : `${capacity} Slots`) : (data.type === 'Rack' || data.type === 'Panel' || data.type === 'Panel Box') ? (data.type === 'Rack' ? '0U' : '0 Slots') : 'N/A'}
+                        </span>
                     </div>
                     {/* Capacity bar */}
                     <div className="h-2 w-full bg-background-dark rounded-full overflow-hidden">
@@ -138,12 +140,14 @@ function LocationCard({ data, onEdit, onDelete, onViewDetails }: LocationCardPro
     );
 }
 
-export function LocationGrid({ parentId, viewMode = 'grid', onViewDetails }: { parentId: string | null, viewMode?: 'grid' | 'list', onViewDetails: (location: BoxLocation) => void }) {
+export function LocationGrid({ parentLocation, viewMode = 'grid', onViewDetails }: { parentLocation: BoxLocation | null, viewMode?: 'grid' | 'list', onViewDetails: (location: BoxLocation) => void }) {
     // ... state ...
     const [locations, setLocations] = useState<BoxLocation[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLocation, setEditingLocation] = useState<BoxLocation | null>(null);
+
+    const parentId = parentLocation ? parentLocation._id : null;
 
     const fetchLocations = async () => {
         try {
@@ -266,7 +270,7 @@ export function LocationGrid({ parentId, viewMode = 'grid', onViewDetails }: { p
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-4 text-sm text-text-secondary">{loc.type}</td>
                                     <td className="whitespace-nowrap px-3 py-4 text-sm text-text-secondary">
-                                        {(loc as any).capacity ? `${(loc as any).capacity} Units` : 'Unlimited'}
+                                        {(loc as any).capacity ? (loc.type === 'Rack' ? `${(loc as any).capacity}U` : `${(loc as any).capacity} Slots`) : (loc.type === 'Rack' || loc.type === 'Panel' || loc.type === 'Panel Box') ? (loc.type === 'Rack' ? '0U' : '0 Slots') : 'N/A'}
                                     </td>
                                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <div className="flex items-center justify-end gap-2">
@@ -296,6 +300,7 @@ export function LocationGrid({ parentId, viewMode = 'grid', onViewDetails }: { p
                     onClose={() => setIsModalOpen(false)}
                     onSubmit={handleSave}
                     editingLocation={editingLocation}
+                    parentLocation={parentLocation}
                 />
             </>
         );
@@ -334,6 +339,7 @@ export function LocationGrid({ parentId, viewMode = 'grid', onViewDetails }: { p
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSave}
                 editingLocation={editingLocation}
+                parentLocation={parentLocation}
             />
         </>
     );

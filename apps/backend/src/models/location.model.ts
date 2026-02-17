@@ -32,7 +32,17 @@ const locationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch',
         required: false
-    }
+    },
+    departmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department',
+        required: false
+    },
+    isWarehouse: {
+        type: Boolean,
+        default: false
+    },
+
 }, {
     timestamps: true
 });

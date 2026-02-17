@@ -83,9 +83,50 @@ const DEFAULT_ROLES: Role[] = [
         description: 'Maintenance technician access', isSystem: false, usersCount: 0,
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
+            { resource: 'inventory', actions: viewOnly() },
             { resource: 'maintenance', actions: viewOnly() },
             { resource: 'assigned_tickets', actions: viewCreateEdit() }, // Custom resource
             { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'transfer', actions: viewCreate() },
+            { resource: 'disposal', actions: viewCreate() },
+        ]
+    },
+    {
+        id: '8', name: 'Department Admin', slug: 'dept_admin', color: '#8b5cf6',
+        description: 'Department-level administration', isSystem: false, usersCount: 0,
+        permissions: [
+            { resource: 'dashboard', actions: viewOnly() },
+            { resource: 'inventory', actions: viewCreateEdit() },
+            { resource: 'incoming', actions: viewCreate() },
+            { resource: 'transfer', actions: viewCreate() },
+            { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'services', actions: viewCreateEdit() },
+            { resource: 'history', actions: viewOnly() },
+            { resource: 'reports', actions: viewOnly() },
+            { resource: 'users', actions: viewCreateEdit() },
+            { resource: 'settings', actions: viewCreateEdit() },
+            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'rental', actions: viewCreateEdit() },
+            { resource: 'events', actions: viewCreateEdit() },
+            { resource: 'categories', actions: viewCreateEdit() },
+            { resource: 'locations', actions: viewCreateEdit() },
+            { resource: 'vendors', actions: viewCreateEdit() },
+            { resource: 'disposal', actions: viewCreateEdit() },
+        ]
+    },
+    {
+        id: '9', name: 'Supervisor', slug: 'supervisor', color: '#db2777',
+        description: 'Team supervisor access', isSystem: false, usersCount: 0,
+        permissions: [
+            { resource: 'dashboard', actions: viewOnly() },
+            { resource: 'inventory', actions: viewOnly() },
+            { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'dept_tickets', actions: viewCreateEdit() },
+            { resource: 'my_tickets', actions: viewCreateEdit() },
+            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'reports', actions: viewOnly() },
+            { resource: 'history', actions: viewOnly() },
+            { resource: 'assignments', actions: viewCreateEdit() },
         ]
     }
 ];

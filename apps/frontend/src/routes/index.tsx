@@ -24,8 +24,10 @@ import AccountSettingsPage from '../pages/dashboard-pages/AccountSettingsPage';
 import IncomingGoodsPage from '../pages/dashboard-pages/IncomingGoodsPage';
 import TransferPage from '../pages/dashboard-pages/TransferPage';
 import HistoryPage from '../pages/dashboard-pages/HistoryPage';
-import RentalPage from '../pages/dashboard-pages/RentalPage';
-import AssignAssetPage from '../pages/dashboard-pages/AssignAssetPage';
+import RentalPage from '@/pages/dashboard-pages/RentalPage';
+import AssignAssetPage from '@/pages/dashboard-pages/AssignAssetPage';
+import PanelListPage from '@/pages/inventory/panels/PanelListPage';
+import PanelDetailPage from '@/pages/inventory/panels/PanelDetailPage';
 import { LocationsPage } from '../modules/master-data/locations/LocationsPage';
 import { LocationTypesPage } from '../modules/master-data/locations/LocationTypesPage';
 import DatabaseManagement from '../pages/master-data/DatabaseManagement';
@@ -142,6 +144,14 @@ export const router = createBrowserRouter([
                             {
                                 path: 'rental/assign',
                                 element: <AssignAssetPage />,
+                            },
+                            {
+                                path: 'inventory/panels',
+                                element: <PanelListPage />,
+                            },
+                            {
+                                path: 'inventory/panels/:id',
+                                element: <PanelDetailPage />,
                             },
                             {
                                 path: 'events',

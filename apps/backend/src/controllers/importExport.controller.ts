@@ -9,6 +9,11 @@ import { Category } from '../models/category.model.js';
 import { Unit } from '../models/unit.model.js';
 import { Vendor } from '../models/vendor.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
+import { MaintenanceRecord } from '../models/maintenance.model.js';
+import { Assignment } from '../models/assignment.model.js';
+import Rental, { IRental } from '../models/rental.model.js';
+import Event from '../models/event.model.js';
+import PDFDocument from 'pdfkit-table';
 
 // --- Templates ---
 
@@ -81,34 +86,118 @@ export const downloadTemplate = async (req: Request, res: Response, next: NextFu
 
 export const exportData = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { type } = req.query;
+        const {
+            type,
+            format = 'excel',
+            branchId,
+            departmentId,
+            status,
+            category,
+            maintenanceType,
+            groupBy,
+            startDate,
+            endDate
+        } = req.query;
         const customColumns = req.query.columns ? String(req.query.columns).split(',') : [];
         let data: any[] = [];
         let filename = '';
 
         const query: any = {};
-        // RBAC: Scoping logic
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (req.user.departmentId) {
-                query.departmentId = req.user.departmentId;
-            } else {
-                return res.status(403).json({ message: 'No department assigned' });
-            }
-        }
 
-        if (req.user.role !== 'superuser') {
+        // 1. RBAC: Branch handling
+        if (req.user.role === 'superuser') {
+            if (branchId) query.branchId = branchId;
+        } else {
+            // Admin, Manager, Technician are locked to their own branch
             query.branchId = (req.user as any).branchId;
         }
 
+        // 2. RBAC & Selection: Department handling
+        // For Manager/Technician, we IGNORE the requested departmentId and force their own.
+        // For Superuser/Admin, we use the requested departmentId if provided.
+        const isRestrictedDept = req.user.role === 'manager' || req.user.role === 'technician';
+        const activeDeptId = isRestrictedDept ? req.user.departmentId : departmentId;
+
+        if (activeDeptId) {
+            if (type === 'asset' || type === 'supply') {
+                query.departmentId = activeDeptId;
+            } else if (type === 'maintenance' || type === 'rental') {
+                // Rental & Maintenance records are linked to Assets. 
+                // We must find assets belonging to the department first.
+                const deptAssets = await Asset.find({
+                    departmentId: activeDeptId,
+                    branchId: query.branchId || { $exists: true }
+                }).select('_id');
+                const assetIds = deptAssets.map(a => a._id);
+
+                if (type === 'rental') {
+                    query.assetId = { $in: assetIds };
+                } else if (type === 'maintenance') {
+                    // Maintenance has its own 'assignedDepartment' OR can be tracked via asset's department
+                    query.$or = [
+                        { assignedDepartment: activeDeptId },
+                        { asset: { $in: assetIds } }
+                    ];
+                }
+            }
+        }
+
+        // 3. Generic Filters
+        if (status && type !== 'supply') query.status = status;
+        if (category) query.category = category;
+        if (maintenanceType && type === 'maintenance') query.type = maintenanceType;
+
+        // 4. Date Range Filtering
+        if (startDate || endDate) {
+            // Determine field name based on report type
+            let dateField = 'createdAt';
+            if (type === 'rental') dateField = 'rentalDate';
+            else if (type === 'asset') dateField = 'purchaseDate';
+            else if (type === 'maintenance' && status === 'Completed') dateField = 'updatedAt';
+
+            query[dateField] = {};
+            if (startDate) query[dateField].$gte = new Date(startDate as string);
+            if (endDate) query[dateField].$lte = new Date(endDate as string);
+        }
+
+        let headerMap: Record<string, string> = {};
+        let rawData: any[] = [];
+
         if (type === 'asset') {
-            const assets = await Asset.find(query)
+            rawData = await Asset.find(query)
                 .populate('departmentId', 'name')
                 .populate('branchId', 'name')
                 .populate('locationId', 'name');
 
-            data = assets.map(a => {
-                const row: any = {};
-                const map: Record<string, any> = {
+            headerMap = {
+                name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
+                department: 'Departemen', branch: 'Cabang', location: 'Lokasi',
+                assignment: 'Assignment'
+            };
+
+            // Fetch active assignments for these assets
+            const assetIds = rawData.map(a => a._id);
+            const activeAssignments = await Assignment.find({
+                assetId: { $in: assetIds },
+                status: 'assigned',
+                isDeleted: false
+            }).populate({
+                path: 'userId',
+                select: 'name departmentId',
+                populate: { path: 'departmentId', select: 'name' }
+            });
+
+            const assignmentMap = new Map();
+            activeAssignments.forEach(asgn => {
+                assignmentMap.set(asgn.assetId.toString(), asgn);
+            });
+
+            data = rawData.map(a => {
+                const asgn = assignmentMap.get(a._id.toString());
+                const user = (asgn?.userId as any);
+                const assignmentInfo = user ? `${user.name} (${user.departmentId?.name || 'N/A'})` : (asgn?.assignedTo || 'none');
+
+                return {
                     name: a.name,
                     model: a.model,
                     category: a.category,
@@ -116,79 +205,682 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     department: (a.departmentId as any)?.name || a.department,
                     branch: (a.branchId as any)?.name,
                     location: (a.locationId as any)?.name || a.location,
-                    status: a.status,
-                    value: a.value,
-                    purchaseDate: a.purchaseDate ? a.purchaseDate.toISOString().split('T')[0] : '',
-                    warrantyDate: a.warranty?.expirationDate ? a.warranty.expirationDate.toISOString().split('T')[0] : ''
+                    assignment: assignmentInfo
                 };
-
-                const headerMap: Record<string, string> = {
-                    name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
-                    department: 'Departemen', branch: 'Cabang', location: 'Lokasi',
-                    status: 'Status', value: 'Nilai (Purchase Value)',
-                    purchaseDate: 'Tanggal Pembelian', warrantyDate: 'Kedaluwarsa Garansi'
-                };
-
-                if (customColumns.length > 0) {
-                    customColumns.forEach(col => {
-                        if (headerMap[col]) row[headerMap[col]] = map[col];
-                    });
-                } else {
-                    Object.keys(headerMap).forEach(col => {
-                        row[headerMap[col]] = map[col];
-                    });
-                }
-                return row;
             });
-            filename = 'export_assets.xlsx';
+            filename = `export_assets_${Date.now()}`;
         } else if (type === 'supply') {
             const supplies = await Supply.find(query)
                 .populate('locationId', 'name')
-                .populate('unitId', 'name');
+                .populate('unitId', 'name')
+                .populate('branchId', 'name')
+                .populate('departmentId', 'name');
 
-            data = supplies.map(s => {
-                const row: any = {};
-                const map: Record<string, any> = {
-                    name: s.name,
-                    partNumber: s.partNumber,
-                    category: s.category,
-                    unit: (s.unitId as any)?.name || s.unit,
-                    quantity: s.quantity,
-                    minimumStock: s.minimumStock,
-                    location: (s.locationId as any)?.name || s.location,
-                    cost: s.cost,
-                    compatibleModels: s.compatibleModels?.join(', ')
+            const supplyIds = supplies.map(s => s._id);
+            const historyQuery: any = { supplyId: { $in: supplyIds } };
+            if (status) historyQuery.action = status; // Link status filter to history action
+            if (startDate || endDate) {
+                historyQuery.createdAt = {};
+                if (startDate) historyQuery.createdAt.$gte = new Date(startDate as string);
+                if (endDate) historyQuery.createdAt.$lte = new Date(endDate as string);
+            }
+
+            const historyRaw = await SupplyHistory.find(historyQuery)
+                .populate('supplyId', 'name partNumber unitId unit category')
+                .populate('userId', 'name')
+                .sort({ createdAt: 1 });
+
+            headerMap = {
+                supply: 'Barang', sn: 'Part No', date: 'Tanggal',
+                action: 'Aksi', change: 'Qty (+/-)', stock: 'Stok Sisa',
+                user: 'User', notes: 'Catatan'
+            };
+
+            data = historyRaw.map(h => {
+                const s = h.supplyId as any;
+                return {
+                    supply: s?.name || 'N/A',
+                    sn: s?.partNumber || 'N/A',
+                    date: h.createdAt ? h.createdAt.toLocaleString('id-ID') : 'N/A',
+                    action: h.action,
+                    change: h.quantityChange || 0,
+                    stock: h.newStock || 0,
+                    user: (h.userId as any)?.name || 'N/A',
+                    notes: h.notes || '-'
                 };
-
-                const headerMap: Record<string, string> = {
-                    name: 'Nama', partNumber: 'Part Number', category: 'Kategori',
-                    unit: 'Satuan (Unit)', quantity: 'Jumlah', minimumStock: 'Stok Minimum',
-                    location: 'Lokasi', cost: 'Biaya', compatibleModels: 'Model Kompatibel'
-                };
-
-                if (customColumns.length > 0) {
-                    customColumns.forEach(col => {
-                        if (headerMap[col]) row[headerMap[col]] = map[col];
-                    });
-                } else {
-                    Object.keys(headerMap).forEach(col => {
-                        row[headerMap[col]] = map[col];
-                    });
-                }
-                return row;
             });
-            filename = 'export_supplies.xlsx';
+            filename = `export_supply_history_${Date.now()}`;
+        } else if (type === 'maintenance') {
+            rawData = await MaintenanceRecord.find(query)
+                .populate('asset', 'name serial model')
+                .populate('requestedBy', 'name')
+                .populate('technician', 'name')
+                .populate('vendor', 'name')
+                .populate('suppliesUsed.supply', 'name')
+                .populate('branchId', 'name')
+                .populate('assignedDepartment', 'name');
+
+            headerMap = {
+                asset: 'Aset', model: 'Model', sn: 'Serial No', ticketNumber: 'No Tiket',
+                title: 'Judul', date: 'Tgl Selesai', spareparts: 'Sparepart',
+                pic: 'PIC/Vendor', internalNotes: 'Internal Notes', type: 'Tipe', cost: 'Biaya',
+                status: 'Status', branch: 'Cabang'
+            };
+
+            // Fetch current assignments for assets in these maintenance records
+            const assetIds = rawData.map(m => m.asset?._id).filter(Boolean);
+            const activeAssignments = await Assignment.find({
+                assetId: { $in: assetIds },
+                status: 'assigned',
+                isDeleted: false
+            }).populate({
+                path: 'userId',
+                select: 'name departmentId',
+                populate: { path: 'departmentId', select: 'name' }
+            });
+
+            const assignmentMap = new Map();
+            activeAssignments.forEach(asgn => {
+                assignmentMap.set(asgn.assetId.toString(), asgn);
+            });
+
+            data = rawData.map(m => {
+                const assetId = m.asset?._id?.toString();
+                const asgn = assetId ? assignmentMap.get(assetId) : null;
+                const user = (asgn?.userId as any);
+
+                const spareparts = (m.suppliesUsed || [])
+                    .map((s: any) => `${(s.supply as any)?.name || s.name} (${s.quantity})`)
+                    .join(', ');
+
+                const picName = m.serviceProviderType === 'Vendor'
+                    ? (m.vendor as any)?.name || 'Vendor'
+                    : (m.technician as any)?.name || 'Internal';
+
+                const internalNotes = (m.notes || []).map((n: any) => n.content).join('; ');
+
+                return {
+                    asset: (m.asset as any)?.name || 'N/A',
+                    model: (m.asset as any)?.model || 'N/A',
+                    sn: (m.asset as any)?.serial || 'N/A',
+                    ticketNumber: m.ticketNumber,
+                    title: m.title,
+                    date: m.updatedAt ? m.updatedAt.toISOString().split('T')[0] : 'N/A',
+                    spareparts: spareparts || '-',
+                    pic: picName,
+                    internalNotes: internalNotes || '-',
+                    type: m.type,
+                    cost: m.cost || 0,
+                    status: m.status,
+                    branch: (m.branchId as any)?.name || 'N/A'
+                };
+            });
+            filename = `export_maintenance_${Date.now()}`;
+        } else if (type === 'rental') {
+            rawData = await Rental.find(query)
+                .populate('assetId', 'name serial rentalRates')
+                .populate('userId', 'name')
+                .populate('eventId', 'name room')
+                .populate('branchId', 'name');
+
+            // Also fetch Event-based rentals
+            const eventQuery: any = { branchId: query.branchId };
+            let deptAssetIds: any[] = [];
+            let deptSupplyIds: any[] = [];
+
+            if (req.user.role !== 'superuser' && req.user.role !== 'admin') {
+                const activeDeptId = req.user.departmentId;
+                const [assets, supplies] = await Promise.all([
+                    Asset.find({ departmentId: activeDeptId }).select('_id'),
+                    Supply.find({ departmentId: activeDeptId }).select('_id')
+                ]);
+                deptAssetIds = assets.map(a => a._id.toString());
+                deptSupplyIds = supplies.map(s => s._id.toString());
+
+                eventQuery.$or = [
+                    { 'rentedAssets.assetId': { $in: assets.map(a => a._id) } },
+                    { 'planningSupplies.supplyId': { $in: supplies.map(s => s._id) } }
+                ];
+            } else if (query.assetId) {
+                eventQuery['rentedAssets.assetId'] = query.assetId;
+                deptAssetIds = Array.isArray(query.assetId.$in) ? query.assetId.$in.map((id: any) => id.toString()) : [query.assetId.toString()];
+            }
+
+            if (status) eventQuery.status = status;
+
+            if (startDate || endDate) {
+                eventQuery.startTime = {};
+                if (startDate) eventQuery.startTime.$gte = new Date(startDate as string);
+                if (endDate) eventQuery.startTime.$lte = new Date(endDate as string);
+            }
+
+            const events = await Event.find(eventQuery)
+                .populate('rentedAssets.assetId', 'name serial rentalRates')
+                .populate('planningSupplies.supplyId', 'name partNumber')
+                .populate('branchId', 'name');
+
+            headerMap = {
+                event: 'Event', item: 'Nama Item', type: 'Tipe',
+                venue: 'Venue', qty: 'Qty', price: 'Harga',
+                amount: 'Total', rentalDate: 'Tgl Pinjam',
+                returnDate: 'Estimasi Kembali', status: 'Status', branch: 'Cabang'
+            };
+
+            const directRentals = rawData.map(r => {
+                const asset = r.assetId as any;
+                const price = asset?.rentalRates?.[0]?.rate || 0;
+                return {
+                    event: (r.eventId as any)?.name || 'Direct Rental',
+                    item: asset?.name || 'N/A',
+                    type: 'Asset',
+                    venue: (r.eventId as any)?.room || 'N/A',
+                    qty: 1,
+                    price: price,
+                    amount: price,
+                    rentalDate: r.rentalDate ? r.rentalDate.toISOString().split('T')[0] : '',
+                    returnDate: r.expectedReturnDate ? r.expectedReturnDate.toISOString().split('T')[0] : '',
+                    status: r.status,
+                    branch: (r.branchId as any)?.name || 'N/A'
+                };
+            });
+
+            const eventAssets = events.flatMap(ev => (ev.rentedAssets || []).map(ra => {
+                const asset = ra.assetId as any;
+                // If filtered by dept/asset, only show dept-owned assets in the event
+                if (deptAssetIds.length > 0 && !deptAssetIds.includes(asset?._id?.toString())) {
+                    return null;
+                }
+
+                const price = ra.rentalRate || 0;
+                return {
+                    event: ev.name,
+                    item: asset?.name || 'N/A',
+                    type: 'Asset',
+                    venue: ev.room || 'N/A',
+                    qty: 1,
+                    price: price,
+                    amount: price,
+                    rentalDate: ev.startTime ? ev.startTime.toISOString().split('T')[0] : '',
+                    returnDate: ev.endTime ? ev.endTime.toISOString().split('T')[0] : '',
+                    status: ev.status,
+                    branch: (ev.branchId as any)?.name || 'N/A'
+                };
+            })).filter(Boolean);
+
+            const eventSupplies = events.flatMap(ev => (ev.planningSupplies || []).map(ps => {
+                const supply = ps.supplyId as any;
+                // If filtered by dept/supply, only show dept-owned supplies in the event
+                if (deptSupplyIds.length > 0 && !deptSupplyIds.includes(supply?._id?.toString())) {
+                    return null;
+                }
+
+                const price = ps.cost || 0;
+                return {
+                    event: ev.name,
+                    item: supply?.name || 'N/A',
+                    type: 'Supply',
+                    venue: ev.room || 'N/A',
+                    qty: ps.quantity || 0,
+                    price: price,
+                    amount: (ps.quantity || 0) * price,
+                    rentalDate: ev.startTime ? ev.startTime.toISOString().split('T')[0] : '',
+                    returnDate: ev.endTime ? ev.endTime.toISOString().split('T')[0] : '',
+                    status: ev.status,
+                    branch: (ev.branchId as any)?.name || 'N/A'
+                };
+            })).filter(Boolean);
+
+            data = [...directRentals, ...eventAssets, ...eventSupplies];
+
+            filename = `export_rentals_${Date.now()}`;
         }
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(data);
-        XLSX.utils.book_append_sheet(wb, ws, 'Data');
+        // Apply Custom Columns if any
+        if (customColumns.length > 0) {
+            data = data.map(item => {
+                const filtered: any = {};
+                customColumns.forEach(col => {
+                    if (headerMap[col]) filtered[headerMap[col]] = item[col];
+                });
+                return filtered;
+            });
+        } else {
+            // Transform keys to headers
+            data = data.map(item => {
+                const transformed: any = {};
+                Object.keys(headerMap).forEach(key => {
+                    transformed[headerMap[key]] = item[key];
+                });
+                return transformed;
+            });
+        }
 
-        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        // Grouping logic (simplified: sort by group)
+        if (groupBy && headerMap[groupBy as string]) {
+            const groupHeader = headerMap[groupBy as string];
+            data.sort((a, b) => {
+                const valA = String(a[groupHeader] || '').toLowerCase();
+                const valB = String(b[groupHeader] || '').toLowerCase();
+                return valA.localeCompare(valB, 'id', { numeric: true });
+            });
+        }
 
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-        res.send(buffer);
+        // Add Grand Total row AFTER sorting for Rental type
+        if (type === 'rental' && data.length > 0) {
+            const rawDataList = data;
+            const totalHeader = headerMap.amount;
+            const grandTotalValue = rawDataList.reduce((acc, curr) => {
+                const val = parseFloat(curr[totalHeader]) || 0;
+                return acc + val;
+            }, 0);
+
+            const totalRow: any = {};
+            Object.values(headerMap).forEach(h => totalRow[h] = '');
+            totalRow[headerMap.type] = 'GRAND TOTAL';
+            totalRow[headerMap.amount] = grandTotalValue;
+            data.push(totalRow);
+        }
+
+        const reportDate = new Date().toLocaleString('id-ID');
+        const generatedBy = req.user.name || 'Admin';
+
+        if (format === 'json') {
+            if (type === 'rental') {
+                // Group by Event and add subtotals for preview
+                const groupedData: any[] = [];
+                const eventsSet = [...new Set(data.map(item => item[headerMap.event]))];
+                let grandTotal = 0;
+
+                eventsSet.forEach(eventName => {
+                    const eventItems = data.filter(item => item[headerMap.event] === eventName);
+                    if (eventItems.length === 0) return;
+
+                    // Header row
+                    const headerRow: any = {};
+                    Object.values(headerMap).forEach(h => headerRow[h] = '');
+                    headerRow[headerMap.event] = `EVENT: ${eventName}`;
+                    groupedData.push(headerRow);
+
+                    // Add items
+                    groupedData.push(...eventItems);
+
+                    // Subtotal row
+                    const subtotal = eventItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.amount]) || 0), 0);
+                    grandTotal += subtotal;
+                    const subtotalRow: any = {};
+                    Object.values(headerMap).forEach(h => subtotalRow[h] = '');
+                    subtotalRow[headerMap.item] = 'TOTAL EVENT';
+                    subtotalRow[headerMap.amount] = subtotal;
+                    groupedData.push(subtotalRow);
+
+                    // Spacer
+                    groupedData.push({});
+                });
+
+                // Grand total
+                const grandTotalRow: any = {};
+                Object.values(headerMap).forEach(h => grandTotalRow[h] = '');
+                grandTotalRow[headerMap.item] = 'GRAND TOTAL';
+                grandTotalRow[headerMap.amount] = grandTotal;
+                groupedData.push(grandTotalRow);
+
+                return res.json({
+                    data: groupedData,
+                    meta: { reportDate, generatedBy, type, count: data.length }
+                });
+            }
+
+            if (type === 'maintenance') {
+                const groupedData: any[] = [];
+                const groups = [...new Set(data.map(item => `${item[headerMap.asset]} | ${item[headerMap.model]}`))];
+                let grandTotal = 0;
+
+                groups.forEach(groupKey => {
+                    const [assetName, assetModel] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.asset] === assetName && item[headerMap.model] === assetModel);
+                    if (groupItems.length === 0) return;
+
+                    // Header row
+                    const headerRow: any = {};
+                    Object.values(headerMap).forEach(h => headerRow[h] = '');
+                    headerRow[headerMap.asset] = `ASSET: ${assetName}`;
+                    headerRow[headerMap.model] = `MODEL: ${assetModel}`;
+                    groupedData.push(headerRow);
+
+                    // Add items
+                    groupedData.push(...groupItems);
+
+                    // Subtotal row
+                    const subtotal = groupItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.cost]) || 0), 0);
+                    grandTotal += subtotal;
+                    const subtotalRow: any = {};
+                    Object.values(headerMap).forEach(h => subtotalRow[h] = '');
+                    subtotalRow[headerMap.title] = 'TOTAL ASSET';
+                    subtotalRow[headerMap.cost] = subtotal;
+                    groupedData.push(subtotalRow);
+
+                    // Spacer
+                    groupedData.push({});
+                });
+
+                // Grand total
+                const grandTotalRow: any = {};
+                Object.values(headerMap).forEach(h => grandTotalRow[h] = '');
+                grandTotalRow[headerMap.title] = 'GRAND TOTAL';
+                grandTotalRow[headerMap.cost] = grandTotal;
+                groupedData.push(grandTotalRow);
+
+                return res.json({
+                    data: groupedData,
+                    meta: { reportDate, generatedBy, type, count: data.length }
+                });
+            }
+
+            if (type === 'supply') {
+                const groupedData: any[] = [];
+                const groups = [...new Set(data.map(item => `${item[headerMap.supply]} | ${item[headerMap.sn]}`))];
+
+                groups.forEach(groupKey => {
+                    const [name, sn] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.supply] === name && item[headerMap.sn] === sn);
+                    if (groupItems.length === 0) return;
+
+                    // Header
+                    const headerRow: any = {};
+                    Object.values(headerMap).forEach(h => headerRow[h] = '');
+                    headerRow[headerMap.supply] = `BARANG: ${name}`;
+                    headerRow[headerMap.sn] = `PART NO: ${sn}`;
+                    groupedData.push(headerRow);
+
+                    // Items
+                    groupedData.push(...groupItems);
+
+                    // Subtotal (Usage only)
+                    const totalUsed = groupItems
+                        .filter(item => item[headerMap.action] === 'USE')
+                        .reduce((acc, curr) => acc + Math.abs(parseFloat(curr[headerMap.change]) || 0), 0);
+
+                    const subtotalRow: any = {};
+                    Object.values(headerMap).forEach(h => subtotalRow[h] = '');
+                    subtotalRow[headerMap.action] = 'TOTAL DIPAKAI';
+                    subtotalRow[headerMap.change] = totalUsed;
+                    groupedData.push(subtotalRow);
+
+                    // Balance row
+                    const latestStock = groupItems[groupItems.length - 1][headerMap.stock];
+                    const balanceRow: any = {};
+                    Object.values(headerMap).forEach(h => balanceRow[h] = '');
+                    balanceRow[headerMap.action] = 'STOK SAAT INI';
+                    balanceRow[headerMap.change] = latestStock;
+                    groupedData.push(balanceRow);
+
+                    groupedData.push({}); // Spacer
+                });
+
+                return res.json({
+                    data: groupedData,
+                    meta: { reportDate, generatedBy, type, count: data.length }
+                });
+            }
+
+            if (type === 'asset') {
+                const groupedData: any[] = [];
+                const groups = [...new Set(data.map(item => `${item[headerMap.name]} | ${item[headerMap.model]}`))];
+
+                groups.forEach(groupKey => {
+                    const [name, model] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.name] === name && item[headerMap.model] === model);
+                    if (groupItems.length === 0) return;
+
+                    // Header row
+                    const headerRow: any = {};
+                    Object.values(headerMap).forEach(h => headerRow[h] = '');
+                    headerRow[headerMap.name] = `NAMA: ${name}`;
+                    headerRow[headerMap.model] = `MODEL: ${model}`;
+                    headerRow[headerMap.category] = `Kategori: ${groupItems[0][headerMap.category]}`;
+                    groupedData.push(headerRow);
+
+                    // Items
+                    groupedData.push(...groupItems);
+
+                    // Total Unit row
+                    const totalUnitRow: any = {};
+                    Object.values(headerMap).forEach(h => totalUnitRow[h] = '');
+                    totalUnitRow[headerMap.serial] = 'TOTAL UNIT';
+                    totalUnitRow[headerMap.department] = groupItems.length;
+                    groupedData.push(totalUnitRow);
+
+                    // Spacer
+                    groupedData.push({});
+                });
+
+                return res.json({
+                    data: groupedData,
+                    meta: { reportDate, generatedBy, type, count: data.length }
+                });
+            }
+
+            return res.json({
+                data,
+                meta: {
+                    reportDate,
+                    generatedBy,
+                    type,
+                    count: data.length
+                }
+            });
+        }
+
+        if (format === 'pdf') {
+            const doc = new PDFDocument({
+                margin: 30,
+                size: 'A4',
+                layout: (type === 'rental' || type === 'maintenance' || type === 'supply' || type === 'asset') ? 'landscape' : 'portrait'
+            });
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+            doc.pipe(res);
+
+            doc.fontSize(16).text('Laporan Inventaris & Maintenance', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(10).text(`Tanggal Laporan: ${reportDate}`);
+            doc.text(`Dibuat Oleh: ${generatedBy}`);
+            doc.moveDown();
+
+            if (type === 'asset') {
+                const groups = [...new Set(data.map(item => `${item[headerMap.name]} | ${item[headerMap.model]}`))];
+
+                for (const groupKey of groups) {
+                    const [name, model] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.name] === name && item[headerMap.model] === model);
+                    if (groupItems.length === 0) continue;
+
+                    const table = {
+                        title: `ASSET: ${name} (MODEL: ${model}) - Kategori: ${groupItems[0][headerMap.category]}`,
+                        headers: Object.values(headerMap),
+                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                    };
+
+                    // Add total unit row
+                    const totalRow = Object.values(headerMap).map(h => '');
+                    totalRow[Object.keys(headerMap).indexOf('serial')] = 'TOTAL UNIT';
+                    totalRow[Object.keys(headerMap).indexOf('department')] = String(groupItems.length);
+                    table.rows.push(totalRow);
+
+                    await doc.table(table, {
+                        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                            if (indexRow === table.rows.length - 1) {
+                                doc.font('Helvetica-Bold').fontSize(7);
+                            } else {
+                                doc.font('Helvetica').fontSize(7);
+                            }
+                            return doc;
+                        },
+                    });
+                    doc.moveDown();
+                }
+            } else if (type === 'rental') {
+                const eventsSet = [...new Set(data.map(item => item[headerMap.event]))];
+                let grandTotal = 0;
+
+                for (const eventName of eventsSet) {
+                    const eventItems = data.filter(item => item[headerMap.event] === eventName);
+                    if (eventItems.length === 0) continue;
+
+                    const subtotal = eventItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.amount]) || 0), 0);
+                    grandTotal += subtotal;
+
+                    const table = {
+                        title: `EVENT: ${eventName}`,
+                        headers: Object.values(headerMap),
+                        rows: eventItems.map(item => Object.values(item).map(v => String(v || '')))
+                    };
+
+                    // Add subtotal row to the table rows
+                    const subtotalRow = Object.values(headerMap).map(h => '');
+                    subtotalRow[Object.keys(headerMap).indexOf('item')] = 'TOTAL EVENT';
+                    subtotalRow[Object.keys(headerMap).indexOf('amount')] = String(subtotal);
+                    table.rows.push(subtotalRow);
+
+                    await doc.table(table, {
+                        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                            if (indexRow === table.rows.length - 1) {
+                                doc.font('Helvetica-Bold').fontSize(7);
+                            } else {
+                                doc.font('Helvetica').fontSize(7);
+                            }
+                            return doc;
+                        },
+                    });
+                    doc.moveDown();
+                }
+
+                // Final Grand Total
+                doc.font('Helvetica-Bold').fontSize(10).text(`GRAND TOTAL: ${grandTotal}`, { align: 'right' });
+            } else if (type === 'maintenance') {
+                const groups = [...new Set(data.map(item => `${item[headerMap.asset]} | ${item[headerMap.model]}`))];
+                let grandTotal = 0;
+
+                for (const groupKey of groups) {
+                    const [assetName, assetModel] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.asset] === assetName && item[headerMap.model] === assetModel);
+                    if (groupItems.length === 0) continue;
+
+                    const subtotal = groupItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.cost]) || 0), 0);
+                    grandTotal += subtotal;
+
+                    const table = {
+                        title: `ASSET: ${assetName} (MODEL: ${assetModel})`,
+                        headers: Object.values(headerMap),
+                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                    };
+
+                    // Add subtotal row
+                    const subtotalRow = Object.values(headerMap).map(h => '');
+                    subtotalRow[Object.keys(headerMap).indexOf('title')] = 'TOTAL ASSET';
+                    subtotalRow[Object.keys(headerMap).indexOf('cost')] = String(subtotal);
+                    table.rows.push(subtotalRow);
+
+                    await doc.table(table, {
+                        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                            if (indexRow === table.rows.length - 1) {
+                                doc.font('Helvetica-Bold').fontSize(7);
+                            } else {
+                                doc.font('Helvetica').fontSize(7);
+                            }
+                            return doc;
+                        },
+                    });
+                    doc.moveDown();
+                }
+
+                // Final Grand Total
+                doc.font('Helvetica-Bold').fontSize(10).text(`GRAND TOTAL: ${grandTotal}`, { align: 'right' });
+            } else if (type === 'supply') {
+                const groups = [...new Set(data.map(item => `${item[headerMap.supply]} | ${item[headerMap.sn]}`))];
+
+                for (const groupKey of groups) {
+                    const [name, sn] = groupKey.split(' | ');
+                    const groupItems = data.filter(item => item[headerMap.supply] === name && item[headerMap.sn] === sn);
+                    if (groupItems.length === 0) continue;
+
+                    const totalUsed = groupItems
+                        .filter(item => item[headerMap.action] === 'USE')
+                        .reduce((acc, curr) => acc + Math.abs(parseFloat(curr[headerMap.change]) || 0), 0);
+
+                    const table = {
+                        title: `BARANG: ${name} (PART NO: ${sn})`,
+                        headers: Object.values(headerMap),
+                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                    };
+
+                    // Subtotal row
+                    const subtotalRow = Object.values(headerMap).map(h => '');
+                    subtotalRow[Object.keys(headerMap).indexOf('action')] = 'TOTAL DIPAKAI';
+                    subtotalRow[Object.keys(headerMap).indexOf('change')] = String(totalUsed);
+                    table.rows.push(subtotalRow);
+
+                    const balanceRow = Object.values(headerMap).map(h => '');
+                    const latestStock = groupItems[groupItems.length - 1][headerMap.stock];
+                    balanceRow[Object.keys(headerMap).indexOf('action')] = 'STOK SAAT INI';
+                    balanceRow[Object.keys(headerMap).indexOf('change')] = String(latestStock);
+                    table.rows.push(balanceRow);
+
+                    await doc.table(table, {
+                        prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                        prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                            if (indexRow === table.rows.length - 1) {
+                                doc.font('Helvetica-Bold').fontSize(7);
+                            } else {
+                                doc.font('Helvetica').fontSize(7);
+                            }
+                            return doc;
+                        },
+                    });
+                    doc.moveDown();
+                }
+            } else {
+                const table = {
+                    title: `${type?.toString().toUpperCase()} REPORT`,
+                    headers: Object.values(headerMap),
+                    rows: data.map(item => Object.values(item).map(v => String(v || '')))
+                };
+
+                await doc.table(table, {
+                    prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                    prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                        doc.font('Helvetica').fontSize(7);
+                        return doc;
+                    },
+                });
+            }
+
+            doc.end();
+        } else {
+            // Excel Format
+            const wb = XLSX.utils.book_new();
+
+            // Add Metadata rows
+            const metadata = [
+                ['Tanggal Laporan:', reportDate],
+                ['Dibuat Oleh:', generatedBy],
+                [] // Spacer
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(metadata);
+            XLSX.utils.sheet_add_json(ws, data, { origin: 'A4' });
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Report');
+
+            const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=${filename}.xlsx`);
+            res.send(buffer);
+        }
     } catch (error) {
         next(error);
     }

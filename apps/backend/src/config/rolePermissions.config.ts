@@ -99,6 +99,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'my_assets', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
+        { resource: 'disposal', actions: viewOnly() },
     ],
 
     user: [
@@ -117,8 +118,13 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'maintenance', actions: viewCreateEdit() },
         { resource: 'my_tickets', actions: viewCreateEdit() },
         { resource: 'assigned_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewOnly() },
         { resource: 'my_assets', actions: viewOnly() },
         { resource: 'rental', actions: viewOnly() },
+        { resource: 'reports', actions: viewOnly() },
+        { resource: 'disposal', actions: viewOnly() },
+        { resource: 'assignments', actions: viewOnly() },
+        { resource: 'history', actions: viewOnly() },
     ],
 
     auditor: [

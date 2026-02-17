@@ -1,0 +1,2226 @@
+{
+  "users": [
+    {
+      "useCustomPermissions": false,
+      "isActive": true,
+      "_id": "697a123d2c41e792c8a7d845",
+      "email": "admin@gmail.com",
+      "name": "Admin",
+      "avatarUrl": "",
+      "department": "Information Technology",
+      "designation": "IT OFC",
+      "status": "Active",
+      "role": "manager",
+      "createdAt": "2026-01-28T13:42:21.195Z",
+      "updatedAt": "2026-02-12T09:11:01.670Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "customPermissions": []
+    },
+    {
+      "useCustomPermissions": false,
+      "isActive": true,
+      "_id": "697e08070a9bbe7de66bc974",
+      "username": "superuser",
+      "email": "superuser@example.com",
+      "name": "Super User",
+      "department": "IT",
+      "password": "$2a$10$maSgBQq9Ivj0pWvs24Sb/uXHsnyr2MgiF/JGusqrzSQwPKhvgIXLe",
+      "designation": "System Administrator",
+      "status": "Active",
+      "role": "superuser",
+      "createdAt": "2026-01-31T13:47:51.707Z",
+      "updatedAt": "2026-02-11T15:12:37.517Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "customPermissions": []
+    },
+    {
+      "isActive": true,
+      "_id": "6980423df3fa8886264c7039",
+      "username": "tony",
+      "email": "tony@gmail.com",
+      "name": "tony",
+      "avatarUrl": "",
+      "department": "Audio Visual",
+      "password": "$2a$10$8l2Umn7oPIyfDYv5WMD0Le8e9fGKY7620dMY5yelsyV2FvRU6rfCe",
+      "designation": "IT OFC",
+      "status": "Active",
+      "role": "technician",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "createdAt": "2026-02-02T06:20:45.070Z",
+      "updatedAt": "2026-02-11T15:12:37.517Z",
+      "__v": 0,
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isActive": true,
+      "_id": "698190037b9bb394978ff959",
+      "username": "agung",
+      "email": "agung@gmail.com",
+      "name": "agung",
+      "avatarUrl": "",
+      "department": "Information Technology",
+      "password": "$2a$10$XQXO7v64s8CKWup7KoeTPOCNTS0qPEJg6gLLb2V1rWBkJqFcE53mS",
+      "designation": "IT SPV",
+      "status": "Active",
+      "role": "manager",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "createdAt": "2026-02-03T06:04:51.144Z",
+      "updatedAt": "2026-02-12T09:11:01.633Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "departmentId": "697a11d72c41e792c8a7d81e"
+    },
+    {
+      "isActive": true,
+      "_id": "6982e8aeca416ffe4236ae42",
+      "username": "muaris",
+      "email": "av@baliconventioncenter.com",
+      "name": "muaris",
+      "avatarUrl": "",
+      "department": "Audio Visual",
+      "password": "$2a$10$EYYWa1QExvY2Jg/1ub6BVOHNBWFWg/zuR8QGBdLdtOZ6PGzYisW1C",
+      "designation": "AV SPV",
+      "status": "Offline",
+      "role": "manager",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "createdAt": "2026-02-04T06:35:26.819Z",
+      "updatedAt": "2026-02-11T15:12:37.517Z",
+      "__v": 0,
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698daa0ddd9642a13d5b4992",
+      "username": "ito",
+      "email": "ito@gmail.com",
+      "name": "ITO",
+      "avatarUrl": "",
+      "department": "Information Technology",
+      "password": "$2a$10$/qe0Ef0kq1q9a1e7qCZ/Be6epJcKWFcoMuu/c0DVGPI7CNLJkTBTa",
+      "designation": "IT OFC",
+      "status": "Active",
+      "role": "technician",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "createdAt": "2026-02-12T10:23:09.218Z",
+      "updatedAt": "2026-02-13T08:04:35.921Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "isActive": true,
+      "departmentId": "697a11d72c41e792c8a7d81e"
+    },
+    {
+      "_id": "698ffa446a11df5d94dfa331",
+      "username": "audit",
+      "email": "audit@gmail.com",
+      "name": "audit",
+      "avatarUrl": "",
+      "department": "Accounting",
+      "departmentId": "697a11e42c41e792c8a7d822",
+      "branchId": "698c821fac43896bb8d635ba",
+      "password": "$2a$10$CnBdD2pCZnbjaCGnNGlpruzWfEsPn2VrXUbjsM1q4wThqv5jVtnzO",
+      "designation": "Auditor",
+      "status": "Active",
+      "role": "auditor",
+      "useCustomPermissions": false,
+      "isActive": true,
+      "customPermissions": [],
+      "createdAt": "2026-02-14T04:29:56.937Z",
+      "updatedAt": "2026-02-14T04:29:56.937Z",
+      "__v": 0
+    }
+  ],
+  "assets": [
+    {
+      "vendor": {
+        "name": "Kairos. PT",
+        "contact": "agus",
+        "phone": "0988311",
+        "email": "Agus@gmail.com",
+        "address": "jakarta",
+        "website": "Kairos"
+      },
+      "warranty": {
+        "expirationDate": "2026-06-26T00:00:00.000Z"
+      },
+      "parentAssetId": null,
+      "_id": "697b1c1ad850f3b8a3f030ef",
+      "name": "mixer mickey",
+      "model": "prpofx 12 chanel",
+      "category": "Mixer",
+      "serial": "1`23456",
+      "departmentId": "697a11e42c41e792c8a7d822",
+      "department": "Accounting",
+      "status": "active",
+      "images": [],
+      "purchaseDate": "2026-01-29T00:00:00.000Z",
+      "value": 1100000,
+      "technicalSpecifications": {
+        "Power Supply": "",
+        "Channel": ""
+      },
+      "createdAt": "2026-01-29T08:36:42.589Z",
+      "updatedAt": "2026-02-12T07:20:31.937Z",
+      "__v": 1,
+      "rentalRates": [
+        {
+          "name": "dayli",
+          "rate": 150000,
+          "unit": "day",
+          "notes": "",
+          "_id": "697c452bce4c86526dfa9b57"
+        }
+      ],
+      "locationId": "697d87b264b56082cf383fac",
+      "branchId": "698c80a0fcc4f17c9a902551",
+      "maintenanceHistory": [],
+      "requiresExternalService": false
+    },
+    {
+      "vendor": {
+        "name": "Master Data. PT",
+        "contact": "Ibu Sari",
+        "phone": "081223441",
+        "email": "sari.masterdata@gmail.com",
+        "address": "blablabla",
+        "website": "Masterdata.com"
+      },
+      "warranty": {
+        "expirationDate": "2026-01-05T00:00:00.000Z"
+      },
+      "parentAssetId": null,
+      "_id": "697d7720d5176431dfa6760c",
+      "name": "Macbook Air",
+      "model": "2020 M1",
+      "category": "Laptop",
+      "serial": "123312",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "department": "Information Technology",
+      "status": "assigned",
+      "images": [],
+      "purchaseDate": "2026-01-28T00:00:00.000Z",
+      "value": 1100000,
+      "technicalSpecifications": {
+        "SSD/HDD": "512",
+        "Ram": "16",
+        "CPU": "m1"
+      },
+      "rentalRates": [],
+      "createdAt": "2026-01-31T03:29:36.224Z",
+      "updatedAt": "2026-02-14T04:57:10.039Z",
+      "__v": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "maintenanceHistory": [],
+      "requiresExternalService": false,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "vendor": {
+        "name": "Master Data. PT",
+        "contact": "Ibu Sari",
+        "phone": "081223441",
+        "email": "sari.masterdata@gmail.com",
+        "address": "blablabla",
+        "website": "Masterdata.com"
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "parentAssetId": null,
+      "_id": "6982f6e34ceab1e2f6e067fa",
+      "name": "projector panasonic",
+      "model": "6000lms",
+      "category": "Mixer",
+      "serial": "123456p",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "department": "Audio Visual",
+      "status": "active",
+      "images": [],
+      "purchaseDate": "2026-02-04T00:00:00.000Z",
+      "value": 38000000,
+      "technicalSpecifications": {
+        "lumens": "6000"
+      },
+      "rentalRates": [
+        {
+          "name": "daily",
+          "rate": 2000000,
+          "unit": "day",
+          "notes": "",
+          "_id": "6982f7c44ceab1e2f6e06820"
+        }
+      ],
+      "maintenanceHistory": [],
+      "createdAt": "2026-02-04T07:36:03.244Z",
+      "updatedAt": "2026-02-13T12:47:33.464Z",
+      "__v": 0,
+      "requiresExternalService": false,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "vendor": {
+        "name": "Kairos. PT",
+        "contact": "agus",
+        "phone": "0988311",
+        "email": "Agus@gmail.com",
+        "address": "jakarta",
+        "website": "Kairos"
+      },
+      "warranty": {
+        "expirationDate": "2026-01-05T00:00:00.000Z"
+      },
+      "parentAssetId": null,
+      "_id": "698ff0af8f3137990064a802",
+      "name": "Drapper Screen 4x6",
+      "model": "Screen 4x6",
+      "category": "Screen",
+      "serial": "12341241",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "branchId": "698c821fac43896bb8d635ba",
+      "department": "Audio Visual",
+      "status": "disposed",
+      "requiresExternalService": false,
+      "images": [],
+      "purchaseDate": "2025-12-01T00:00:00.000Z",
+      "value": 200000,
+      "technicalSpecifications": {},
+      "rentalRates": [],
+      "maintenanceHistory": [],
+      "createdAt": "2026-02-14T03:49:03.627Z",
+      "updatedAt": "2026-02-14T04:30:24.069Z",
+      "__v": 0
+    }
+  ],
+  "assetTemplates": [],
+  "branches": [
+    {
+      "_id": "698c80a0fcc4f17c9a902551",
+      "name": "Jakarta Sales Office",
+      "code": "JSO",
+      "address": "Jalan mayapada",
+      "isHeadOffice": false,
+      "status": "Active",
+      "createdAt": "2026-02-11T13:14:08.388Z",
+      "updatedAt": "2026-02-11T13:14:08.388Z",
+      "__v": 0
+    },
+    {
+      "_id": "698c80c3fcc4f17c9a90255b",
+      "name": "Bali Nusa Dua Hotel",
+      "code": "BNDH",
+      "address": "ITDC",
+      "isHeadOffice": false,
+      "status": "Active",
+      "createdAt": "2026-02-11T13:14:43.880Z",
+      "updatedAt": "2026-02-11T13:14:43.880Z",
+      "__v": 0
+    },
+    {
+      "_id": "698c821fac43896bb8d635ba",
+      "name": "Bali Nusa Dua Convention Center",
+      "code": "BNDCC",
+      "address": "ITDC",
+      "isHeadOffice": true,
+      "status": "Active",
+      "createdAt": "2026-02-11T13:20:31.487Z",
+      "updatedAt": "2026-02-12T05:29:46.631Z",
+      "__v": 0
+    }
+  ],
+  "categories": [
+    {
+      "technicalSpecsTemplate": {},
+      "_id": "697a12862c41e792c8a7d854",
+      "name": "PC",
+      "code": "PC",
+      "authorizedDepartments": [
+        "697a11d72c41e792c8a7d81e"
+      ],
+      "icon": "PC",
+      "createdAt": "2026-01-28T13:43:34.243Z",
+      "updatedAt": "2026-01-28T13:43:34.243Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697a13e9f7684f1fb8c5786a",
+      "name": "Laptop",
+      "code": "LAPTOP",
+      "authorizedDepartments": [
+        "697a11d72c41e792c8a7d81e"
+      ],
+      "icon": "lp",
+      "createdAt": "2026-01-28T13:49:29.930Z",
+      "updatedAt": "2026-01-29T05:47:53.155Z",
+      "__v": 0,
+      "technicalSpecsTemplate": {
+        "SSD/HDD": "",
+        "Ram": "",
+        "CPU": ""
+      },
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697a146ef7684f1fb8c57873",
+      "name": "Mixer",
+      "code": "MIXER",
+      "authorizedDepartments": [
+        "697a11c82c41e792c8a7d81a"
+      ],
+      "icon": "mix",
+      "createdAt": "2026-01-28T13:51:42.097Z",
+      "updatedAt": "2026-01-29T05:48:11.532Z",
+      "__v": 0,
+      "technicalSpecsTemplate": {
+        "Power Supply": "",
+        "Channel": ""
+      },
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "6982f6644ceab1e2f6e067bc",
+      "name": "projector",
+      "code": "PRJT",
+      "authorizedDepartments": [
+        "697a11c82c41e792c8a7d81a"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "createdAt": "2026-02-04T07:33:56.114Z",
+      "updatedAt": "2026-02-04T07:33:56.114Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698fed5b46ec7770383837c7",
+      "name": "Screen",
+      "code": "SCRN",
+      "authorizedDepartments": [
+        "697a11c82c41e792c8a7d81a"
+      ],
+      "icon": "Scrn",
+      "technicalSpecsTemplate": {},
+      "branchId": "698c821fac43896bb8d635ba",
+      "createdAt": "2026-02-14T03:34:51.864Z",
+      "updatedAt": "2026-02-14T03:34:51.864Z",
+      "__v": 0
+    }
+  ],
+  "departments": [
+    {
+      "_id": "697a11172c41e792c8a7d802",
+      "name": "ENGINEERING",
+      "code": "ENG",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:37:27.044Z",
+      "updatedAt": "2026-01-28T13:37:27.044Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a11c82c41e792c8a7d81a",
+      "name": "Audio Visual",
+      "code": "AV",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:40:24.746Z",
+      "updatedAt": "2026-01-28T13:40:24.746Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a11d72c41e792c8a7d81e",
+      "name": "Information Technology",
+      "code": "IT",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:40:39.278Z",
+      "updatedAt": "2026-01-28T13:40:39.278Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a11e42c41e792c8a7d822",
+      "name": "Accounting",
+      "code": "ACC",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:40:53.001Z",
+      "updatedAt": "2026-01-28T13:40:53.001Z",
+      "__v": 0
+    }
+  ],
+  "jobTitles": [
+    {
+      "_id": "697a11f52c41e792c8a7d82a",
+      "title": "AV Tech",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:41:09.324Z",
+      "updatedAt": "2026-01-28T13:41:09.324Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a11fe2c41e792c8a7d830",
+      "title": "AV SPV",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:41:18.830Z",
+      "updatedAt": "2026-01-28T13:41:18.830Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a120a2c41e792c8a7d836",
+      "title": "IT SPV",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:41:30.617Z",
+      "updatedAt": "2026-01-28T13:41:30.617Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a12172c41e792c8a7d83c",
+      "title": "IT OFC",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:41:43.809Z",
+      "updatedAt": "2026-01-28T13:41:43.809Z",
+      "__v": 0
+    },
+    {
+      "_id": "698ffa216a11df5d94dfa325",
+      "title": "Auditor",
+      "departmentId": "697a11e42c41e792c8a7d822",
+      "status": "Active",
+      "createdAt": "2026-02-14T04:29:21.944Z",
+      "updatedAt": "2026-02-14T04:29:21.944Z",
+      "__v": 0
+    }
+  ],
+  "locations": [
+    {
+      "isWarehouse": false,
+      "_id": "697a0c80351df04168da5b3d",
+      "name": "BNDCC 1",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:17:52.805Z",
+      "updatedAt": "2026-01-28T13:18:42.482Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697a0c8a351df04168da5b45",
+      "name": "BNDCC 2",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "Gedung",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:18:02.327Z",
+      "updatedAt": "2026-01-28T13:18:02.327Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697a0c97351df04168da5b4d",
+      "name": "GF",
+      "type": "Floor",
+      "parentId": "697a0c80351df04168da5b3d",
+      "capacity": 0,
+      "description": "Ground Floor",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:18:15.731Z",
+      "updatedAt": "2026-01-28T13:18:15.731Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697a0cc0351df04168da5b64",
+      "name": "MZ",
+      "type": "Floor",
+      "parentId": "697a0c80351df04168da5b3d",
+      "capacity": 0,
+      "description": "Mezzanine",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:18:56.724Z",
+      "updatedAt": "2026-01-28T13:18:56.724Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697a0cd5351df04168da5b6c",
+      "name": "1st",
+      "type": "Floor",
+      "parentId": "697a0c80351df04168da5b3d",
+      "capacity": 0,
+      "description": "1st floor",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:19:17.515Z",
+      "updatedAt": "2026-02-17T04:19:20.026Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "departmentId": null,
+      "isWarehouse": false
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697a0ceb351df04168da5b74",
+      "name": "Office Accounting",
+      "type": "Office",
+      "parentId": "697a0cc0351df04168da5b64",
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:19:39.069Z",
+      "updatedAt": "2026-01-28T13:19:39.069Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697a0d07351df04168da5b7c",
+      "name": "Panel DP MZ",
+      "type": "Panel Room",
+      "parentId": "697a0cc0351df04168da5b64",
+      "capacity": 0,
+      "description": "PAnel room SDP MZ",
+      "status": "Active",
+      "createdAt": "2026-01-28T13:20:07.938Z",
+      "updatedAt": "2026-01-28T13:20:07.938Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "697d87b264b56082cf383fac",
+      "name": "IT Room",
+      "type": "Office",
+      "parentId": "697a0c97351df04168da5b4d",
+      "capacity": 0,
+      "description": "Ruang Kantor IT",
+      "status": "Active",
+      "createdAt": "2026-01-31T04:40:18.343Z",
+      "updatedAt": "2026-01-31T04:40:18.343Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "isWarehouse": false,
+      "_id": "698c3458327d7560d5adf61c",
+      "name": "BNDH",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "Bali Nusa Dua Hotel",
+      "status": "Active",
+      "createdAt": "2026-02-11T07:48:40.045Z",
+      "updatedAt": "2026-02-11T07:48:40.045Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "6993e4d9ed371bebc72381ad",
+      "name": "GudanG IT",
+      "type": "Warehouse",
+      "parentId": "697a0c97351df04168da5b4d",
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "branchId": "698c821fac43896bb8d635ba",
+      "isWarehouse": true,
+      "createdAt": "2026-02-17T03:47:37.830Z",
+      "updatedAt": "2026-02-17T04:03:11.904Z",
+      "__v": 0,
+      "departmentId": "697a11d72c41e792c8a7d81e"
+    },
+    {
+      "_id": "6993e4f8ed371bebc72381bc",
+      "name": "GUDANG AV",
+      "type": "Warehouse",
+      "parentId": "697a0c97351df04168da5b4d",
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "branchId": "698c821fac43896bb8d635ba",
+      "isWarehouse": true,
+      "createdAt": "2026-02-17T03:48:08.960Z",
+      "updatedAt": "2026-02-17T04:03:00.511Z",
+      "__v": 0,
+      "departmentId": "697a11c82c41e792c8a7d81a"
+    },
+    {
+      "_id": "6993ee17ba980e296b653475",
+      "name": "Rak IT",
+      "type": "Rack",
+      "parentId": "697a0d07351df04168da5b7c",
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "branchId": "698c821fac43896bb8d635ba",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "isWarehouse": false,
+      "createdAt": "2026-02-17T04:27:03.780Z",
+      "updatedAt": "2026-02-17T04:27:03.780Z",
+      "__v": 0
+    }
+  ],
+  "locationTypes": [
+    {
+      "_id": "697a0a58e426e937a9934430",
+      "name": "Building",
+      "description": "Gedung",
+      "level": 1,
+      "createdAt": "2026-01-28T13:08:40.873Z",
+      "updatedAt": "2026-01-28T13:08:40.873Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0a66e426e937a9934433",
+      "name": "Floor",
+      "description": "Lantai",
+      "level": 2,
+      "createdAt": "2026-01-28T13:08:54.671Z",
+      "updatedAt": "2026-01-28T13:08:54.671Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0a71e426e937a9934436",
+      "name": "Room",
+      "description": "Ruangan",
+      "level": 3,
+      "createdAt": "2026-01-28T13:09:05.118Z",
+      "updatedAt": "2026-01-28T13:09:05.118Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0a7ee426e937a9934439",
+      "name": "Office",
+      "description": "Kantor",
+      "level": 4,
+      "createdAt": "2026-01-28T13:09:18.442Z",
+      "updatedAt": "2026-01-28T13:09:18.442Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0a90e426e937a993443c",
+      "name": "Warehouse",
+      "description": "Gudang",
+      "level": 5,
+      "createdAt": "2026-01-28T13:09:36.737Z",
+      "updatedAt": "2026-01-28T13:09:36.737Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0aa1e426e937a993443f",
+      "name": "Panel Room",
+      "description": "Ruangan Panel",
+      "level": 6,
+      "createdAt": "2026-01-28T13:09:53.691Z",
+      "updatedAt": "2026-01-28T13:09:53.691Z",
+      "__v": 0
+    },
+    {
+      "_id": "697a0d3d351df04168da5b90",
+      "name": "Rack",
+      "description": "Panel Rak",
+      "level": 7,
+      "createdAt": "2026-01-28T13:21:01.191Z",
+      "updatedAt": "2026-01-28T13:21:01.191Z",
+      "__v": 0
+    }
+  ],
+  "supplies": [
+    {
+      "_id": "697c3c05051c6c0d93b03b43",
+      "name": "Baterai AAA",
+      "partNumber": "122341",
+      "category": "Battery",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "description": "Baterai Untuk MIC",
+      "quantity": 0,
+      "minimumStock": 2,
+      "locationId": "697a0ceb351df04168da5b74",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 16000,
+      "images": [],
+      "createdAt": "2026-01-30T05:05:09.860Z",
+      "updatedAt": "2026-02-16T04:49:43.522Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697c673f6acf3f75112f550d",
+      "name": "Ram",
+      "partNumber": "3213",
+      "category": "RAM",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "description": "Ram Untuk PC",
+      "quantity": 1,
+      "minimumStock": 1,
+      "locationId": "697a0d60351df04168da5b9e",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 500000,
+      "images": [],
+      "createdAt": "2026-01-30T08:09:35.928Z",
+      "updatedAt": "2026-02-11T15:12:37.523Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "6983056c89d2069391a904b5",
+      "name": "LCD macbook 14",
+      "partNumber": "123412412",
+      "category": "LCD",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "description": "",
+      "quantity": 0,
+      "minimumStock": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 14000000,
+      "images": [],
+      "createdAt": "2026-02-04T08:38:04.176Z",
+      "updatedAt": "2026-02-11T15:12:37.523Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "69895d1339b0a136d26e36d3",
+      "name": "Pledge",
+      "partNumber": "PLD1234",
+      "category": "Alat pembersih",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11c82c41e792c8a7d81a",
+      "description": "alat pembersih serba guna",
+      "quantity": 8,
+      "minimumStock": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "vendorId": "697af3e7d850f3b8a3f0302e",
+      "compatibleModels": [],
+      "cost": 10000,
+      "images": [],
+      "createdAt": "2026-02-09T04:05:39.563Z",
+      "updatedAt": "2026-02-11T15:12:37.523Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "6989795f24168c23fe5d6323",
+      "name": "keyboar logitech",
+      "partNumber": "12344",
+      "category": "keyboard",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "description": "keyboard",
+      "quantity": 1,
+      "minimumStock": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 10000,
+      "images": [],
+      "createdAt": "2026-02-09T06:06:23.711Z",
+      "updatedAt": "2026-02-11T15:12:37.523Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698ee850d53bec88764fdfd8",
+      "name": "Keyboard Mac",
+      "partNumber": "321344",
+      "category": "keyboard",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "branchId": "698c821fac43896bb8d635ba",
+      "description": "Ini Keyboard untuk macbook",
+      "quantity": 0,
+      "minimumStock": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 200000,
+      "images": [],
+      "createdAt": "2026-02-13T09:01:04.100Z",
+      "updatedAt": "2026-02-13T09:01:24.992Z",
+      "__v": 0
+    },
+    {
+      "_id": "698ef99dfde623883a19a2af",
+      "name": "Hardisk Macbook",
+      "partNumber": "45667",
+      "category": "Harddisk",
+      "unit": "Pcs",
+      "unitId": "697c3ba9051c6c0d93b03b37",
+      "departmentId": "697a11d72c41e792c8a7d81e",
+      "branchId": "698c821fac43896bb8d635ba",
+      "description": "",
+      "quantity": 0,
+      "minimumStock": 1,
+      "locationId": "697d87b264b56082cf383fac",
+      "vendorId": "697ae355d850f3b8a3f02f5e",
+      "compatibleModels": [],
+      "cost": 2500000,
+      "images": [],
+      "createdAt": "2026-02-13T10:14:53.610Z",
+      "updatedAt": "2026-02-13T10:27:40.440Z",
+      "__v": 0
+    }
+  ],
+  "units": [
+    {
+      "_id": "697c3ba9051c6c0d93b03b37",
+      "name": "PCS",
+      "symbol": "PCS",
+      "description": "Piecis",
+      "status": "Active",
+      "createdAt": "2026-01-30T05:03:37.540Z",
+      "updatedAt": "2026-01-30T05:03:37.540Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697c3bba051c6c0d93b03b3a",
+      "name": "Box",
+      "symbol": "Box",
+      "description": "BOX",
+      "status": "Active",
+      "createdAt": "2026-01-30T05:03:54.886Z",
+      "updatedAt": "2026-01-30T05:03:54.886Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    }
+  ],
+  "vendors": [
+    {
+      "_id": "697ae355d850f3b8a3f02f5e",
+      "name": "Master Data. PT",
+      "contactName": "Ibu Sari",
+      "email": "sari.masterdata@gmail.com",
+      "phone": "081223441",
+      "address": "blablabla",
+      "website": "Masterdata.com",
+      "tags": [],
+      "status": "active",
+      "createdAt": "2026-01-29T04:34:29.289Z",
+      "updatedAt": "2026-01-29T05:46:17.960Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697af3e7d850f3b8a3f0302e",
+      "name": "Kairos. PT",
+      "contactName": "agus",
+      "email": "Agus@gmail.com",
+      "phone": "0988311",
+      "address": "jakarta",
+      "website": "Kairos",
+      "tags": [],
+      "status": "active",
+      "createdAt": "2026-01-29T05:45:11.332Z",
+      "updatedAt": "2026-01-29T05:45:11.332Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    }
+  ],
+  "maintenanceRecords": [
+    {
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "_id": "69803ce77af6924421bce331",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti Baterai",
+      "description": "Baterai minta di ganti",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-02T05:57:59.406Z",
+      "serviceProviderType": "Internal",
+      "type": "Repair",
+      "status": "Closed",
+      "visualProof": [],
+      "createdAt": "2026-02-02T05:57:59.413Z",
+      "updatedAt": "2026-02-09T03:19:58.327Z",
+      "ticketNumber": "MT-20260202-001",
+      "__v": 0,
+      "processedAt": "2026-02-02T06:21:01.242Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "6980423df3fa8886264c7039",
+      "cost": 0,
+      "branchId": "698c821fac43896bb8d635ba",
+      "suppliesUsed": [],
+      "notes": [],
+      "history": []
+    },
+    {
+      "_id": "69818bf226038a6a8bfb34b1",
+      "asset": "697b1c1ad850f3b8a3f030ef",
+      "title": "mixer protect",
+      "description": "Mixer protect suara pakpok",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-03T05:47:30.531Z",
+      "serviceProviderType": "Vendor",
+      "type": "Repair",
+      "status": "Closed",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T05:47:30.531Z",
+          "notes": "Ticket created in draft",
+          "_id": "69818bf226038a6a8bfb34b2"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T05:47:40.578Z",
+          "notes": "Ticket sent to department",
+          "_id": "69818bfc26038a6a8bfb34c6"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T07:39:50.107Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "6981a64617aa44bc3ea19cba"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T05:46:35.996Z",
+          "notes": "Technician started work",
+          "_id": "6982dd3b56842989368eba76"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T08:31:45.146Z",
+          "notes": "Removed supply: Ram x2",
+          "_id": "698303f189d2069391a902a6"
+        },
+        {
+          "status": "External Service",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T08:32:04.679Z",
+          "notes": "Marked for External Service",
+          "_id": "6983040489d2069391a902c5"
+        }
+      ],
+      "suppliesUsed": [],
+      "createdAt": "2026-02-03T05:47:30.544Z",
+      "updatedAt": "2026-02-09T05:29:28.552Z",
+      "ticketNumber": "MT-20260203-001",
+      "__v": 6,
+      "processedAt": "2026-02-03T07:39:50.107Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "6980423df3fa8886264c7039",
+      "cost": 200000,
+      "notes": [],
+      "pendingNote": "Marked for External Service",
+      "expectedCompletionDate": "2026-02-09T00:00:00.000Z",
+      "vendor": "697af3e7d850f3b8a3f0302e",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698190577b9bb394978ff9ee",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti Monitor",
+      "description": "Ganti screen blank ",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-03T06:06:15.244Z",
+      "serviceProviderType": "Internal",
+      "type": "Routine",
+      "status": "Closed",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T06:06:15.244Z",
+          "notes": "Ticket created in draft",
+          "_id": "698190577b9bb394978ff9ef"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T06:06:20.761Z",
+          "notes": "Ticket sent to department",
+          "_id": "6981905c7b9bb394978ffa05"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-03T07:40:02.238Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Routine",
+          "_id": "6981a65217aa44bc3ea19cd7"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T05:45:54.183Z",
+          "notes": "Technician started work",
+          "_id": "6982dd1256842989368eb978"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T06:29:26.276Z",
+          "notes": "Removed supply: Baterai AAA x1",
+          "_id": "6982e746f0f4a95d00771a91"
+        },
+        {
+          "status": "Done",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-04T08:41:47.422Z",
+          "notes": "Maintenance Completed",
+          "_id": "6983064b89d2069391a90605"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "6983056c89d2069391a904b5",
+          "quantity": 1,
+          "name": "LCD macbook 14",
+          "cost": 14000000,
+          "_id": "6983063389d2069391a905b9"
+        }
+      ],
+      "createdAt": "2026-02-03T06:06:15.253Z",
+      "updatedAt": "2026-02-09T03:19:49.580Z",
+      "ticketNumber": "MT-20260203-002",
+      "__v": 8,
+      "processedAt": "2026-02-03T07:40:02.238Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "698190037b9bb394978ff959",
+      "cost": 14000000,
+      "notes": [
+        {
+          "content": "LCd Sebelum nya terbakar",
+          "addedBy": "697e08070a9bbe7de66bc974",
+          "createdAt": "2026-02-04T08:41:39.862Z",
+          "_id": "6983064389d2069391a905dd"
+        }
+      ],
+      "pendingNote": "Maintenance Completed",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "69896f22f42dc6f2695868f9",
+      "asset": "697b1c1ad850f3b8a3f030ef",
+      "title": "General Cleaning",
+      "description": "General Cleaning",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-09T05:22:42.667Z",
+      "serviceProviderType": "Internal",
+      "type": "Maintenance",
+      "status": "Closed",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:22:42.667Z",
+          "notes": "Ticket created in draft",
+          "_id": "69896f22f42dc6f2695868fa"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:22:48.260Z",
+          "notes": "Ticket sent to department",
+          "_id": "69896f28f42dc6f26958691f"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:23:01.309Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "69896f35f42dc6f26958697e"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:23:13.415Z",
+          "notes": "Technician started work",
+          "_id": "69896f41f42dc6f269586a10"
+        },
+        {
+          "status": "Done",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:23:52.776Z",
+          "notes": "Maintenance Completed",
+          "_id": "69896f68f42dc6f269586bbf"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "69895d1339b0a136d26e36d3",
+          "quantity": 1,
+          "name": "Pledge",
+          "cost": 10000,
+          "_id": "69896f4af42dc6f269586a2a"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-02-09T05:22:42.676Z",
+      "updatedAt": "2026-02-09T05:24:16.119Z",
+      "ticketNumber": "MT-20260209-001",
+      "__v": 5,
+      "processedAt": "2026-02-09T05:23:01.309Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "6980423df3fa8886264c7039",
+      "cost": 10000,
+      "pendingNote": "Maintenance Completed",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698970a0f42dc6f2695872b5",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti ram",
+      "description": "Ram Rusak ",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-09T05:29:04.785Z",
+      "serviceProviderType": "Internal",
+      "type": "Routine",
+      "status": "Closed",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:29:04.785Z",
+          "notes": "Ticket created in draft",
+          "_id": "698970a0f42dc6f2695872b6"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:29:09.844Z",
+          "notes": "Ticket sent to department",
+          "_id": "698970a5f42dc6f2695872e0"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:29:43.163Z",
+          "notes": "Technician started work",
+          "_id": "698970c7f42dc6f26958754c"
+        },
+        {
+          "status": "Done",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T05:44:54.413Z",
+          "notes": "Maintenance Completed",
+          "_id": "69897456bb309d27ab2605b0"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "697c673f6acf3f75112f550d",
+          "quantity": 1,
+          "name": "Ram",
+          "cost": 500000,
+          "_id": "6989736cf42dc6f2695877e7"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-02-09T05:29:04.791Z",
+      "updatedAt": "2026-02-09T05:45:29.133Z",
+      "ticketNumber": "MT-20260209-002",
+      "__v": 4,
+      "cost": 500000,
+      "pendingNote": "Maintenance Completed",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698978ce24168c23fe5d612e",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "ganti keyboard",
+      "description": "keyboard rusak",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-09T06:03:58.415Z",
+      "serviceProviderType": "Vendor",
+      "type": "Maintenance",
+      "status": "Closed",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T06:03:58.415Z",
+          "notes": "Ticket created in draft",
+          "_id": "698978ce24168c23fe5d612f"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T06:04:49.780Z",
+          "notes": "Ticket sent to department",
+          "_id": "6989790124168c23fe5d61cf"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T06:05:04.639Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "6989791024168c23fe5d624e"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T06:05:15.535Z",
+          "notes": "Technician started work",
+          "_id": "6989791b24168c23fe5d62ff"
+        },
+        {
+          "status": "External Service",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-09T06:06:58.017Z",
+          "notes": "Marked for External Service",
+          "_id": "6989798224168c23fe5d63de"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "6989795f24168c23fe5d6323",
+          "quantity": 1,
+          "name": "keyboar logitech",
+          "cost": 10000,
+          "_id": "6989796a24168c23fe5d63bd"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-02-09T06:03:58.423Z",
+      "updatedAt": "2026-02-09T06:07:59.442Z",
+      "ticketNumber": "MT-20260209-003",
+      "__v": 5,
+      "processedAt": "2026-02-09T06:05:04.639Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "698190037b9bb394978ff959",
+      "cost": 10000,
+      "pendingNote": "Marked for External Service",
+      "expectedCompletionDate": null,
+      "vendor": "697ae355d850f3b8a3f02f5e",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698b2d800dd59f34a42b8aa7",
+      "asset": "697b1c1ad850f3b8a3f030ef",
+      "title": "perawatan rutin",
+      "description": "Perawatan Rutin Untuk Mixer mickey",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-10T13:07:12.699Z",
+      "serviceProviderType": "Internal",
+      "type": "Maintenance",
+      "status": "Closed",
+      "beforePhotos": [
+        "uploads/maintenance/beforePhotos-Screenshot_2026-02-11_at_13.36.29-1770789101459-937713705.png"
+      ],
+      "afterPhotos": [
+        "uploads/maintenance/afterPhotos-Screenshot_2026-02-11_at_13.36.29-1770789109057-366854490.png"
+      ],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-10T13:07:12.699Z",
+          "notes": "Ticket created in draft",
+          "_id": "698b2d800dd59f34a42b8aa8"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-10T13:07:16.775Z",
+          "notes": "Ticket sent to department",
+          "_id": "698b2d840dd59f34a42b8adf"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-10T13:07:33.775Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "698b2d950dd59f34a42b8bde"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-11T04:41:30.009Z",
+          "notes": "Technician started work",
+          "_id": "698c087a057d9ef91dee3df9"
+        },
+        {
+          "status": "Done",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-11T05:52:08.838Z",
+          "notes": "Maintenance Completed",
+          "_id": "698c19089b8caaab892f3722"
+        }
+      ],
+      "suppliesUsed": [],
+      "notes": [
+        {
+          "content": "Pembersihan",
+          "addedBy": "6980423df3fa8886264c7039",
+          "createdAt": "2026-02-11T05:52:02.238Z",
+          "_id": "698c19029b8caaab892f3702"
+        }
+      ],
+      "createdAt": "2026-02-10T13:07:12.707Z",
+      "updatedAt": "2026-02-11T07:06:12.639Z",
+      "ticketNumber": "MT-20260210-001",
+      "__v": 7,
+      "processedAt": "2026-02-10T13:07:33.775Z",
+      "processedBy": "697e08070a9bbe7de66bc974",
+      "technician": "6980423df3fa8886264c7039",
+      "pendingNote": "Maintenance Completed",
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "698d87c7960a907926b42bbd",
+      "asset": "6982f6e34ceab1e2f6e067fa",
+      "title": "Maintenance rutin",
+      "description": "mio",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "requestedAt": "2026-02-12T07:56:55.700Z",
+      "serviceProviderType": "Internal",
+      "type": "Routine",
+      "status": "Closed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-12T07:56:55.700Z",
+          "notes": "Ticket created in draft",
+          "_id": "698d87c7960a907926b42bbe"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-12T07:59:57.070Z",
+          "notes": "Technician started work",
+          "_id": "698d887d960a907926b43310"
+        },
+        {
+          "status": "Done",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-12T07:59:59.970Z",
+          "notes": "Maintenance Completed",
+          "_id": "698d887f960a907926b43323"
+        }
+      ],
+      "suppliesUsed": [],
+      "notes": [],
+      "createdAt": "2026-02-12T07:56:55.711Z",
+      "updatedAt": "2026-02-12T08:00:03.123Z",
+      "ticketNumber": "MT-20260212-001",
+      "__v": 2,
+      "pendingNote": "Maintenance Completed"
+    },
+    {
+      "_id": "698d87d746b241cbf26eb9b7",
+      "ticketNumber": "TEST-1770883031235",
+      "asset": "6982f6e34ceab1e2f6e067fa",
+      "title": "TEST TICKET FOR MUARIS (AV)",
+      "description": "This is a test ticket to verify AV Manager visibility.",
+      "requestedBy": "6982e8aeca416ffe4236ae42",
+      "requestedAt": "2026-02-12T07:57:11.235Z",
+      "serviceProviderType": "Internal",
+      "type": "Repair",
+      "assignedDepartment": "697a11c82c41e792c8a7d81a",
+      "status": "Closed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Sent",
+          "changedBy": "6982e8aeca416ffe4236ae42",
+          "changedAt": "2026-02-12T07:57:11.235Z",
+          "notes": "Test ticket generated",
+          "_id": "698d87d746b241cbf26eb9b8"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "6982e8aeca416ffe4236ae42",
+          "changedAt": "2026-02-12T07:57:36.220Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Repair",
+          "_id": "698d87f0960a907926b42c93"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-12T07:58:37.133Z",
+          "notes": "Technician started work",
+          "_id": "698d882d960a907926b42dde"
+        },
+        {
+          "status": "Done",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-12T07:58:41.573Z",
+          "notes": "Maintenance Completed",
+          "_id": "698d8831960a907926b42df5"
+        }
+      ],
+      "suppliesUsed": [],
+      "notes": [],
+      "createdAt": "2026-02-12T07:57:11.239Z",
+      "updatedAt": "2026-02-12T07:59:19.298Z",
+      "__v": 3,
+      "processedAt": "2026-02-12T07:57:36.220Z",
+      "processedBy": "6982e8aeca416ffe4236ae42",
+      "technician": "6980423df3fa8886264c7039",
+      "pendingNote": "Maintenance Completed"
+    },
+    {
+      "_id": "698da07e46ee444fc5ce2ddf",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti Keyboard",
+      "description": "Keyboard mencet sendiri",
+      "requestedBy": "6980423df3fa8886264c7039",
+      "requestedAt": "2026-02-12T09:42:22.188Z",
+      "serviceProviderType": "Internal",
+      "type": "Routine",
+      "status": "Closed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-12T09:42:22.188Z",
+          "notes": "Ticket created in draft",
+          "_id": "698da07e46ee444fc5ce2de0"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-12T09:42:28.189Z",
+          "notes": "Ticket sent to department",
+          "_id": "698da08446ee444fc5ce2df9"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "697e08070a9bbe7de66bc974",
+          "changedAt": "2026-02-12T10:21:51.079Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Routine",
+          "_id": "698da9bfdd9642a13d5b4814"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "6982e8aeca416ffe4236ae42",
+          "changedAt": "2026-02-13T07:14:51.320Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Routine",
+          "_id": "698ecf6b14c907dae87a754b"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T07:15:13.080Z",
+          "notes": "Technician started work",
+          "_id": "698ecf8114c907dae87a75dd"
+        },
+        {
+          "status": "Done",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T09:01:56.340Z",
+          "notes": "Maintenance Completed",
+          "_id": "698ee884d53bec88764fe0d5"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "698ee850d53bec88764fdfd8",
+          "quantity": 1,
+          "name": "Keyboard Mac",
+          "cost": 200000,
+          "_id": "698ee864d53bec88764fe089"
+        }
+      ],
+      "notes": [
+        {
+          "content": "Keyboard sebelumnya sudah tidak bisa di pakai",
+          "addedBy": "698daa0ddd9642a13d5b4992",
+          "createdAt": "2026-02-13T09:01:50.375Z",
+          "_id": "698ee87ed53bec88764fe0ad"
+        }
+      ],
+      "createdAt": "2026-02-12T09:42:22.233Z",
+      "updatedAt": "2026-02-13T09:02:25.578Z",
+      "ticketNumber": "MT-20260212-003",
+      "__v": 7,
+      "processedAt": "2026-02-13T07:14:51.320Z",
+      "processedBy": "6982e8aeca416ffe4236ae42",
+      "technician": "698daa0ddd9642a13d5b4992",
+      "cost": 200000,
+      "pendingNote": "Maintenance Completed"
+    },
+    {
+      "_id": "698ef927fde623883a199fbe",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti hardisk",
+      "description": "Hardisk bunyi cetak cetak",
+      "requestedBy": "6980423df3fa8886264c7039",
+      "requestedAt": "2026-02-13T10:12:55.616Z",
+      "serviceProviderType": "Internal",
+      "type": "Repair",
+      "status": "Closed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-13T10:12:55.616Z",
+          "notes": "Ticket created in draft",
+          "_id": "698ef927fde623883a199fbf"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-13T10:13:03.111Z",
+          "notes": "Ticket sent to department",
+          "_id": "698ef92ffde623883a199fe2"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "698190037b9bb394978ff959",
+          "changedAt": "2026-02-13T10:13:28.261Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Repair",
+          "_id": "698ef948fde623883a19a153"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T10:13:49.645Z",
+          "notes": "Technician started work",
+          "_id": "698ef95dfde623883a19a282"
+        },
+        {
+          "status": "Done",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T10:15:27.730Z",
+          "notes": "Maintenance Completed",
+          "_id": "698ef9bffde623883a19a3b6"
+        }
+      ],
+      "suppliesUsed": [],
+      "notes": [
+        {
+          "content": "Ganti Hardisk baru",
+          "addedBy": "698daa0ddd9642a13d5b4992",
+          "createdAt": "2026-02-13T10:15:19.005Z",
+          "_id": "698ef9b7fde623883a19a396"
+        }
+      ],
+      "createdAt": "2026-02-13T10:12:55.630Z",
+      "updatedAt": "2026-02-13T10:18:16.070Z",
+      "ticketNumber": "MT-20260213-001",
+      "__v": 5,
+      "processedAt": "2026-02-13T10:13:28.260Z",
+      "processedBy": "698190037b9bb394978ff959",
+      "technician": "698daa0ddd9642a13d5b4992",
+      "pendingNote": "Maintenance Completed"
+    },
+    {
+      "_id": "698efc05fde623883a19ae7e",
+      "asset": "697d7720d5176431dfa6760c",
+      "title": "Ganti casing",
+      "description": "casing patah",
+      "requestedBy": "6980423df3fa8886264c7039",
+      "requestedAt": "2026-02-13T10:25:09.469Z",
+      "serviceProviderType": "Internal",
+      "type": "Maintenance",
+      "status": "Closed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-13T10:25:09.469Z",
+          "notes": "Ticket created in draft",
+          "_id": "698efc05fde623883a19ae7f"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "6980423df3fa8886264c7039",
+          "changedAt": "2026-02-13T10:25:12.418Z",
+          "notes": "Ticket sent to department",
+          "_id": "698efc08fde623883a19aea8"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "698190037b9bb394978ff959",
+          "changedAt": "2026-02-13T10:25:46.626Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "698efc2afde623883a19afcb"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T10:26:08.139Z",
+          "notes": "Technician started work",
+          "_id": "698efc40fde623883a19b100"
+        },
+        {
+          "status": "Done",
+          "changedBy": "698daa0ddd9642a13d5b4992",
+          "changedAt": "2026-02-13T10:27:46.701Z",
+          "notes": "Maintenance Completed",
+          "_id": "698efca2fde623883a19b36f"
+        }
+      ],
+      "suppliesUsed": [
+        {
+          "supply": "698ef99dfde623883a19a2af",
+          "quantity": 1,
+          "name": "Hardisk Macbook",
+          "cost": 2500000,
+          "_id": "698efc9cfde623883a19b34f"
+        }
+      ],
+      "notes": [],
+      "createdAt": "2026-02-13T10:25:09.476Z",
+      "updatedAt": "2026-02-13T10:59:06.780Z",
+      "ticketNumber": "MT-20260213-002",
+      "__v": 5,
+      "processedAt": "2026-02-13T10:25:46.625Z",
+      "processedBy": "698190037b9bb394978ff959",
+      "technician": "698daa0ddd9642a13d5b4992",
+      "cost": 2500000,
+      "pendingNote": "Maintenance Completed"
+    }
+  ],
+  "transfers": [
+    {
+      "_id": "698d6c01ae7d60c05e1e6b1d",
+      "assetId": "6982f6e34ceab1e2f6e067fa",
+      "fromDepartmentId": "697a11c82c41e792c8a7d81a",
+      "toDepartmentId": "697a11e42c41e792c8a7d822",
+      "fromBranchId": "698c821fac43896bb8d635ba",
+      "toBranchId": "698c80a0fcc4f17c9a902551",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "status": "Completed",
+      "notes": "Will use by ira",
+      "transferDate": "2026-02-12T05:58:25.322Z",
+      "createdAt": "2026-02-12T05:58:25.327Z",
+      "updatedAt": "2026-02-12T05:58:46.709Z",
+      "__v": 0,
+      "managerApprovedAt": "2026-02-12T05:58:36.994Z",
+      "managerApprovedBy": "697e08070a9bbe7de66bc974",
+      "approvedBy": "697e08070a9bbe7de66bc974",
+      "completedAt": "2026-02-12T05:58:46.706Z"
+    },
+    {
+      "_id": "698d7f31a84937784081e735",
+      "assetId": "697b1c1ad850f3b8a3f030ef",
+      "fromDepartmentId": "697a11c82c41e792c8a7d81a",
+      "toDepartmentId": "697a11e42c41e792c8a7d822",
+      "fromBranchId": "698c821fac43896bb8d635ba",
+      "toBranchId": "698c80a0fcc4f17c9a902551",
+      "requestedBy": "697e08070a9bbe7de66bc974",
+      "status": "Completed",
+      "notes": "TES",
+      "transferDate": "2026-02-12T07:20:17.023Z",
+      "createdAt": "2026-02-12T07:20:17.025Z",
+      "updatedAt": "2026-02-12T07:20:31.922Z",
+      "__v": 0,
+      "managerApprovedAt": "2026-02-12T07:20:25.993Z",
+      "managerApprovedBy": "697e08070a9bbe7de66bc974",
+      "approvedBy": "697e08070a9bbe7de66bc974",
+      "completedAt": "2026-02-12T07:20:31.921Z"
+    }
+  ],
+  "disposals": [
+    {
+      "managerApproval": {
+        "approvedBy": "6982e8aeca416ffe4236ae42",
+        "approvedAt": "2026-02-14T04:27:50.109Z"
+      },
+      "auditorApproval": {
+        "approvedBy": "698ffa446a11df5d94dfa331",
+        "approvedAt": "2026-02-14T04:30:24.057Z"
+      },
+      "_id": "698ff9a56a11df5d94dfa24d",
+      "asset": "698ff0af8f3137990064a802",
+      "requestedBy": "6980423df3fa8886264c7039",
+      "reason": "End of Life",
+      "status": "Approved",
+      "location": "Av Room",
+      "date": "2026-02-14T00:00:00.000Z",
+      "branchId": "698c821fac43896bb8d635ba",
+      "createdAt": "2026-02-14T04:27:17.932Z",
+      "updatedAt": "2026-02-14T04:30:24.085Z",
+      "__v": 0
+    }
+  ],
+  "assignments": [
+    {
+      "_id": "697d998a340e8bd2b4a165fd",
+      "assetId": "697b1c1ad850f3b8a3f030ef",
+      "assignedTo": "Muaris",
+      "assignedToTitle": "AV TL",
+      "locationId": "697d87b264b56082cf383fac",
+      "assignedDate": "2026-01-31T00:00:00.000Z",
+      "status": "returned",
+      "notes": "",
+      "createdAt": "2026-01-31T05:56:26.002Z",
+      "updatedAt": "2026-02-04T08:31:06.566Z",
+      "__v": 0,
+      "isDeleted": true,
+      "returnedDate": "2026-01-31T06:05:16.125Z"
+    },
+    {
+      "_id": "697d9994340e8bd2b4a1660d",
+      "assetId": "697d7720d5176431dfa6760c",
+      "assignedTo": "Muaris",
+      "assignedToTitle": "AV TL",
+      "assignedDate": "2026-01-31T05:56:36.697Z",
+      "status": "returned",
+      "createdAt": "2026-01-31T05:56:36.712Z",
+      "updatedAt": "2026-02-04T08:31:06.566Z",
+      "__v": 0,
+      "isDeleted": true,
+      "returnedDate": "2026-01-31T06:06:24.044Z"
+    },
+    {
+      "_id": "697d9bc0c4ae57ca5181807b",
+      "assetId": "697b1c1ad850f3b8a3f030ef",
+      "assignedTo": "Toni",
+      "assignedToTitle": "AV Tech",
+      "locationId": "697d87b264b56082cf383fac",
+      "assignedDate": "2026-01-31T00:00:00.000Z",
+      "status": "returned",
+      "notes": "",
+      "isDeleted": true,
+      "createdAt": "2026-01-31T06:05:52.787Z",
+      "updatedAt": "2026-02-04T08:31:10.523Z",
+      "__v": 0,
+      "returnedDate": "2026-01-31T06:06:43.310Z"
+    },
+    {
+      "_id": "698303a989d2069391a901cd",
+      "assetId": "6982f6e34ceab1e2f6e067fa",
+      "assignedTo": "Muaris",
+      "assignedToTitle": "AV TL",
+      "assignedDate": "2026-02-04T08:30:33.520Z",
+      "status": "returned",
+      "isDeleted": true,
+      "createdAt": "2026-02-04T08:30:33.599Z",
+      "updatedAt": "2026-02-04T08:30:59.598Z",
+      "__v": 0,
+      "returnedDate": "2026-02-04T08:30:59.597Z"
+    },
+    {
+      "_id": "6989784024168c23fe5d5efd",
+      "assetId": "697d7720d5176431dfa6760c",
+      "assignedTo": "ihuhhi",
+      "assignedToTitle": "cuhuy",
+      "locationId": "697a0ceb351df04168da5b74",
+      "assignedDate": "2026-02-09T00:00:00.000Z",
+      "status": "returned",
+      "notes": "",
+      "isDeleted": true,
+      "createdAt": "2026-02-09T06:01:36.742Z",
+      "updatedAt": "2026-02-09T06:09:06.630Z",
+      "__v": 0,
+      "returnedDate": "2026-02-09T06:09:06.629Z"
+    },
+    {
+      "_id": "69897f0f74a18b4fd59938f1",
+      "assetId": "697d7720d5176431dfa6760c",
+      "assignedTo": "Joana",
+      "assignedToTitle": "Marcom",
+      "locationId": "697a0ceb351df04168da5b74",
+      "assignedDate": "2026-02-09T00:00:00.000Z",
+      "status": "returned",
+      "notes": "",
+      "isDeleted": true,
+      "createdAt": "2026-02-09T06:30:39.285Z",
+      "updatedAt": "2026-02-12T08:45:06.416Z",
+      "__v": 0,
+      "returnedDate": "2026-02-12T08:45:06.398Z"
+    },
+    {
+      "_id": "698d99dede285377bc819397",
+      "assetId": "697d7720d5176431dfa6760c",
+      "userId": "6980423df3fa8886264c7039",
+      "assignedTo": "tony",
+      "assignedToTitle": "IT OFC",
+      "locationId": "697d87b264b56082cf383fac",
+      "assignedDate": "2026-02-12T00:00:00.000Z",
+      "status": "returned",
+      "notes": "Returned via UI",
+      "isDeleted": false,
+      "createdAt": "2026-02-12T09:14:06.930Z",
+      "updatedAt": "2026-02-14T04:56:01.951Z",
+      "__v": 0,
+      "returnedDate": "2026-02-14T04:56:01.934Z"
+    },
+    {
+      "_id": "699000a617f3c85c27fbfd78",
+      "assetId": "697d7720d5176431dfa6760c",
+      "userId": "6980423df3fa8886264c7039",
+      "assignedTo": "tony",
+      "assignedToTitle": "IT OFC",
+      "locationId": "697d87b264b56082cf383fac",
+      "assignedDate": "2026-02-14T00:00:00.000Z",
+      "status": "assigned",
+      "notes": "",
+      "isDeleted": false,
+      "branchId": "698c821fac43896bb8d635ba",
+      "createdAt": "2026-02-14T04:57:10.034Z",
+      "updatedAt": "2026-02-14T04:57:10.034Z",
+      "__v": 0
+    }
+  ],
+  "rentals": [],
+  "events": [
+    {
+      "_id": "697c480249757a7200480a0e",
+      "name": "internal meeting",
+      "room": "Uluwatu 2",
+      "startTime": "2026-01-30T10:00:00.000Z",
+      "endTime": "2026-01-30T12:00:00.000Z",
+      "description": "Training untuk kitchen",
+      "status": "completed",
+      "createdAt": "2026-01-30T05:56:18.682Z",
+      "updatedAt": "2026-01-30T08:02:01.297Z",
+      "__v": 0,
+      "rentedAssets": [
+        {
+          "assetId": "697b1c1ad850f3b8a3f030ef",
+          "rentalRate": 150000,
+          "rentalRateUnit": "day",
+          "_id": "697c615a8133fc27ddcc8131"
+        }
+      ],
+      "planningSupplies": [
+        {
+          "supplyId": "697c3c05051c6c0d93b03b43",
+          "quantity": 3,
+          "cost": 48000,
+          "_id": "697c5ed28133fc27ddcc806d"
+        },
+        {
+          "supplyId": "697c3c05051c6c0d93b03b43",
+          "quantity": 6,
+          "cost": 96000,
+          "_id": "697c61518133fc27ddcc8120"
+        }
+      ],
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "697c66b36acf3f75112f5447",
+      "name": "Training FBK",
+      "room": "Uluwatu 5",
+      "startTime": "2026-01-30T13:00:00.000Z",
+      "endTime": "2026-01-30T14:00:00.000Z",
+      "description": "Training Untuk Kitchen ",
+      "status": "completed",
+      "rentedAssets": [
+        {
+          "assetId": "697b1c1ad850f3b8a3f030ef",
+          "rentalRate": 150000,
+          "rentalRateUnit": "day",
+          "_id": "697c66bd6acf3f75112f5454"
+        }
+      ],
+      "planningSupplies": [
+        {
+          "supplyId": "697c3c05051c6c0d93b03b43",
+          "quantity": 6,
+          "cost": 96000,
+          "_id": "697c66c86acf3f75112f5468"
+        }
+      ],
+      "createdAt": "2026-01-30T08:07:15.792Z",
+      "updatedAt": "2026-01-30T08:08:00.363Z",
+      "__v": 0,
+      "branchId": "698c821fac43896bb8d635ba"
+    },
+    {
+      "_id": "69929fed6010ecd6108f51d4",
+      "name": "Technical Meeting Internal",
+      "room": "Uluwatu 4",
+      "startTime": "2026-02-16T10:00:00.000Z",
+      "endTime": "2026-02-16T14:00:00.000Z",
+      "description": "",
+      "status": "completed",
+      "branchId": "698c821fac43896bb8d635ba",
+      "rentedAssets": [
+        {
+          "assetId": "697b1c1ad850f3b8a3f030ef",
+          "rentalRate": 150000,
+          "rentalRateUnit": "day",
+          "_id": "6992a0f32637e6fc14c43484"
+        },
+        {
+          "assetId": "6982f6e34ceab1e2f6e067fa",
+          "rentalRate": 2000000,
+          "rentalRateUnit": "day",
+          "_id": "6992a1d3c0794a5420a59e14"
+        }
+      ],
+      "planningSupplies": [
+        {
+          "supplyId": "697c3c05051c6c0d93b03b43",
+          "quantity": 4,
+          "cost": 64000,
+          "_id": "6992a1e1c0794a5420a59e33"
+        }
+      ],
+      "createdAt": "2026-02-16T04:41:17.998Z",
+      "updatedAt": "2026-02-16T04:50:09.226Z",
+      "__v": 0
+    }
+  ],
+  "supplyHistory": [
+    {
+      "_id": "697c3e17ff81498a8d4f7267",
+      "supplyId": "697c3e17ff81498a8d4f7265",
+      "action": "CREATE",
+      "quantityChange": 10,
+      "previousStock": 0,
+      "newStock": 10,
+      "notes": "Initial stock",
+      "createdAt": "2026-01-30T05:13:59.969Z",
+      "updatedAt": "2026-01-30T05:13:59.969Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c3e18ff81498a8d4f726c",
+      "supplyId": "697c3e17ff81498a8d4f7265",
+      "action": "RESTOCK",
+      "quantityChange": 5,
+      "previousStock": 10,
+      "newStock": 15,
+      "notes": "Restocking test",
+      "createdAt": "2026-01-30T05:14:00.136Z",
+      "updatedAt": "2026-01-30T05:14:00.136Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c3e18ff81498a8d4f7271",
+      "supplyId": "697c3e17ff81498a8d4f7265",
+      "action": "USE",
+      "quantityChange": -3,
+      "previousStock": 15,
+      "newStock": 12,
+      "notes": "Stock update",
+      "createdAt": "2026-01-30T05:14:00.176Z",
+      "updatedAt": "2026-01-30T05:14:00.176Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c403aff81498a8d4f72b7",
+      "supplyId": "697c403aff81498a8d4f72b5",
+      "action": "CREATE",
+      "quantityChange": 100,
+      "previousStock": 0,
+      "newStock": 100,
+      "notes": "Initial stock",
+      "createdAt": "2026-01-30T05:23:06.091Z",
+      "updatedAt": "2026-01-30T05:23:06.091Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c403aff81498a8d4f72bb",
+      "supplyId": "697c403aff81498a8d4f72b5",
+      "action": "RESTOCK",
+      "quantityChange": 50,
+      "previousStock": 100,
+      "newStock": 150,
+      "notes": "Added via Details Page Simulation",
+      "createdAt": "2026-01-30T05:23:06.111Z",
+      "updatedAt": "2026-01-30T05:23:06.111Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c403aff81498a8d4f72c0",
+      "supplyId": "697c403aff81498a8d4f72b5",
+      "action": "USE",
+      "quantityChange": -20,
+      "previousStock": 150,
+      "newStock": 130,
+      "notes": "Removed via Details Page Simulation",
+      "createdAt": "2026-01-30T05:23:06.133Z",
+      "updatedAt": "2026-01-30T05:23:06.133Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c66ce6acf3f75112f547a",
+      "supplyId": "697c3c05051c6c0d93b03b43",
+      "action": "USE",
+      "quantityChange": -6,
+      "previousStock": 10,
+      "newStock": 4,
+      "notes": "Used in event: Training FBK",
+      "createdAt": "2026-01-30T08:07:42.280Z",
+      "updatedAt": "2026-01-30T08:07:42.280Z",
+      "__v": 0
+    },
+    {
+      "_id": "697c673f6acf3f75112f550f",
+      "supplyId": "697c673f6acf3f75112f550d",
+      "action": "CREATE",
+      "quantityChange": 2,
+      "previousStock": 0,
+      "newStock": 2,
+      "notes": "Initial stock",
+      "createdAt": "2026-01-30T08:09:35.939Z",
+      "updatedAt": "2026-01-30T08:09:35.939Z",
+      "__v": 0
+    },
+    {
+      "_id": "6982f8b24ceab1e2f6e068ff",
+      "supplyId": "697c3c05051c6c0d93b03b43",
+      "action": "USE",
+      "quantityChange": -6,
+      "previousStock": 4,
+      "newStock": -2,
+      "notes": "Used in event: Meeting",
+      "createdAt": "2026-02-04T07:43:46.459Z",
+      "updatedAt": "2026-02-04T07:43:46.459Z",
+      "__v": 0
+    },
+    {
+      "_id": "6982f9a34ceab1e2f6e06a69",
+      "supplyId": "697c3c05051c6c0d93b03b43",
+      "action": "RESTOCK",
+      "quantityChange": 6,
+      "previousStock": -2,
+      "newStock": 4,
+      "notes": "Released from event: Meeting",
+      "createdAt": "2026-02-04T07:47:47.702Z",
+      "updatedAt": "2026-02-04T07:47:47.702Z",
+      "__v": 0
+    },
+    {
+      "_id": "6983056c89d2069391a904b7",
+      "supplyId": "6983056c89d2069391a904b5",
+      "action": "CREATE",
+      "quantityChange": 1,
+      "previousStock": 0,
+      "newStock": 1,
+      "notes": "Initial stock",
+      "createdAt": "2026-02-04T08:38:04.188Z",
+      "updatedAt": "2026-02-04T08:38:04.188Z",
+      "__v": 0
+    },
+    {
+      "_id": "69895d1339b0a136d26e36d5",
+      "supplyId": "69895d1339b0a136d26e36d3",
+      "action": "CREATE",
+      "quantityChange": 10,
+      "previousStock": 0,
+      "newStock": 10,
+      "notes": "Initial stock",
+      "createdAt": "2026-02-09T04:05:39.571Z",
+      "updatedAt": "2026-02-09T04:05:39.571Z",
+      "__v": 0
+    },
+    {
+      "_id": "6989795f24168c23fe5d6325",
+      "supplyId": "6989795f24168c23fe5d6323",
+      "action": "CREATE",
+      "quantityChange": 1,
+      "previousStock": 0,
+      "newStock": 1,
+      "notes": "Initial stock",
+      "createdAt": "2026-02-09T06:06:23.718Z",
+      "updatedAt": "2026-02-09T06:06:23.718Z",
+      "__v": 0
+    },
+    {
+      "_id": "69897f7a74a18b4fd5993a8e",
+      "supplyId": "6989795f24168c23fe5d6323",
+      "action": "RESTOCK",
+      "quantityChange": 1,
+      "previousStock": 0,
+      "newStock": 1,
+      "notes": "Cancelation from Ticket",
+      "createdAt": "2026-02-09T06:32:26.681Z",
+      "updatedAt": "2026-02-09T06:32:26.681Z",
+      "__v": 0
+    },
+    {
+      "_id": "698ee850d53bec88764fdfda",
+      "supplyId": "698ee850d53bec88764fdfd8",
+      "action": "CREATE",
+      "quantityChange": 1,
+      "previousStock": 0,
+      "newStock": 1,
+      "notes": "Initial stock",
+      "createdAt": "2026-02-13T09:01:04.116Z",
+      "updatedAt": "2026-02-13T09:01:04.116Z",
+      "__v": 0
+    },
+    {
+      "_id": "698ef99dfde623883a19a2b1",
+      "supplyId": "698ef99dfde623883a19a2af",
+      "action": "CREATE",
+      "quantityChange": 1,
+      "previousStock": 0,
+      "newStock": 1,
+      "notes": "Initial stock",
+      "createdAt": "2026-02-13T10:14:53.616Z",
+      "updatedAt": "2026-02-13T10:14:53.616Z",
+      "__v": 0
+    },
+    {
+      "_id": "6992a1e7c0794a5420a59e4c",
+      "supplyId": "697c3c05051c6c0d93b03b43",
+      "action": "USE",
+      "quantityChange": -4,
+      "previousStock": 4,
+      "newStock": 0,
+      "notes": "Used in event: Technical Meeting Internal",
+      "createdAt": "2026-02-16T04:49:43.529Z",
+      "updatedAt": "2026-02-16T04:49:43.529Z",
+      "__v": 0
+    }
+  ]
+}

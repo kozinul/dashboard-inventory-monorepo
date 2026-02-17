@@ -11,7 +11,7 @@ interface AssetMaintenanceTabProps {
 export function AssetMaintenanceTab({ asset }: AssetMaintenanceTabProps) {
     const [records, setRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedTicketId, setSelectedTicketId] = useState<string | undefined>(undefined);
+    const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     const fetchRecords = async () => {
@@ -43,7 +43,7 @@ export function AssetMaintenanceTab({ asset }: AssetMaintenanceTabProps) {
 
     if (!asset) return null;
 
-    const handleViewTicket = (ticketId: string | undefined) => {
+    const handleViewTicket = (ticketId: string | undefined | null) => {
         if (!ticketId) return;
         setSelectedTicketId(ticketId);
         setIsDetailOpen(true);
@@ -98,8 +98,8 @@ export function AssetMaintenanceTab({ asset }: AssetMaintenanceTabProps) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${['Done', 'Closed'].includes(record.status) ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' :
-                                                ['In Progress', 'Accepted', 'Sent'].includes(record.status) ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' :
-                                                    'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
+                                            ['In Progress', 'Accepted', 'Sent'].includes(record.status) ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' :
+                                                'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
                                             }`}>
                                             {['Done', 'Closed'].includes(record.status) ? 'Close' : record.status}
                                         </span>

@@ -1,11 +1,13 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
-import { Asset } from '../../../services/assetService';
+import { assetService, Asset } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
 import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
+import { locationService } from '../../../services/locationService';
+import { useAuthStore } from '../../../store/authStore';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -20,7 +22,9 @@ interface InventoryFormInputs {
     category: string;
     serial: string;
     departmentId: string;
-    status: 'active' | 'maintenance' | 'storage' | 'retired';
+    // ...
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed';
+    parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
     value: string;
     purchaseDate: string;
@@ -42,6 +46,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const [departments, setDepartments] = useState<Department[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [allAssets, setAllAssets] = useState<Asset[]>([]); // For parent selection
 
     // File Upload State
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -69,11 +74,55 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
             vendorService.getAll().then(data => {
                 setVendors(data.filter(v => v.status === 'active'));
             }).catch(err => console.error("Failed to load vendors", err));
+
+            assetService.getAll().then(res => {
+                setAllAssets(res.data);
+            }).catch(err => console.error("Failed to load assets", err));
         }
     }, [isOpen]);
 
+    const { user } = useAuthStore();
+
+    // Auto-select Department and Warehouse for Managers/Technicians
+    useEffect(() => {
+        if (isOpen && !asset && user) {
+            const isManagerOrTech = user.role === 'manager' || user.role === 'technician';
+
+            if (isManagerOrTech && user.departmentId) {
+                // 1. Set Department
+                setValue('departmentId', user.departmentId);
+
+                // 2. Find and Set Warehouse Location
+                const findWarehouse = async () => {
+                    try {
+                        const locations = await locationService.getAll();
+                        const warehouse = locations.find(l =>
+                            l.departmentId &&
+                            (typeof l.departmentId === 'object' ? l.departmentId._id === user.departmentId : l.departmentId === user.departmentId) &&
+                            l.isWarehouse
+                        );
+
+                        if (warehouse) {
+                            setValue('locationId', warehouse._id);
+                            setValue('status', 'storage'); // Default to storage if in warehouse
+                        }
+                    } catch (err) {
+                        console.error("Failed to find warehouse", err);
+                    }
+                };
+                findWarehouse();
+            }
+        }
+    }, [isOpen, asset, user, setValue]);
+
     useEffect(() => {
         if (asset) {
+            // ... (previous sets)
+            if (asset.parentAssetId) {
+                setValue('parentAssetId', typeof asset.parentAssetId === 'object' ? asset.parentAssetId._id : asset.parentAssetId);
+            } else {
+                setValue('parentAssetId', '');
+            }
             setValue('name', asset.name);
             setValue('model', asset.model);
             setValue('category', asset.category);
@@ -282,6 +331,22 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                         {/* Status & Department */}
                                         <div className="space-y-4">
                                             <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parent Asset (Optional)</label>
+                                                <select
+                                                    {...register('parentAssetId')}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                >
+                                                    <option value="">None (Top Level)</option>
+                                                    {allAssets
+                                                        .filter(a => a._id !== asset?._id && a.id !== asset?._id) // Prevent self-parenting
+                                                        .map(a => (
+                                                            <option key={a._id} value={a._id}>{a.name} ({a.serial})</option>
+                                                        ))}
+                                                </select>
+                                                <p className="text-[10px] text-slate-400 mt-1">Assign if this asset is a component of another asset.</p>
+                                            </div>
+
+                                            <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
                                                 <select
                                                     {...register('departmentId', { required: 'Department is required' })}
@@ -307,6 +372,9 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     <option value="maintenance">Maintenance</option>
                                                     <option value="storage">Storage</option>
                                                     <option value="retired">Retired</option>
+                                                    <option value="assigned">Assigned</option>
+                                                    <option value="request maintenance">Request Maintenance</option>
+                                                    <option value="disposed">Disposed</option>
                                                 </select>
                                             </div>
 

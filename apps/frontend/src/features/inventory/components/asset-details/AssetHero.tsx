@@ -7,9 +7,10 @@ import Swal from 'sweetalert2';
 interface AssetHeroProps {
     asset: Asset;
     onEdit: () => void;
+    currentLocation?: string;
 }
 
-export function AssetHero({ asset, onEdit }: AssetHeroProps) {
+export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
     // Determine main image
     const mainImageRaw = (asset.images && asset.images.length > 0) ? asset.images[0] : null;
     const mainImage = typeof mainImageRaw === 'string' ? mainImageRaw : mainImageRaw?.url;
@@ -113,10 +114,10 @@ export function AssetHero({ asset, onEdit }: AssetHeroProps) {
                             <p className="text-sm font-medium dark:text-slate-200">{asset.category}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Department</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Current Location</p>
                             <div className="flex items-center gap-1">
-                                <MapPinIcon className="w-4 h-4 text-primary" />
-                                <p className="text-sm font-medium dark:text-slate-200">{asset.department || 'Unassigned'}</p>
+                                <MapPinIcon className="w-4 h-4 text-emerald-500" />
+                                <p className="text-sm font-medium dark:text-slate-200">{currentLocation || 'Unknown'}</p>
                             </div>
                         </div>
                         <div>
@@ -130,6 +131,17 @@ export function AssetHero({ asset, onEdit }: AssetHeroProps) {
                                 <p className="text-sm font-medium dark:text-slate-200">{formatIDR(asset.value)}</p>
                             </div>
                         </div>
+                        {asset.parentAssetId && (
+                            <div className="col-span-2 md:col-span-4 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                                <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Parent Asset</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary text-sm">precision_manufacturing</span>
+                                    <a href={`/inventory/asset-details/${typeof asset.parentAssetId === 'string' ? asset.parentAssetId : asset.parentAssetId._id}`} className="text-sm font-bold text-primary hover:underline">
+                                        {typeof asset.parentAssetId === 'object' ? `${asset.parentAssetId.name} (${asset.parentAssetId.serial})` : 'View Parent Asset'}
+                                    </a>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="pt-4 flex items-center justify-between">

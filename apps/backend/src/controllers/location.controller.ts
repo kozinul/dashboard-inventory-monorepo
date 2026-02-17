@@ -26,7 +26,15 @@ export const getLocations = async (req: Request, res: Response) => {
             filter.branchId = req.query.branchId;
         }
 
-        const locations = await Location.find(filter).sort({ name: 1 });
+        // Filter by type
+        if (req.query.type) {
+            const types = (req.query.type as string).split(',');
+            filter.type = { $in: types };
+        }
+
+        const locations = await Location.find(filter)
+            .populate('departmentId', 'name')
+            .sort({ name: 1 });
 
         res.json(locations);
     } catch (error) {
@@ -44,7 +52,10 @@ export const createLocation = async (req: Request, res: Response) => {
 
         const location = new Location({
             ...req.body,
-            branchId
+            branchId,
+            departmentId: req.body.departmentId || undefined,
+            isWarehouse: req.body.isWarehouse || false,
+            capacity: req.body.capacity || 0
         });
         await location.save();
         res.status(201).json(location);
@@ -66,7 +77,17 @@ export const updateLocation = async (req: Request, res: Response) => {
             delete updateData.branchId;
         }
 
-        const location = await Location.findByIdAndUpdate(id, updateData, { new: true });
+        // Handle departmentId and isWarehouse
+        if (req.body.departmentId === "") {
+            updateData.departmentId = null;
+        } else if (req.body.departmentId) {
+            updateData.departmentId = req.body.departmentId;
+        }
+
+        if (req.body.isWarehouse !== undefined) updateData.isWarehouse = req.body.isWarehouse;
+        if (req.body.capacity !== undefined) updateData.capacity = req.body.capacity;
+
+        const location = await Location.findByIdAndUpdate(id, updateData, { new: true }).populate('departmentId', 'name');
         if (!location) {
             return res.status(404).json({ message: 'Location not found' });
         }
@@ -92,5 +113,18 @@ export const deleteLocation = async (req: Request, res: Response) => {
         res.json({ message: 'Location deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting location', error });
+    }
+};
+
+export const getLocationById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const location = await Location.findById(id).populate('departmentId', 'name').populate('parentId', 'name');
+        if (!location) {
+            return res.status(404).json({ message: 'Location not found' });
+        }
+        res.json(location);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching location', error });
     }
 };

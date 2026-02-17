@@ -33,7 +33,7 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         const userRole = req.user.role;
         const userId = req.user._id;
 
-        if (userRole === 'manager') {
+        if (userRole === 'manager' || userRole === 'dept_admin' || userRole === 'supervisor') {
             const manager = await User.findById(userId);
             if (manager && manager.departmentId) {
                 // Same logic as getDepartmentTickets
@@ -49,10 +49,11 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
                     { asset: { $in: assetIds } }
                 ];
             } else {
-                // Manager with no department sees nothing (or empty list)
+                // Manager/Admin/Supervisor with no department sees nothing (or empty list)
                 return res.json([]);
             }
-        } else if (userRole !== 'superuser' && userRole !== 'admin') {
+        } else if (userRole !== 'superuser' && userRole !== 'admin' && userRole !== 'system_admin') {
+            // Technicians and regular users (though users usually hit getMyTickets)
             filter.technician = { $exists: true, $ne: null };
         }
 
@@ -119,7 +120,7 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
 
 
 
-        let records;
+        let records: any[] = [];
 
         // If user is admin/superuser without department, show all tickets
         if (!manager.departmentId && (manager.role === 'admin' || manager.role === 'superuser')) {
@@ -509,6 +510,7 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
     try {
         const { id } = req.params;
         const userId = req.user._id;
+        const managerId = req.user._id;
         const userRole = req.user.role;
 
         const record = await MaintenanceRecord.findById(id).populate('asset'); // Populate asset to check department
@@ -771,12 +773,12 @@ export const removeSupplyFromTicket = async (req: Request, res: Response, next: 
         // Restore stock
         const supply = await Supply.findById(supplyEntry.supply);
         if (supply) {
-            supply.quantity += supplyEntry.quantity;
+            supply.quantity += (supplyEntry.quantity || 0);
             await supply.save();
         }
 
         // Remove from record
-        record.cost = (record.cost || 0) - (supplyEntry.cost * supplyEntry.quantity);
+        record.cost = (record.cost || 0) - ((supplyEntry.cost || 0) * (supplyEntry.quantity || 0));
         if (record.cost < 0) record.cost = 0;
 
         record.suppliesUsed.splice(supplyEntryIndex, 1);
@@ -853,7 +855,7 @@ export const deleteMaintenanceNote = async (req: Request, res: Response, next: N
 
         // Check ownership (only creator or admin can delete)
         const note = record.notes[noteIndex];
-        if (note.addedBy.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+        if (note.addedBy?.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
             return res.status(403).json({ message: 'Not authorized to delete this note' });
         }
 
@@ -890,7 +892,7 @@ export const updateMaintenanceNote = async (req: Request, res: Response, next: N
             return res.status(404).json({ message: 'Note not found' });
         }
 
-        if (note.addedBy.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+        if (note.addedBy?.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
             return res.status(403).json({ message: 'Not authorized to update this note' });
         }
 

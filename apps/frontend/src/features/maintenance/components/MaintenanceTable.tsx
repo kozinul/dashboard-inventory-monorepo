@@ -123,8 +123,16 @@ export function MaintenanceTable({ tasks, onEdit, onDelete, onComplete, userRole
                                             )}
 
                                             <button
-                                                onClick={() => window.location.href = `/maintenance/${task._id || task.id}`}
+                                                onClick={() => onEdit(task)}
                                                 className="p-1 text-slate-400 hover:text-blue-500 transition-colors"
+                                                title="Edit"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">edit</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => window.location.href = `/maintenance/${task._id || task.id}`}
+                                                className="p-1 text-slate-400 hover:text-indigo-500 transition-colors"
                                                 title="View Details"
                                             >
                                                 <span className="material-symbols-outlined text-lg">visibility</span>

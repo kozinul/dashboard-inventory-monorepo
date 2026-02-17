@@ -12,11 +12,14 @@ export interface Asset {
     serial: string;
     locationId?: string;
     location?: string;
+    parentAssetId?: string | { _id: string; name: string; serial: string };
+    children?: Asset[];
     departmentId?: string;
     department?: string;
     branchId?: string | { _id: string; name: string };
-    status: 'active' | 'maintenance' | 'storage' | 'retired';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
     requiresExternalService?: boolean;
+    slotNumber?: number;
     value: number;
     images?: (string | { url: string; caption?: string; filename?: string })[];
     purchaseDate?: string;
@@ -54,6 +57,12 @@ export interface Asset {
         completedBy: string;
         cost: number;
         completedAt: string;
+    }[];
+    activityLog?: {
+        action: string;
+        details?: string;
+        performedBy?: string | { _id: string; name: string };
+        date: string;
     }[];
 }
 

@@ -18,6 +18,7 @@ import {
     CircleStackIcon,
     ArrowsRightLeftIcon,
     DocumentArrowUpIcon,
+    ServerIcon
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation } from 'react-router-dom'
@@ -36,13 +37,14 @@ const mainNavigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
     { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
+    { name: 'Panels', href: '/inventory/panels', icon: ServerIcon },
     { name: 'My Assets', href: '/my-assets', icon: BriefcaseIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
     { name: 'My Tickets', href: '/my-tickets', icon: WrenchScrewdriverIcon },
     { name: 'Dept. Tickets', href: '/department-tickets', icon: WrenchScrewdriverIcon },
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
-    { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+    { name: 'Report', href: '/reports', icon: ChartBarIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
@@ -53,7 +55,7 @@ const mainNavigation = [
 // Master data navigation
 const masterDataNavigation = [
     { name: 'Units', href: '/master-data/units', icon: CircleStackIcon },
-    { name: 'Categories', href: '/master-data/item-categories', icon: TagIcon },
+    { name: 'Categories', href: '/master-data/categories', icon: TagIcon },
     { name: 'Vendors', href: '/master-data/vendors', icon: BuildingOfficeIcon },
     { name: 'Locations', href: '/master-data/locations', icon: BuildingOfficeIcon },
     { name: 'Branches', href: '/master-data/branches', icon: BuildingOfficeIcon },
@@ -110,10 +112,10 @@ function DashboardLayout() {
                 try {
                     const data = await maintenanceService.getNavCounts();
                     setCounts({
-                        dept: data.pendingDeptTickets || 0,
-                        assigned: data.assignedTickets || 0,
-                        active: data.activeTickets || 0,
-                        userAction: data.pendingUserAction || 0
+                        dept: data.deptTickets?.actionable || 0,
+                        assigned: data.assignedTickets?.actionable || 0,
+                        active: data.myTickets?.total || 0,
+                        userAction: data.myTickets?.actionable || 0
                     });
                 } catch (error) {
                     console.error('Failed to fetch nav counts', error);
@@ -159,13 +161,14 @@ function DashboardLayout() {
             'Dashboard': 'dashboard',
             'Inventory': 'inventory',
             'Supplies': 'inventory', // grouped
+            'Panels': 'inventory',
             'Assignments': 'assignments',
             'My Tickets': 'my_tickets',
             'Assigned Jobs': 'assigned_tickets',
             'Dept. Tickets': 'dept_tickets',
             'Maintenance': 'maintenance',
             'Services': 'services',
-            'Reports': 'reports',
+            'Report': 'reports',
             'Transfers': 'transfer',
             'Rental': 'rental',
             'Events': 'events',
@@ -213,13 +216,18 @@ function DashboardLayout() {
         // (Only used if user.permissions is missing)
 
         // Manager permissions
-        if (user?.role === 'manager') {
+        if (user?.role === 'manager' || user?.role === 'dept_admin') {
             return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal'].includes(resource || '');
+        }
+
+        // Supervisor permissions
+        if (user?.role === 'supervisor') {
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'my_assets', 'reports', 'history', 'assignments'].includes(resource || '');
         }
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal', 'assignments'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
         }
 
         // Standard User permissions
@@ -742,7 +750,7 @@ function DashboardLayout() {
                     <main className="py-10">
                         <div className="px-4 sm:px-6 lg:px-8">
                             <div className="mb-6">
-                                <Breadcrumbs />
+                                {!location.pathname.startsWith('/master-data/locations') && <Breadcrumbs />}
                             </div>
                             <Outlet />
                         </div>

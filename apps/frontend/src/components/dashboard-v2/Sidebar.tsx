@@ -28,12 +28,12 @@ export function Sidebar() {
 
     // Check if user has permission for a resource
     const hasPermission = (resource: string) => {
-        if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin') return true;
+        if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'manager') return true;
         if (user?.role === 'user') {
             return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
         }
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer'].includes(resource);
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports'].includes(resource);
         }
         if (resource === 'disposal') return true; // Ensure disposal is always visible for anyone else
         if (!user?.permissions || user.permissions.length === 0) return false;
@@ -63,6 +63,7 @@ export function Sidebar() {
         { name: 'Services', href: '/services', icon: 'medical_services', resource: 'services' },
         { name: 'History', href: '/history', icon: 'history', resource: 'history' },
         { name: 'Disposal', href: '/disposal', icon: 'recycling', resource: 'disposal' },
+        { name: 'Report', href: '/reports', icon: 'description', resource: 'reports' },
     ]
 
     const masterDataItems = [
@@ -74,7 +75,6 @@ export function Sidebar() {
     ]
 
     const systemItems = [
-        { name: 'Laporan', href: '/reports', icon: 'description', resource: 'reports' },
         { name: 'Settings', href: '/settings', icon: 'settings', resource: 'settings' },
     ]
 

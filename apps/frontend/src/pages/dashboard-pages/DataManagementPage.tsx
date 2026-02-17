@@ -72,7 +72,7 @@ export default function DataManagementPage() {
     const handleExportData = async (type: 'asset' | 'supply') => {
         try {
             const cols = type === 'asset' ? selectedAssetCols : selectedSupplyCols;
-            await importExportService.exportData(type, cols);
+            await importExportService.exportData({ type, columns: cols });
             showSuccessToast('Data exported successfully.');
         } catch (error) {
             showErrorToast('Failed to export data.');

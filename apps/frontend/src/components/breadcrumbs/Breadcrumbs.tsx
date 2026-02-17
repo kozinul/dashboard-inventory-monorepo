@@ -22,6 +22,8 @@ const routeNameMap: Record<string, string> = {
     'events': 'Events',
 };
 
+const nonNavigableRoutes = ['master-data'];
+
 import { useBreadcrumb } from '../../context/BreadcrumbContext';
 
 export function Breadcrumbs() {
@@ -69,10 +71,10 @@ export function Breadcrumbs() {
                                     className="h-5 w-5 flex-shrink-0 text-gray-400"
                                     aria-hidden="true"
                                 />
-                                {isLast ? (
+                                {isLast || nonNavigableRoutes.includes(value) ? (
                                     <span
                                         className="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400"
-                                        aria-current="page"
+                                        aria-current={isLast ? "page" : undefined}
                                     >
                                         {name}
                                     </span>

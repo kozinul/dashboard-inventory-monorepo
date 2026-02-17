@@ -9,7 +9,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 
         // RBAC: Previously Managers were restricted to their department.
         // Removed to allow cross-department assignments.
-        // if (req.user && req.user.role === 'manager' && req.user.departmentId) {
+        // if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin') && req.user.departmentId) {
         //     filter.departmentId = req.user.departmentId;
         // }
         // Superuser/Admin see all users
@@ -29,8 +29,8 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
             throw new Error('User not found');
         }
 
-        // RBAC: Managers can only view users from their department
-        if (req.user && req.user.role === 'manager') {
+        // RBAC: Managers/Dept Admins can only view users from their department
+        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
             const isDeptMatch =
                 (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
                 (user.department && req.user.department && user.department === req.user.department);
@@ -86,8 +86,8 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be edited');
         }
 
-        // RBAC: Managers can only edit users from their department
-        if (req.user && req.user.role === 'manager') {
+        // RBAC: Managers/Dept Admins can only edit users from their department
+        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
             const isDeptMatch =
                 (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
                 (user.department && req.user.department && user.department === req.user.department);
@@ -158,8 +158,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be deleted');
         }
 
-        // RBAC: Managers can only delete users from their department
-        if (req.user && req.user.role === 'manager') {
+        // RBAC: Managers/Dept Admins can only delete users from their department
+        if (req.user && (req.user.role === 'manager' || req.user.role === 'dept_admin')) {
             const isDeptMatch =
                 (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
                 (user.department && req.user.department && user.department === req.user.department);

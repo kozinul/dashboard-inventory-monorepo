@@ -71,6 +71,12 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
                             <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Square Footage</span>
                             <span className="text-sm font-mono text-white">{stats.sqFootage}</span>
                         </div>
+                        {(location.type === 'Rack' || location.type === 'Panel' || location.type === 'Panel Box') && (
+                            <div className="flex flex-col">
+                                <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Capacity</span>
+                                <span className="text-sm font-mono text-white">{location.capacity || 0}{location.type === 'Rack' ? 'U' : ' Slots'}</span>
+                            </div>
+                        )}
                         <div className="flex flex-col">
                             <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Dept Owner</span>
                             <span className="text-sm font-medium text-white">{stats.dept}</span>
@@ -105,7 +111,7 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
                     </h3>
 
                     <LocationGrid
-                        parentId={location._id}
+                        parentLocation={location}
                         viewMode="grid"
                         onViewDetails={onSelectLocation || (() => { })}
                     />

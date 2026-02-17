@@ -48,7 +48,7 @@ export const useAppStore = create<AppState>()(
                         if (headOffice) {
                             newActiveId = headOffice._id;
                         } else if (branches.length > 0) {
-                            newActiveId = branches[0]._id;
+                            newActiveId = branches[0]?._id || 'ALL';
                         }
                     }
 

@@ -1,10 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
-import { exec } from 'child_process';
-import path from 'path';
 import fs from 'fs';
-import util from 'util';
-
-const execPromise = util.promisify(exec);
+import path from 'path';
+import { MaintenanceRecord } from '../models/maintenance.model.js';
+import { Transfer } from '../models/transfer.model.js';
+import { DisposalRecord as Disposal } from '../models/disposal.model.js';
+import { Assignment } from '../models/assignment.model.js';
+import Rental from '../models/rental.model.js';
+import Event from '../models/event.model.js';
+import { SupplyHistory } from '../models/supplyHistory.model.js';
+import { Asset } from '../models/asset.model.js';
+import { AssetTemplate } from '../models/assetTemplate.model.js';
+import { Branch } from '../models/branch.model.js';
+import { Category } from '../models/category.model.js';
+import { Department } from '../models/department.model.js';
+import { JobTitle } from '../models/jobTitle.model.js';
+import { Location } from '../models/location.model.js';
+import { LocationType } from '../models/locationType.model.js';
+import { Supply } from '../models/supply.model.js';
+import { Unit } from '../models/unit.model.js';
+import { User } from '../models/user.model.js';
+import { Vendor } from '../models/vendor.model.js';
+import { Notification } from '../models/notification.model.js';
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 
@@ -13,27 +29,25 @@ if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
+const getTimestamp = () => {
+    return new Date().toISOString().replace(/[:.]/g, '-');
+};
+
 export const getBackups = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const files = await fs.promises.readdir(BACKUP_DIR);
-        const backups = await Promise.all(
-            files.map(async (file) => {
-                const filePath = path.join(BACKUP_DIR, file);
-                const stats = await fs.promises.stat(filePath);
-                return {
-                    filename: file,
-                    size: stats.size,
-                    createdAt: stats.birthtime,
-                };
-            })
-        );
+        const files = fs.readdirSync(BACKUP_DIR).filter(file => file.endsWith('.json'));
+        const backups = files.map(file => {
+            const stats = fs.statSync(path.join(BACKUP_DIR, file));
+            return {
+                filename: file,
+                size: stats.size,
+                createdAt: stats.birthtime
+            };
+        }).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-        // Sort by newest first
-        backups.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-        res.status(200).json({
+        res.json({
             success: true,
-            data: backups,
+            data: backups
         });
     } catch (error) {
         next(error);
@@ -42,29 +56,41 @@ export const getBackups = async (req: Request, res: Response, next: NextFunction
 
 export const createBackup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `backup-${timestamp}.sql`;
-        const filePath = path.join(BACKUP_DIR, filename);
+        const timestamp = getTimestamp();
+        const filename = `backup-${timestamp}.json`;
+        const filepath = path.join(BACKUP_DIR, filename);
 
-        // Get database connection details from environment variables
-        const dbUrl = process.env.DATABASE_URL;
-        if (!dbUrl) {
-            throw new Error('DATABASE_URL is not defined');
-        }
+        const data = {
+            users: await User.find({}),
+            assets: await Asset.find({}),
+            assetTemplates: await AssetTemplate.find({}),
+            branches: await Branch.find({}),
+            categories: await Category.find({}),
+            departments: await Department.find({}),
+            jobTitles: await JobTitle.find({}),
+            locations: await Location.find({}),
+            locationTypes: await LocationType.find({}),
+            supplies: await Supply.find({}),
+            units: await Unit.find({}),
+            vendors: await Vendor.find({}),
+            maintenanceRecords: await MaintenanceRecord.find({}),
+            transfers: await Transfer.find({}),
+            disposals: await Disposal.find({}),
+            assignments: await Assignment.find({}),
+            rentals: await Rental.find({}),
+            events: await Event.find({}),
+            supplyHistory: await SupplyHistory.find({}),
+            // notifications: await Notification.find({})
+        };
 
-        // Use pg_dump to create backup
-        // Note: This relies on pg_dump being available in the system PATH and the user having permissions
-        const command = `pg_dump "${dbUrl}" > "${filePath}"`;
+        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
 
-        await execPromise(command);
-
-        res.status(200).json({
+        res.json({
             success: true,
             message: 'Backup created successfully',
-            data: { filename },
+            filename
         });
     } catch (error) {
-        console.error('Backup error:', error);
         next(error);
     }
 };
@@ -72,30 +98,66 @@ export const createBackup = async (req: Request, res: Response, next: NextFuncti
 export const restoreBackup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { filename } = req.params;
-        const filePath = path.join(BACKUP_DIR, filename);
+        const filepath = path.join(BACKUP_DIR, filename);
 
-        if (!fs.existsSync(filePath)) {
-            res.status(404).json({ success: false, message: 'Backup file not found' });
-            return;
+        if (!fs.existsSync(filepath)) {
+            res.status(404);
+            throw new Error('Backup file not found');
         }
 
-        const dbUrl = process.env.DATABASE_URL;
-        if (!dbUrl) {
-            throw new Error('DATABASE_URL is not defined');
-        }
+        const fileContent = fs.readFileSync(filepath, 'utf-8');
+        const data = JSON.parse(fileContent);
 
-        // Use psql to restore backup
-        // WARNING: This replaces the current database content
-        const command = `psql "${dbUrl}" < "${filePath}"`;
+        // Clear existing data
+        await Promise.all([
+            User.deleteMany({}),
+            Asset.deleteMany({}),
+            AssetTemplate.deleteMany({}),
+            Branch.deleteMany({}),
+            Category.deleteMany({}),
+            Department.deleteMany({}),
+            JobTitle.deleteMany({}),
+            Location.deleteMany({}),
+            LocationType.deleteMany({}),
+            Supply.deleteMany({}),
+            Unit.deleteMany({}),
+            Vendor.deleteMany({}),
+            MaintenanceRecord.deleteMany({}),
+            Transfer.deleteMany({}),
+            Disposal.deleteMany({}),
+            Assignment.deleteMany({}),
+            Rental.deleteMany({}),
+            Event.deleteMany({}),
+            SupplyHistory.deleteMany({}),
+            // Notification.deleteMany({})
+        ]);
 
-        await execPromise(command);
+        // Restore data
+        if (data.users?.length) await User.insertMany(data.users);
+        if (data.assets?.length) await Asset.insertMany(data.assets);
+        if (data.assetTemplates?.length) await AssetTemplate.insertMany(data.assetTemplates);
+        if (data.branches?.length) await Branch.insertMany(data.branches);
+        if (data.categories?.length) await Category.insertMany(data.categories);
+        if (data.departments?.length) await Department.insertMany(data.departments);
+        if (data.jobTitles?.length) await JobTitle.insertMany(data.jobTitles);
+        if (data.locations?.length) await Location.insertMany(data.locations);
+        if (data.locationTypes?.length) await LocationType.insertMany(data.locationTypes);
+        if (data.supplies?.length) await Supply.insertMany(data.supplies);
+        if (data.units?.length) await Unit.insertMany(data.units);
+        if (data.vendors?.length) await Vendor.insertMany(data.vendors);
+        if (data.maintenanceRecords?.length) await MaintenanceRecord.insertMany(data.maintenanceRecords);
+        if (data.transfers?.length) await Transfer.insertMany(data.transfers);
+        if (data.disposals?.length) await Disposal.insertMany(data.disposals);
+        if (data.assignments?.length) await Assignment.insertMany(data.assignments);
+        if (data.rentals?.length) await Rental.insertMany(data.rentals);
+        if (data.events?.length) await Event.insertMany(data.events);
+        if (data.supplyHistory?.length) await SupplyHistory.insertMany(data.supplyHistory);
 
-        res.status(200).json({
+        res.json({
             success: true,
-            message: 'Database restored successfully',
+            message: 'Database restored successfully'
         });
     } catch (error) {
-        console.error('Restore error:', error);
         next(error);
     }
 };
@@ -103,18 +165,15 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
 export const deleteBackup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { filename } = req.params;
-        const filePath = path.join(BACKUP_DIR, filename);
+        const filepath = path.join(BACKUP_DIR, filename);
 
-        if (!fs.existsSync(filePath)) {
-            res.status(404).json({ success: false, message: 'Backup file not found' });
-            return;
+        if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
         }
 
-        await fs.promises.unlink(filePath);
-
-        res.status(200).json({
+        res.json({
             success: true,
-            message: 'Backup deleted successfully',
+            message: 'Backup deleted successfully'
         });
     } catch (error) {
         next(error);
@@ -124,14 +183,52 @@ export const deleteBackup = async (req: Request, res: Response, next: NextFuncti
 export const downloadBackup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { filename } = req.params;
-        const filePath = path.join(BACKUP_DIR, filename);
+        const filepath = path.join(BACKUP_DIR, filename);
 
-        if (!fs.existsSync(filePath)) {
-            res.status(404).json({ success: false, message: 'Backup file not found' });
-            return;
+        if (!fs.existsSync(filepath)) {
+            res.status(404);
+            throw new Error('Backup file not found');
         }
 
-        res.download(filePath);
+        res.download(filepath);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const resetTransactions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Double check authorization (though middleware handles it)
+        if (req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
+            res.status(403);
+            throw new Error('Not authorized to perform this dangerous action');
+        }
+
+        console.log(`Database reset initiated by ${req.user.email}`);
+
+        // Delete Transactional Data
+        await Promise.all([
+            MaintenanceRecord.deleteMany({}),
+            Transfer.deleteMany({}),
+            Disposal.deleteMany({}),
+            Assignment.deleteMany({}),
+            Rental.deleteMany({}),
+            Event.deleteMany({}),
+            SupplyHistory.deleteMany({}),
+            // Notification.deleteMany({}) // Uncomment if model exists
+        ]);
+
+        // Reset Assets
+        await Asset.updateMany({}, {
+            $set: {
+                status: 'Active',
+                assignedTo: null,
+                assignedToType: null,
+                nextMaintenanceDate: null
+            }
+        });
+
+        res.json({ message: 'Database transactions reset successfully' });
     } catch (error) {
         next(error);
     }

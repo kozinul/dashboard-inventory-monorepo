@@ -11,7 +11,10 @@ export interface BoxLocation {
     description?: string;
     status: 'Active' | 'Inactive' | 'Maintenance';
     children?: BoxLocation[];
+    departmentId?: any; // Populated or ID
+    isWarehouse?: boolean;
     branchId?: string;
+    capacity?: number;
 }
 
 export interface CreateLocationDto {
@@ -20,6 +23,9 @@ export interface CreateLocationDto {
     parentId?: string | null;
     description?: string;
     status?: 'Active' | 'Inactive' | 'Maintenance';
+    departmentId?: string;
+    isWarehouse?: boolean;
+    capacity?: number;
 }
 
 export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
@@ -27,6 +33,11 @@ export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
 export const locationService = {
     getAll: async (): Promise<BoxLocation[]> => {
         const response = await axios.get<BoxLocation[]>(API_URL);
+        return response.data;
+    },
+
+    getById: async (id: string): Promise<BoxLocation> => {
+        const response = await axios.get<BoxLocation>(`${API_URL}/${id}`);
         return response.data;
     },
 

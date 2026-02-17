@@ -11,7 +11,8 @@ export const createEvent = async (req: Request, res: Response) => {
             // Set branchId based on user role
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
-                : (req.user as any).branchId
+                : (req.user as any).branchId,
+            createdBy: req.user._id
         });
         await event.save();
         res.status(201).json(event);
@@ -33,18 +34,29 @@ export const getEvents = async (req: Request, res: Response) => {
         let events = await Event.find(filter).sort({ startTime: 1 });
 
         // RBAC: Filter by department for non-admin users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // RBAC: Filter by department for non-admin/privileged roles
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
             if (req.user.departmentId) {
-                // Filter events that have assets from user's department
                 const eventsWithAccess = [];
                 for (const event of events) {
-                    if (event.rentedAssets && event.rentedAssets.length > 0) {
-                        // Check if any asset belongs to user's department
-                        const assetIds = event.rentedAssets.map(ra => ra.assetId);
-                        const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
-                        if (assets.length > 0) {
-                            eventsWithAccess.push(event);
-                        }
+                    // regular users can only see:
+                    // 1. Created by them
+                    // 2. Empty events (wishlist)
+                    // 3. Events with assets from their department
+
+                    const isCreator = event.createdBy?.toString() === req.user._id.toString();
+                    const isEmpty = !event.rentedAssets || event.rentedAssets.length === 0;
+
+                    if (isCreator || isEmpty) {
+                        eventsWithAccess.push(event);
+                        continue;
+                    }
+
+                    // Check if any asset belongs to user's department
+                    const assetIds = event.rentedAssets.map(ra => ra.assetId);
+                    const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
+                    if (assets.length > 0) {
+                        eventsWithAccess.push(event);
                     }
                 }
                 events = eventsWithAccess;
@@ -71,15 +83,26 @@ export const getEventById = async (req: Request, res: Response) => {
         }
 
         // RBAC: Check if user can access this event
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (req.user.departmentId && event.rentedAssets && event.rentedAssets.length > 0) {
+        // RBAC: Check branch access for non-superuser
+        if (req.user.role !== 'superuser' && event.branchId && event.branchId.toString() !== (req.user as any).branchId?.toString()) {
+            return res.status(403).json({ message: 'Access denied: Event belongs to another branch' });
+        }
+
+        // RBAC: Extra checks for regular users (non-managers/technicians)
+        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+            const isCreator = event.createdBy?.toString() === req.user._id.toString();
+            const isEmpty = !event.rentedAssets || event.rentedAssets.length === 0;
+
+            if (isCreator || isEmpty) {
+                // Access granted
+            } else if (req.user.departmentId && event.rentedAssets && event.rentedAssets.length > 0) {
                 // Check if any asset belongs to user's department
                 const assetIds = event.rentedAssets.map(ra => ra.assetId);
                 const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
                 if (assets.length === 0) {
-                    return res.status(403).json({ message: 'Access denied' });
+                    return res.status(403).json({ message: 'Access denied: No department association' });
                 }
-            } else if (!req.user.departmentId) {
+            } else {
                 return res.status(403).json({ message: 'Access denied' });
             }
         }

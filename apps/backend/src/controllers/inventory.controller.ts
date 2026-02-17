@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
 import Event from '../models/event.model.js';
 import { Assignment } from '../models/assignment.model.js';
@@ -29,20 +30,26 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         }
 
         if (req.query.category) filters.category = req.query.category;
-        if (req.query.status) filters.status = req.query.status;
+
+        // Support multiple statuses (e.g. status=active,storage)
+        if (req.query.status) {
+            const statusStr = req.query.status as string;
+            if (statusStr.includes(',')) {
+                filters.status = { $in: statusStr.split(',') };
+            } else {
+                filters.status = statusStr;
+            }
+        }
+
         if (req.query.locationId) filters.locationId = req.query.locationId;
 
         // RBAC / Department Filtering
         // req.user is populated by authMiddleware
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
             const accessConditions: any[] = [];
             const userBranchId = (req.user as any).branchId;
 
             // 1. Department Access (Scoped to User's Branch)
-            // 1. Department Access (Scoped to User's Branch)
-            // Users can only see department assets IN THEIR BRANCH
-            // Nuance: Only the 'user' role should have assigned assets hidden.
-            // Managers and Technicians should see them for management/repairs.
             const shouldHideAssigned = req.user.role === 'user';
             const deptFilter: any = { branchId: userBranchId };
             if (shouldHideAssigned) {
@@ -59,32 +66,21 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                     ...deptFilter,
                     department: req.user.department
                 });
+            } else {
+                // If user has no department, but has a branch, allow seeing all assets in that branch
+                accessConditions.push(deptFilter);
             }
 
             if (accessConditions.length > 0) {
                 andConditions.push({ $or: accessConditions });
-            } else {
-                // No department -> see nothing
-                return res.json({
-                    data: [],
-                    pagination: {
-                        page,
-                        limit,
-                        total: 0,
-                        pages: 0
-                    }
-                });
             }
-        } else if (req.user.role === 'admin') {
-            // Admins are restricted to their branch for ALL assets
-            filters.branchId = (req.user as any).branchId;
-        } else if (req.query.branchId && req.query.branchId !== 'ALL') {
-            filters.branchId = req.query.branchId;
+        } else if (['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
+            // Superusers and Admins can see all branches by default, 
+            // but can filter if a specific branchId is provided
+            if (req.query.branchId && req.query.branchId !== 'ALL') {
+                filters.branchId = req.query.branchId;
+            }
         }
-
-        if (req.query.category) filters.category = req.query.category;
-        if (req.query.status) filters.status = req.query.status;
-        if (req.query.locationId) filters.locationId = req.query.locationId;
 
         if (req.query.search) {
             andConditions.push({
@@ -104,7 +100,9 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         const assets = await Asset.find(filters)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .populate('departmentId', 'name')
+            .populate('locationId', 'name');
 
         const totalOptions = Object.keys(filters).length === 0 ? {} : filters;
         const total = await Asset.countDocuments(totalOptions);
@@ -151,7 +149,13 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
             }
         }
 
-        res.json(asset);
+        // Fetch children (assets contained in this asset)
+        const children = await Asset.find({ parentAssetId: asset._id }).select('name serial model category status');
+
+        const assetObj = asset.toObject();
+        (assetObj as any).children = children;
+
+        res.json(assetObj);
     } catch (error) {
         next(error);
     }
@@ -181,6 +185,32 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId
         });
+
+        // Auto-assign to Warehouse if no location specified
+        if (!asset.locationId && asset.departmentId) {
+            const { Location } = await import('../models/location.model.js');
+            const warehouse = await Location.findOne({
+                departmentId: asset.departmentId,
+                isWarehouse: true,
+                branchId: asset.branchId
+            });
+
+            if (warehouse) {
+                asset.locationId = warehouse._id;
+                asset.location = warehouse.name;
+            } else {
+                // Fallback to any warehouse in branch
+                const anyWarehouse = await Location.findOne({
+                    branchId: asset.branchId,
+                    isWarehouse: true
+                });
+                if (anyWarehouse) {
+                    asset.locationId = anyWarehouse._id;
+                    asset.location = anyWarehouse.name;
+                }
+            }
+        }
+
         await asset.save();
         res.status(201).json(asset);
     } catch (error) {
@@ -368,6 +398,125 @@ export const getAvailableAssetsForEvent = async (req: Request, res: Response, ne
 
         res.json(assets);
 
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Install Asset into a Panel/Container
+export const installAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { parentAssetId, locationId, slotNumber } = req.body;
+        const userId = req.user?._id;
+
+        const asset = await Asset.findById(id);
+
+        // Support both parentAsset (nested asset) and locationId (rack/panel)
+        let parentName = 'Target';
+        if (parentAssetId) {
+            const parentAsset = await Asset.findById(parentAssetId);
+            if (!parentAsset) return res.status(404).json({ success: false, message: 'Panel Asset not found' });
+
+            asset.parentAssetId = parentAssetId;
+            asset.locationId = parentAsset.locationId;
+            asset.location = parentAsset.location;
+            parentName = parentAsset.name;
+        } else if (locationId) {
+            const { Location } = await import('../models/location.model.js');
+            const location = await Location.findById(locationId);
+            if (!location) return res.status(404).json({ success: false, message: 'Location not found' });
+
+            asset.locationId = locationId;
+            asset.location = location.name;
+            asset.parentAssetId = null;
+            parentName = location.name;
+        }
+
+        if (!asset) {
+            return res.status(404).json({ success: false, message: 'Asset not found' });
+        }
+
+        // Update Asset
+        asset.slotNumber = slotNumber;
+        asset.status = 'in_use'; // Auto-update status
+
+        // Log Activity
+        asset.activityLog.push({
+            action: 'installed',
+            details: `Installed in ${parentName} at Slot ${slotNumber}`,
+            performedBy: userId,
+            date: new Date()
+        });
+
+        await asset.save();
+
+        res.status(200).json({ success: true, data: asset });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Dismantle Asset from a Panel/Container
+export const dismantleAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?._id;
+
+        const asset = await Asset.findById(id);
+
+        if (!asset) {
+            return res.status(404).json({ success: false, message: 'Asset not found' });
+        }
+
+        const previousParentId = asset.parentAssetId;
+        let parentName = 'Panel';
+        if (previousParentId) {
+            const parent = await Asset.findById(previousParentId);
+            if (parent) parentName = parent.name;
+        }
+
+        // Update Asset
+        asset.parentAssetId = null; // Mongoose compliant for ObjectId
+        asset.slotNumber = null;    // Mongoose compliant for Number
+        asset.status = 'active'; // Auto-update status to Active/Spare
+
+        // Find Department Warehouse to move asset back to
+        if (asset.departmentId) {
+            const { Location } = await import('../models/location.model.js');
+            const warehouse = await Location.findOne({
+                departmentId: asset.departmentId,
+                isWarehouse: true,
+                branchId: asset.branchId
+            });
+
+            if (warehouse) {
+                asset.locationId = warehouse._id;
+                asset.location = warehouse.name;
+            } else {
+                // Fallback to any warehouse in branch
+                const anyWarehouse = await Location.findOne({
+                    branchId: asset.branchId,
+                    isWarehouse: true
+                });
+                if (anyWarehouse) {
+                    asset.locationId = anyWarehouse._id;
+                    asset.location = anyWarehouse.name;
+                }
+            }
+        }
+
+        // Log Activity
+        asset.activityLog.push({
+            action: 'dismantled',
+            details: `Dismantled from ${parentName} and returned to warehouse`,
+            performedBy: userId,
+            date: new Date()
+        });
+
+        await asset.save();
+
+        res.status(200).json({ success: true, data: asset });
     } catch (error) {
         next(error);
     }

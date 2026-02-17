@@ -43,6 +43,12 @@ const assetSchema = new mongoose.Schema({
         ref: 'Location',
         required: false
     },
+    parentAssetId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Asset',
+        required: false,
+        default: null
+    },
     location: {
         type: String,
         required: false,
@@ -52,6 +58,19 @@ const assetSchema = new mongoose.Schema({
         type: String,
         enum: AssetStatusSchema.options,
         default: 'active'
+    },
+    // Panel/Container Fields
+    isContainer: {
+        type: Boolean,
+        default: false
+    },
+    totalSlots: {
+        type: Number,
+        default: 0
+    },
+    slotNumber: {
+        type: Number,
+        default: null
     },
     requiresExternalService: {
         type: Boolean,
@@ -103,6 +122,12 @@ const assetSchema = new mongoose.Schema({
         completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         cost: Number,
         completedAt: Date
+    }],
+    activityLog: [{
+        action: { type: String, required: true }, // 'installed', 'dismantled', 'status_change', 'updated'
+        details: String,
+        performedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        date: { type: Date, default: Date.now }
     }]
 }, {
     timestamps: true
