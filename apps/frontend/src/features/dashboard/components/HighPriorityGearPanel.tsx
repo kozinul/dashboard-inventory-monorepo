@@ -4,21 +4,29 @@ import { format } from 'date-fns';
 import { SystemInfoCard } from './SystemInfoCard';
 import { eventService, Event } from '@/services/eventService';
 import { Card } from '@/components/common/Card/Card';
-import { cn } from '@/lib/utils'; // Assuming utils are here, inferred from GearQuickViewCard
+import { cn } from '@/lib/utils';
+import { useAppStore } from '@/store/appStore';
 
 export function HighPriorityGearPanel() {
+    const { activeBranchId } = useAppStore();
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const data = await eventService.getAll();
-                // Filter for upcoming/ongoing events, excluding cancelled and completed
+                setLoading(true);
+                const data = await eventService.getAll(activeBranchId);
+
                 const now = new Date();
                 const upcoming = data
-                    .filter(e => new Date(e.endTime) >= now && e.status !== 'cancelled' && e.status !== 'completed')
-                    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                    .filter((e: Event) => {
+                        const isNotDone = e.status !== 'cancelled' && e.status !== 'completed';
+                        const isFuture = new Date(e.endTime) >= now;
+                        // Include if it's in the future OR if it's still marked scheduled/ongoing (overdue)
+                        return isNotDone && (isFuture || e.status === 'scheduled' || e.status === 'ongoing');
+                    })
+                    .sort((a: Event, b: Event) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
                     .slice(0, 5); // Show top 5
                 setEvents(upcoming);
             } catch (error) {
@@ -29,15 +37,40 @@ export function HighPriorityGearPanel() {
         };
 
         fetchEvents();
-    }, []);
+    }, [activeBranchId]);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'scheduled': return 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400 border-blue-100 dark:border-blue-500/20';
-            case 'ongoing': return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20';
-            case 'planning': return 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 border-amber-100 dark:border-amber-500/20';
-            case 'completed': return 'text-slate-600 bg-slate-50 dark:bg-slate-500/10 dark:text-slate-400 border-slate-100 dark:border-slate-500/20';
-            default: return 'text-slate-600 bg-slate-50 border-slate-100';
+    const getStatusStyles = (event: Event) => {
+        const now = new Date();
+        const isOverdue = new Date(event.endTime) < now && event.status !== 'completed' && event.status !== 'cancelled';
+
+        if (isOverdue) {
+            return {
+                classes: 'text-rose-600 bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400 border-rose-100 dark:border-rose-500/20',
+                label: 'Overdue'
+            };
+        }
+
+        switch (event.status) {
+            case 'scheduled': return {
+                classes: 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 border-amber-100 dark:border-amber-500/20',
+                label: 'Scheduled'
+            };
+            case 'ongoing': return {
+                classes: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20',
+                label: 'Ongoing'
+            };
+            case 'planning': return {
+                classes: 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400 border-blue-100 dark:border-blue-500/20',
+                label: 'Planning'
+            };
+            case 'completed': return {
+                classes: 'text-slate-600 bg-slate-50 dark:bg-slate-500/10 dark:text-slate-400 border-slate-100 dark:border-slate-500/20',
+                label: 'Completed'
+            };
+            default: return {
+                classes: 'text-slate-600 bg-slate-50 border-slate-100',
+                label: event.status
+            };
         }
     };
 
@@ -66,24 +99,29 @@ export function HighPriorityGearPanel() {
                                                 {event.name}
                                             </h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                                {format(new Date(event.startTime), 'MMM d, h:mm a')} • {event.room}
+                                                {format(new Date(event.startTime), 'MMM d, HH:mm')} • {event.room}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className={cn(
-                                        "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors",
-                                        getStatusColor(event.status)
-                                    )}>
-                                        <span className="text-xs font-semibold capitalize">
-                                            {event.status}
-                                        </span>
-                                        <span className="material-symbols-outlined text-[18px]">
-                                            {event.status === 'scheduled' ? 'event' :
-                                                event.status === 'planning' ? 'edit_calendar' :
-                                                    event.status === 'ongoing' ? 'play_circle' : 'check_circle'}
-                                        </span>
-                                    </div>
+                                    {(() => {
+                                        const styles = getStatusStyles(event);
+                                        return (
+                                            <div className={cn(
+                                                "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors",
+                                                styles.classes
+                                            )}>
+                                                <span className="text-xs font-semibold capitalize">
+                                                    {styles.label}
+                                                </span>
+                                                <span className="material-symbols-outlined text-[18px]">
+                                                    {event.status === 'scheduled' ? 'event' :
+                                                        event.status === 'planning' ? 'edit_calendar' :
+                                                            event.status === 'ongoing' ? 'play_circle' : 'check_circle'}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </Card>
                             </Link>
                         ))

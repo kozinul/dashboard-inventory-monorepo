@@ -52,12 +52,15 @@ export default function EventCalendar() {
     const eventStyleGetter = (event: { resource: Event }) => {
         let backgroundColor = '#64748b'; // slate-500 default
         const status = event.resource.status;
+        const now = new Date();
+        const isOverdue = new Date(event.resource.endTime) < now && status !== 'completed' && status !== 'cancelled';
 
-        if (status === 'scheduled') backgroundColor = '#3b82f6'; // blue-500
-        if (status === 'ongoing') backgroundColor = '#10b981'; // emerald-500
-        if (status === 'completed') backgroundColor = '#94a3b8'; // slate-400
-        if (status === 'planning') backgroundColor = '#f59e0b'; // amber-500
-        if (status === 'cancelled') backgroundColor = '#f43f5e'; // rose-500
+        if (isOverdue) backgroundColor = '#f43f5e'; // rose-500 (Red)
+        else if (status === 'scheduled') backgroundColor = '#f59e0b'; // amber-500 (Yellow)
+        else if (status === 'ongoing') backgroundColor = '#10b981'; // emerald-500 (Green)
+        else if (status === 'completed') backgroundColor = '#94a3b8'; // slate-400
+        else if (status === 'planning') backgroundColor = '#3b82f6'; // blue-500
+        else if (status === 'cancelled') backgroundColor = '#f43f5e'; // rose-500
 
         return {
             style: {

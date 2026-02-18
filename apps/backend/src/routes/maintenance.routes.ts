@@ -25,7 +25,7 @@ import {
     deleteMaintenanceNote,
     updateMaintenanceNote
 } from '../controllers/maintenance.controller.js';
-import { protect } from '../middleware/auth.middleware.js';
+import { protect, authorize } from '../middleware/auth.middleware.js';
 import { upload } from '../middleware/upload.middleware.js';
 
 const router = express.Router();
@@ -42,7 +42,7 @@ router.put('/:id/send', sendTicket);
 
 // Technician routes
 router.get('/assigned', getAssignedTickets);
-router.get('/department', getDepartmentTickets);
+router.get('/department', authorize('superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'), getDepartmentTickets);
 
 router.put('/:id/accept', acceptTicket);
 router.put('/:id/start', startTicket);

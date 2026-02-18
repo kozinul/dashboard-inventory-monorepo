@@ -172,7 +172,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             headerMap = {
                 name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
                 department: 'Departemen', branch: 'Cabang', location: 'Lokasi',
-                assignment: 'Assignment'
+                status: 'Status', assignment: 'Assignment'
             };
 
             // Fetch active assignments for these assets
@@ -205,6 +205,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     department: (a.departmentId as any)?.name || a.department,
                     branch: (a.branchId as any)?.name,
                     location: (a.locationId as any)?.name || a.location,
+                    status: a.status,
                     assignment: assignmentInfo
                 };
             });

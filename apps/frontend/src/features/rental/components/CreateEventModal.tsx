@@ -13,16 +13,36 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     const [formData, setFormData] = useState({
         name: '',
         room: '',
+        startDate: '',
         startTime: '',
+        endDate: '',
         endTime: '',
         description: ''
+    });
+
+    // Generate time options (00:00 - 23:45)
+    const timeOptions = Array.from({ length: 96 }, (_, i) => {
+        const hour = Math.floor(i / 4);
+        const minute = (i % 4) * 15;
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await eventService.create(formData);
+            // Combine date and time
+            const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+            const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+
+            await eventService.create({
+                name: formData.name,
+                room: formData.room,
+                description: formData.description,
+                startTime: startDateTime.toISOString(),
+                endTime: endDateTime.toISOString()
+            } as any);
+
             onSuccess();
             onClose();
         } catch (error) {
@@ -103,35 +123,80 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
                                             placeholder="e.g. Conference Room A"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label htmlFor="startTime" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                Start Time
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                name="startTime"
-                                                id="startTime"
-                                                required
-                                                className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
-                                                value={formData.startTime}
-                                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                            />
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label htmlFor="startDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Start Date
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    name="startDate"
+                                                    id="startDate"
+                                                    required
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    value={formData.startDate}
+                                                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: formData.endDate || e.target.value })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="startTime" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Start Time
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="time-options"
+                                                    name="startTime"
+                                                    id="startTime"
+                                                    required
+                                                    placeholder="HH:mm"
+                                                    pattern="[0-9]{2}:[0-9]{2}"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    value={formData.startTime}
+                                                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label htmlFor="endTime" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                                End Time
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                name="endTime"
-                                                id="endTime"
-                                                required
-                                                className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
-                                                value={formData.endTime}
-                                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                            />
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label htmlFor="endDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    End Date
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    name="endDate"
+                                                    id="endDate"
+                                                    required
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    value={formData.endDate}
+                                                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="endTime" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    End Time
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    list="time-options"
+                                                    name="endTime"
+                                                    id="endTime"
+                                                    required
+                                                    placeholder="HH:mm"
+                                                    pattern="[0-9]{2}:[0-9]{2}"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    value={formData.endTime}
+                                                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
+
+                                        <datalist id="time-options">
+                                            {timeOptions.map(time => (
+                                                <option key={time} value={time} />
+                                            ))}
+                                        </datalist>
                                     </div>
                                     <div>
                                         <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">

@@ -5,14 +5,18 @@ import { format } from 'date-fns';
 import AddEventAssetModal from '@/features/events/components/AddEventAssetModal';
 import AddEventSupplyModal from '@/features/events/components/AddEventSupplyModal';
 import { showConfirmDialog, showSuccess, showErrorToast, showAlert } from '@/utils/swal';
+import { useAuthStore } from '@/store/authStore';
 
 export default function EventDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user } = useAuthStore();
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
     const [isSupplyModalOpen, setIsSupplyModalOpen] = useState(false);
+
+    const canManageStatus = user?.role && ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'].includes(user.role);
 
     const fetchEvent = async () => {
         if (!id) return;
@@ -116,6 +120,54 @@ export default function EventDetailsPage() {
         );
     }
 
+    const getStatusStyles = (event: Event) => {
+        const now = new Date();
+        const isOverdue = new Date(event.endTime) < now && event.status !== 'completed' && event.status !== 'cancelled';
+
+        if (isOverdue) {
+            return {
+                bg: 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20',
+                dot: 'bg-rose-500',
+                label: 'Overdue'
+            };
+        }
+
+        switch (event.status) {
+            case 'scheduled':
+                return {
+                    bg: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
+                    dot: 'bg-amber-500',
+                    label: 'Scheduled'
+                };
+            case 'ongoing':
+                return {
+                    bg: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20',
+                    dot: 'bg-emerald-500 animate-pulse',
+                    label: 'Ongoing'
+                };
+            case 'planning':
+                return {
+                    bg: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20',
+                    dot: 'bg-blue-500',
+                    label: 'Planning'
+                };
+            case 'completed':
+                return {
+                    bg: 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20',
+                    dot: 'bg-slate-400',
+                    label: 'Completed'
+                };
+            default:
+                return {
+                    bg: 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20',
+                    dot: 'bg-slate-400',
+                    label: event.status.charAt(0).toUpperCase() + event.status.slice(1)
+                };
+        }
+    };
+
+    const statusStyles = getStatusStyles(event);
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -124,139 +176,152 @@ export default function EventDetailsPage() {
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{event.name}</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">calendar_month</span>
-                        {format(new Date(event.startTime), 'PP p')} - {format(new Date(event.endTime), 'p')}
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {format(new Date(event.startTime), 'MMM dd, yyyy')}
+                        </span>
+                        <span className="mx-1">•</span>
+                        <span>
+                            {format(new Date(event.startTime), 'HH:mm')} - {format(new Date(event.endTime), 'HH:mm')}
+                        </span>
                     </p>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">room</span>
                         {event.room}
                     </p>
+                    {event.departmentId && (
+                        <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">corporate_fare</span>
+                            {(event.departmentId as any).name || 'Unknown Department'}
+                        </p>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${event.status === 'scheduled' ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
-                        : event.status === 'ongoing' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                            : event.status === 'planning' ? 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
-                                : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20'
-                        }`}>
-                        {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${statusStyles.bg}`}>
+                        <span className={`size-1.5 rounded-full ${statusStyles.dot}`}></span>
+                        {statusStyles.label}
                     </span>
 
-                    {event.status === 'planning' && (
-                        <>
-                            <button
-                                onClick={async () => {
-                                    if (!id) return;
+                    {canManageStatus && (
+                        <div className="flex items-center gap-3">
+                            {event.status === 'planning' && (
+                                <>
+                                    <button
+                                        onClick={async () => {
+                                            if (!id) return;
 
-                                    const hasItems = (event.rentedAssets && event.rentedAssets.length > 0) ||
-                                        (event.planningSupplies && event.planningSupplies.length > 0);
+                                            const hasItems = (event.rentedAssets && event.rentedAssets.length > 0) ||
+                                                (event.planningSupplies && event.planningSupplies.length > 0);
 
-                                    if (hasItems) {
-                                        showAlert({
-                                            title: 'Cannot Delete',
-                                            text: 'Please remove all rented assets and planned supplies before deleting the event.',
-                                            icon: 'warning'
-                                        });
-                                        return;
-                                    }
+                                            if (hasItems) {
+                                                showAlert({
+                                                    title: 'Cannot Delete',
+                                                    text: 'Please remove all rented assets and planned supplies before deleting the event.',
+                                                    icon: 'warning'
+                                                });
+                                                return;
+                                            }
 
-                                    const result = await showConfirmDialog(
-                                        'Are you sure?',
-                                        "You won't be able to revert this!",
-                                        'Yes, delete it!',
-                                        'delete'
-                                    );
+                                            const result = await showConfirmDialog(
+                                                'Are you sure?',
+                                                "You won't be able to revert this!",
+                                                'Yes, delete it!',
+                                                'delete'
+                                            );
 
-                                    if (result.isConfirmed) {
-                                        try {
-                                            await eventService.delete(id);
-                                            showSuccess('Deleted!', 'The event has been deleted.');
-                                            navigate('/rental');
-                                        } catch (error: any) {
-                                            console.error('Failed to delete event:', error);
-                                            showErrorToast(error.response?.data?.message || 'Failed to delete event');
-                                        }
-                                    }
-                                }}
-                                disabled={(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)
-                                    ? 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
-                                    : 'text-red-600 bg-red-50 border border-red-200 hover:bg-red-100'
-                                    }`}
-                                title={((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)) ? "Remove all assets and supplies first" : "Delete Event"}
-                            >
-                                Delete
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (!id) return;
-                                    const result = await showConfirmDialog(
-                                        'Book Resources?',
-                                        'Are you sure you want to book these resources? This will mark the event as scheduled.',
-                                        'Yes, book it!',
-                                        'info'
-                                    );
-                                    if (result.isConfirmed) {
-                                        try {
-                                            await eventService.update(id, { status: 'scheduled' });
-                                            fetchEvent();
-                                        } catch (error) {
-                                            console.error('Failed to book event:', error);
-                                        }
-                                    }
-                                }}
-                                className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
-                            >
-                                Book Resources
-                            </button>
-                        </>
-                    )}
+                                            if (result.isConfirmed) {
+                                                try {
+                                                    await eventService.delete(id);
+                                                    showSuccess('Deleted!', 'The event has been deleted.');
+                                                    navigate('/rental');
+                                                } catch (error: any) {
+                                                    console.error('Failed to delete event:', error);
+                                                    showErrorToast(error.response?.data?.message || 'Failed to delete event');
+                                                }
+                                            }
+                                        }}
+                                        disabled={(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)}
+                                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${(event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)
+                                            ? 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed'
+                                            : 'text-red-600 bg-red-50 border border-red-200 hover:bg-red-100'
+                                            }`}
+                                        title={((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)) ? "Remove all assets and supplies first" : "Delete Event"}
+                                    >
+                                        Delete
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!id) return;
+                                            const result = await showConfirmDialog(
+                                                'Book Resources?',
+                                                'Are you sure you want to book these resources? This will mark the event as scheduled.',
+                                                'Yes, book it!',
+                                                'info'
+                                            );
+                                            if (result.isConfirmed) {
+                                                try {
+                                                    await eventService.update(id, { status: 'scheduled' });
+                                                    fetchEvent();
+                                                } catch (error) {
+                                                    console.error('Failed to book event:', error);
+                                                }
+                                            }
+                                        }}
+                                        className="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                                    >
+                                        Book Resources
+                                    </button>
+                                </>
+                            )}
 
-                    {event.status === 'scheduled' && (
-                        <>
-                            <button
-                                onClick={async () => {
-                                    if (!id) return;
-                                    const result = await showConfirmDialog(
-                                        'Release Resources?',
-                                        'Are you sure you want to release these resources? This will move the event back to planning.',
-                                        'Yes, release!',
-                                        'warning'
-                                    );
-                                    if (result.isConfirmed) {
-                                        try {
-                                            await eventService.update(id, { status: 'planning' });
-                                            fetchEvent();
-                                        } catch (error) {
-                                            console.error('Failed to release event:', error);
-                                        }
-                                    }
-                                }}
-                                className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
-                            >
-                                Release Resources
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (!id) return;
-                                    const result = await showConfirmDialog(
-                                        'Mark as Done?',
-                                        'Are you sure you want to mark this event as done? Resources will be freed.',
-                                        'Yes, mark as done!',
-                                        'info'
-                                    );
-                                    if (result.isConfirmed) {
-                                        try {
-                                            await eventService.update(id, { status: 'completed' });
-                                            fetchEvent();
-                                        } catch (error) {
-                                            console.error('Failed to complete event:', error);
-                                        }
-                                    }
-                                }}
-                                className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                            >
-                                Mark as Done
-                            </button>
-                        </>
+                            {event.status === 'scheduled' && (
+                                <>
+                                    <button
+                                        onClick={async () => {
+                                            if (!id) return;
+                                            const result = await showConfirmDialog(
+                                                'Release Resources?',
+                                                'Are you sure you want to release these resources? This will move the event back to planning.',
+                                                'Yes, release!',
+                                                'warning'
+                                            );
+                                            if (result.isConfirmed) {
+                                                try {
+                                                    await eventService.update(id, { status: 'planning' });
+                                                    fetchEvent();
+                                                } catch (error) {
+                                                    console.error('Failed to release event:', error);
+                                                }
+                                            }
+                                        }}
+                                        className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                                    >
+                                        Release Resources
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!id) return;
+                                            const result = await showConfirmDialog(
+                                                'Mark as Done?',
+                                                'Are you sure you want to mark this event as done? Resources will be freed.',
+                                                'Yes, mark as done!',
+                                                'info'
+                                            );
+                                            if (result.isConfirmed) {
+                                                try {
+                                                    await eventService.update(id, { status: 'completed' });
+                                                    fetchEvent();
+                                                } catch (error) {
+                                                    console.error('Failed to mark event as done:', error);
+                                                }
+                                            }
+                                        }}
+                                        className="px-4 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                                    >
+                                        Mark as Done
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     )}
 
                     <button
@@ -342,8 +407,8 @@ export default function EventDetailsPage() {
                         <button
                             onClick={() => setIsSupplyModalOpen(true)}
                             className="px-3 py-1.5 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 flex items-center gap-1 shadow-sm shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={event.status !== 'planning'}
-                            title={event.status !== 'planning' ? "Switch to Planning mode to add supplies" : "Add Supply"}
+                            disabled={!['planning', 'scheduled', 'ongoing'].includes(event.status)}
+                            title={!['planning', 'scheduled', 'ongoing'].includes(event.status) ? "Event is locked" : "Add Supply"}
                         >
                             <span className="material-symbols-outlined text-[16px]">add</span>
                             Add Supply
@@ -377,8 +442,8 @@ export default function EventDetailsPage() {
                                                 <button
                                                     onClick={() => handleRemoveSupply(idx)}
                                                     className="text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    disabled={event.status !== 'planning'}
-                                                    title={event.status !== 'planning' ? "Switch to Planning mode to remove supplies" : "Remove supply"}
+                                                    disabled={!['planning', 'scheduled', 'ongoing'].includes(event.status)}
+                                                    title={!['planning', 'scheduled', 'ongoing'].includes(event.status) ? "Event is locked" : "Remove supply"}
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">delete</span>
                                                 </button>
@@ -425,16 +490,16 @@ export default function EventDetailsPage() {
                             </span>
                         </div>
                     </div>
-                    <div className="bg-primary/10 dark:bg-primary/20 p-4 rounded-lg border border-primary/20">
-                        <p className="text-sm font-bold text-primary dark:text-primary-foreground">Grand Total</p>
+                    <div className="bg-primary p-4 rounded-lg shadow-lg shadow-primary/20 border border-primary/10">
+                        <p className="text-sm font-bold text-white/80">Grand Total</p>
                         <div className="flex items-end justify-between mt-1">
-                            <span className="text-2xl font-bold text-primary dark:text-primary-foreground">
+                            <span className="text-2xl font-black text-white">
                                 Rp. {(
                                     (event.rentedAssets?.reduce((sum, item) => sum + item.rentalRate, 0) || 0) +
                                     (event.planningSupplies?.reduce((sum, item) => sum + item.cost, 0) || 0)
                                 ).toLocaleString('id-ID')}
                             </span>
-                            <span className="text-sm font-bold text-primary dark:text-primary-foreground">
+                            <span className="text-sm font-bold text-white/90">
                                 {(event.rentedAssets?.length || 0) + (event.planningSupplies?.reduce((sum, item) => sum + item.quantity, 0) || 0)} Total Qty
                             </span>
                         </div>

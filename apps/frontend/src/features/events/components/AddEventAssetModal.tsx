@@ -35,11 +35,19 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
             const response = await assetService.getAvailable({
                 startTime: event.startTime.toString(),
                 endTime: event.endTime.toString(),
-                excludeEventId: eventId
-            });
+                excludeEventId: eventId,
+                departmentId: event.departmentId // Pass the event's department to restrict booking
+            } as any);
 
-            // Filter assets that have rental rates (just in case backend doesn't filter perfectly or we want double safety)
-            const rentalAssets = response.filter(asset => asset.rentalRates && asset.rentalRates.length > 0);
+            // Filter assets that have rental rates
+            let rentalAssets = response.filter(asset => asset.rentalRates && asset.rentalRates.length > 0);
+
+            // Filter out assets that are already in this event
+            if (event.rentedAssets) {
+                const existingAssetIds = new Set(event.rentedAssets.map(ra => (ra.assetId as any)._id || ra.assetId));
+                rentalAssets = rentalAssets.filter(asset => !existingAssetIds.has(asset._id || asset.id));
+            }
+
             setAssets(rentalAssets);
         } catch (error) {
             console.error('Failed to fetch available assets:', error);

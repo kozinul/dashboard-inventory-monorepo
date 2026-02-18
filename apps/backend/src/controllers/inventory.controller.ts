@@ -416,7 +416,7 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
 
 export const getAvailableAssetsForEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { startTime, endTime, excludeEventId } = req.query;
+        const { startTime, endTime, excludeEventId, departmentId } = req.query;
 
         if (!startTime || !endTime) {
             return res.status(400).json({ message: 'startTime and endTime are required' });
@@ -438,11 +438,37 @@ export const getAvailableAssetsForEvent = async (req: Request, res: Response, ne
         const bookedAssetIds = conflictingEvents.flatMap(e => e.rentedAssets.map(ra => ra.assetId.toString()));
 
         // Find assets not in booked list
-        const assets = await Asset.find({
+        const query: any = {
             _id: { $nin: bookedAssetIds },
-            status: { $ne: 'disposed' },
+            status: 'active', // Only show active assets as requested
             'rentalRates.0': { $exists: true }
-        });
+        };
+
+        // Enforce branch and department filtering
+        if (req.user && req.user.role !== 'superuser') {
+            query.branchId = (req.user as any).branchId;
+            // Enforce department for everyone except top roles (Admin, etc)
+            // Manager is now restricted to their department as requested
+            if (!['admin', 'system_admin'].includes(req.user.role)) {
+                if (req.user.departmentId) {
+                    query.departmentId = req.user.departmentId;
+                } else if (departmentId) {
+                    query.departmentId = departmentId;
+                }
+            } else if (departmentId) {
+                // Admins can filter by department if provided (e.g. from event)
+                query.departmentId = departmentId;
+            }
+        } else if (req.user && req.user.role === 'superuser') {
+            if (req.query.branchId && req.query.branchId !== 'ALL') {
+                query.branchId = req.query.branchId;
+            }
+            if (departmentId) {
+                query.departmentId = departmentId;
+            }
+        }
+
+        const assets = await Asset.find(query);
 
         res.json(assets);
 

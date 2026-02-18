@@ -17,6 +17,7 @@ export interface IEvent extends Document {
         quantity: number;
         cost: number;
     }[];
+    departmentId?: string;
     branchId?: string;
     createdBy?: string;
     createdAt: Date;
@@ -44,6 +45,7 @@ const EventSchema: Schema = new Schema({
         quantity: Number,
         cost: Number
     }],
+    departmentId: { type: Schema.Types.ObjectId, ref: 'Department', required: false },
     branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: false },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: false }
 }, {

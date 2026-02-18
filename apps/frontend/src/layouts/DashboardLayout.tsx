@@ -242,6 +242,18 @@ function DashboardLayout() {
 
         const resource = resourceMap[item.name];
 
+        // Strict restriction for Dept Tickets and Audit Logs
+        // technician and user are always blocked
+        const isDeptTicket = resource === 'dept_tickets' || item.name?.toLowerCase().includes('dept') || item.href?.includes('department-tickets');
+        if (isDeptTicket) {
+            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+            return user?.role && allowedRoles.includes(user.role);
+        }
+
+        if (resource === 'audit_logs') {
+            return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
+        }
+
         if (resource === 'disposal') return true; // Force visibility for disposal menu
         if (resource === 'assignments' && user?.role === 'technician') return true; // Force assignments for technicians
         if (resource === 'transfer' && user?.role === 'technician') return true; // Ensure transfer remains visible
@@ -280,7 +292,7 @@ function DashboardLayout() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'dept_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
         }
 
         // Standard User permissions

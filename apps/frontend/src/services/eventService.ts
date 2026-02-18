@@ -9,6 +9,7 @@ export interface Event {
     startTime: string;
     endTime: string;
     description?: string;
+    departmentId?: string;
     status: 'planning' | 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
     rentedAssets?: {
         _id: string; // Subdocument ID
@@ -40,8 +41,10 @@ export interface Event {
 }
 
 export const eventService = {
-    getAll: async (): Promise<Event[]> => {
-        const response = await axios.get(`${API_URL}/events`);
+    getAll: async (branchId?: string): Promise<Event[]> => {
+        const response = await axios.get(`${API_URL}/events`, {
+            params: branchId && branchId !== 'ALL' ? { branchId } : {}
+        });
         return response.data;
     },
 

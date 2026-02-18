@@ -28,9 +28,14 @@ export function Sidebar() {
 
     // Check if user has permission for a resource
     const hasPermission = (resource: string) => {
-        // Strict restriction for Audit Logs
+        // Strict restriction for Audit Logs and Dept Tickets
         if (resource === 'audit_logs') {
             return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
+        }
+
+        if (resource === 'dept_tickets' || resource?.toLowerCase().includes('dept')) {
+            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+            return user?.role && allowedRoles.includes(user.role);
         }
 
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'manager') return true;
@@ -38,7 +43,7 @@ export function Sidebar() {
             return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
         }
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports', 'settings'].includes(resource);
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports', 'settings'].includes(resource);
         }
         if (resource === 'disposal') return true; // Ensure disposal is always visible for anyone else
         if (!user?.permissions || user.permissions.length === 0) return false;

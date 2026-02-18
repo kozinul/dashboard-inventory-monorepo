@@ -35,11 +35,11 @@ export default function DepartmentTicketsPage() {
     };
 
     useEffect(() => {
-        // Permission check
-        const hasDeptTicketPermission = user?.permissions?.find(p => p.resource === 'dept_tickets')?.actions.view;
-        const isAdmin = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager';
+        // Strict role-based permission check
+        const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+        const isAllowed = user?.role && allowedRoles.includes(user.role);
 
-        if (!isAdmin && !hasDeptTicketPermission) {
+        if (!isAllowed) {
             navigate('/');
             return;
         }

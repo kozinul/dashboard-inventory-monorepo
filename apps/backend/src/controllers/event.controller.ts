@@ -12,6 +12,7 @@ export const createEvent = async (req: Request, res: Response) => {
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId,
+            departmentId: req.user.departmentId,
             createdBy: req.user._id
         });
         await event.save();
@@ -31,39 +32,12 @@ export const getEvents = async (req: Request, res: Response) => {
             filter.branchId = req.query.branchId;
         }
 
-        let events = await Event.find(filter).sort({ startTime: 1 });
+        let events = await Event.find(filter)
+            .populate('departmentId', 'name')
+            .sort({ startTime: -1 });
 
-        // RBAC: Filter by department for non-admin users
-        // RBAC: Filter by department for non-admin/privileged roles
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
-            if (req.user.departmentId) {
-                const eventsWithAccess = [];
-                for (const event of events) {
-                    // regular users can only see:
-                    // 1. Created by them
-                    // 2. Empty events (wishlist)
-                    // 3. Events with assets from their department
-
-                    const isCreator = event.createdBy?.toString() === req.user._id.toString();
-                    const isEmpty = !event.rentedAssets || event.rentedAssets.length === 0;
-
-                    if (isCreator || isEmpty) {
-                        eventsWithAccess.push(event);
-                        continue;
-                    }
-
-                    // Check if any asset belongs to user's department
-                    const assetIds = event.rentedAssets.map(ra => ra.assetId);
-                    const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
-                    if (assets.length > 0) {
-                        eventsWithAccess.push(event);
-                    }
-                }
-                events = eventsWithAccess;
-            } else {
-                return res.json([]);
-            }
-        }
+        // RBAC: Previously filtered by department for non-admin users.
+        // Now allowed for all users in the same branch as requested.
 
         res.status(200).json(events);
     } catch (error) {
@@ -77,7 +51,8 @@ export const getEventById = async (req: Request, res: Response) => {
         const { id } = req.params;
         const event = await Event.findById(id)
             .populate('rentedAssets.assetId')
-            .populate('planningSupplies.supplyId');
+            .populate('planningSupplies.supplyId')
+            .populate('departmentId', 'name');
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
@@ -88,24 +63,7 @@ export const getEventById = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Access denied: Event belongs to another branch' });
         }
 
-        // RBAC: Extra checks for regular users (non-managers/technicians)
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
-            const isCreator = event.createdBy?.toString() === req.user._id.toString();
-            const isEmpty = !event.rentedAssets || event.rentedAssets.length === 0;
-
-            if (isCreator || isEmpty) {
-                // Access granted
-            } else if (req.user.departmentId && event.rentedAssets && event.rentedAssets.length > 0) {
-                // Check if any asset belongs to user's department
-                const assetIds = event.rentedAssets.map(ra => ra.assetId);
-                const assets = await Asset.find({ _id: { $in: assetIds }, departmentId: req.user.departmentId });
-                if (assets.length === 0) {
-                    return res.status(403).json({ message: 'Access denied: No department association' });
-                }
-            } else {
-                return res.status(403).json({ message: 'Access denied' });
-            }
-        }
+        // RBAC: Cross-department visibility allowed. Ensure branch match for non-superusers.
 
         res.status(200).json(event);
     } catch (error) {
@@ -122,35 +80,64 @@ export const updateEvent = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
+        // RBAC: Technician can only update assets and supplies
+        if (req.user.role === 'technician') {
+            const allowedFields = ['rentedAssets', 'planningSupplies'];
+            const updateKeys = Object.keys(req.body);
+            const isProhibited = updateKeys.some(key => !allowedFields.includes(key));
+
+            if (isProhibited) {
+                return res.status(403).json({
+                    message: 'Technicians are only authorized to manage assets and supplies. Core event details or status changes must be handled by a Supervisor or Manager.'
+                });
+            }
+        }
+
         const newStatus = req.body.status;
         const oldStatus = currentEvent.status;
 
-        // Handle Supply Logic on Status Change
-        if (newStatus && newStatus !== oldStatus) {
-            // Planning -> Scheduled (Booking): Deduct Stock
-            if (oldStatus === 'planning' && newStatus === 'scheduled') {
-                for (const item of currentEvent.planningSupplies) {
-                    const supply = await Supply.findById(item.supplyId);
+        // Handle Dynamic Supply Updates for Booked/Ongoing events
+        const isLive = ['scheduled', 'ongoing'].includes(newStatus || oldStatus);
+        if (isLive && req.body.planningSupplies) {
+            const oldSupplies = currentEvent.planningSupplies || [];
+            const newSupplies = req.body.planningSupplies;
+
+            // Simple diffing logic
+            const oldMap = new Map(oldSupplies.map(s => [s.supplyId.toString(), s.quantity]));
+            const newMap = new Map();
+
+            // Process new supplies
+            for (const item of newSupplies) {
+                const sId = item.supplyId.toString();
+                const newQty = item.quantity;
+                const oldQty = oldMap.get(sId) || 0;
+                const diff = newQty - oldQty;
+
+                if (diff !== 0) {
+                    const supply = await Supply.findById(sId);
                     if (supply) {
                         const oldStock = supply.quantity;
-                        supply.quantity -= item.quantity;
+                        supply.quantity -= diff; // Deduct if addition, add back if reduction
                         await supply.save();
 
                         await SupplyHistory.create({
                             supplyId: supply._id,
-                            action: 'USE',
-                            quantityChange: -item.quantity,
+                            action: diff > 0 ? 'USE' : 'RESTOCK',
+                            quantityChange: -diff,
                             previousStock: oldStock,
                             newStock: supply.quantity,
-                            notes: `Used in event: ${currentEvent.name}`
+                            notes: `Updated in event: ${currentEvent.name}`
                         });
                     }
                 }
+                newMap.set(sId, true);
             }
-            // Scheduled -> Planning (Release): Revert Stock
-            else if (oldStatus === 'scheduled' && newStatus === 'planning') {
-                for (const item of currentEvent.planningSupplies) {
-                    const supply = await Supply.findById(item.supplyId);
+
+            // Process removed supplies
+            for (const item of oldSupplies) {
+                const sId = item.supplyId.toString();
+                if (!newMap.has(sId)) {
+                    const supply = await Supply.findById(sId);
                     if (supply) {
                         const oldStock = supply.quantity;
                         supply.quantity += item.quantity;
@@ -162,27 +149,7 @@ export const updateEvent = async (req: Request, res: Response) => {
                             quantityChange: item.quantity,
                             previousStock: oldStock,
                             newStock: supply.quantity,
-                            notes: `Released from event: ${currentEvent.name}`
-                        });
-                    }
-                }
-            }
-            // Scheduled -> Cancelled (Cancel): Revert Stock
-            else if (oldStatus === 'scheduled' && newStatus === 'cancelled') {
-                for (const item of currentEvent.planningSupplies) {
-                    const supply = await Supply.findById(item.supplyId);
-                    if (supply) {
-                        const oldStock = supply.quantity;
-                        supply.quantity += item.quantity;
-                        await supply.save();
-
-                        await SupplyHistory.create({
-                            supplyId: supply._id,
-                            action: 'RESTOCK',
-                            quantityChange: item.quantity,
-                            previousStock: oldStock,
-                            newStock: supply.quantity,
-                            notes: `Event cancelled: ${currentEvent.name}`
+                            notes: `Removed from event: ${currentEvent.name}`
                         });
                     }
                 }
@@ -191,7 +158,8 @@ export const updateEvent = async (req: Request, res: Response) => {
 
         const event = await Event.findByIdAndUpdate(id, req.body, { new: true })
             .populate('rentedAssets.assetId')
-            .populate('planningSupplies.supplyId');
+            .populate('planningSupplies.supplyId')
+            .populate('departmentId', 'name');
 
         res.status(200).json(event);
     } catch (error) {
@@ -219,6 +187,11 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
         if (!eventToCheck) {
             return res.status(404).json({ message: 'Event not found' });
+        }
+
+        // RBAC: Technician cannot delete events
+        if (req.user.role === 'technician') {
+            return res.status(403).json({ message: 'Technicians are not authorized to delete events.' });
         }
 
         // Allow deletion if:
