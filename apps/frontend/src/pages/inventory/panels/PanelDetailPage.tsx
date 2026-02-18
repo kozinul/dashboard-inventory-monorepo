@@ -54,7 +54,9 @@ export default function PanelDetailPage() {
 
             children.forEach((child: Asset) => {
                 if (child.slotNumber && child.slotNumber > 0 && child.slotNumber <= capacity) {
-                    slotArray[child.slotNumber - 1].push(child);
+                    if (child.slotNumber) {
+                        slotArray[child.slotNumber - 1].push(child);
+                    }
                 }
             });
             setSlots(slotArray);

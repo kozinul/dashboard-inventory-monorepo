@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
 import axios from '../../../../lib/axios';
+import { useAuthStore } from '../../../../store/authStore';
+import { showSuccess, showError } from '../../../../utils/swal';
 
 interface AddSupplyModalProps {
     isOpen: boolean;
@@ -12,11 +14,13 @@ interface AddSupplyModalProps {
 }
 
 export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<Supply>({
+    const { user } = useAuthStore();
+    const { register, handleSubmit, reset, getValues, setValue, formState: { errors } } = useForm<Supply>({
         defaultValues: {
             quantity: 0,
             minimumStock: 1,
-            cost: 0
+            cost: 0,
+            departmentId: user?.departmentId || ''
         }
     });
 
@@ -52,8 +56,28 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
         return false;
     });
 
+    // Initial data fetch and form reset
     useEffect(() => {
         if (isOpen) {
+            // Step 1: Immediate reset with current defaults
+            reset({
+                name: '',
+                partNumber: '',
+                category: '',
+                unitId: '',
+                quantity: 0,
+                minimumStock: 1,
+                cost: 0,
+                description: '',
+                vendorId: '',
+                departmentId: user?.departmentId || '',
+                locationId: ''
+            });
+
+            // Reset local cascade state
+            setSelectedBuilding('');
+            setSelectedFloor('');
+
             const fetchData = async () => {
                 try {
                     const [locRes, vendRes, deptRes, unitRes] = await Promise.all([
@@ -62,28 +86,80 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
                         axios.get('/departments'),
                         getUnits()
                     ]);
-                    setLocations(locRes.data);
+
+                    const allLocations = locRes.data;
+                    setLocations(allLocations);
                     setVendors(vendRes.data);
                     setDepartments(deptRes.data);
                     setUnits(unitRes);
+
+                    // Step 2: Auto-select Warehouse & handle cascade
+                    const warehouse = allLocations.find((l: any) => l.name.toLowerCase().includes('warehouse'));
+                    if (warehouse) {
+                        let floor = null;
+                        let building = null;
+
+                        if (warehouse.type === 'Building') {
+                            building = warehouse;
+                        } else {
+                            let current = warehouse;
+                            const findParent = (id: string) => allLocations.find((l: any) => l._id === id);
+                            while (current && current.type !== 'Building') {
+                                if (current.type === 'Floor') floor = current;
+                                current = findParent(current.parentId);
+                            }
+                            building = current;
+                        }
+
+                        if (building) {
+                            setSelectedBuilding(building._id);
+                            if (floor) setSelectedFloor(floor._id);
+
+                            // Set locationId after a tick to ensure room options are rendered
+                            setTimeout(() => {
+                                setValue('locationId', warehouse._id);
+                            }, 0);
+                        }
+                    }
                 } catch (error) {
                     console.error('Error fetching dependencies:', error);
                 }
             };
             fetchData();
         }
-    }, [isOpen]);
+    }, [isOpen, reset]);
+
+    // Secondary effect to ensure Department is synced when user or departments load
+    useEffect(() => {
+        if (isOpen && user?.departmentId && departments.length > 0) {
+            // Small timeout to ensure the DOM has updated with the new options
+            setTimeout(() => {
+                setValue('departmentId', user.departmentId);
+            }, 0);
+        }
+    }, [isOpen, user?.departmentId, departments.length, setValue]);
 
     const onSubmit = async (data: Supply) => {
         try {
             setIsSubmitting(true);
-            await supplyService.create(data);
+
+            // Fallback to warehouse if no location selected
+            let finalData = { ...data };
+            if (!finalData.locationId) {
+                const warehouse = locations.find(l => l.name.toLowerCase().includes('warehouse'));
+                if (warehouse) {
+                    finalData.locationId = warehouse._id;
+                }
+            }
+
+            await supplyService.create(finalData);
+            await showSuccess('Supply Added!', `${finalData.name} has been successfully added to inventory.`);
             onAdd();
             reset();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving supply:', error);
-            alert('Failed to save supply');
+            showError('Failed to Save', error.response?.data?.message || 'Something went wrong while saving the supply.');
         } finally {
             setIsSubmitting(false);
         }
@@ -254,7 +330,7 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Room / Location</label>
                                                 <select
-                                                    {...register('locationId', { required: 'Location is required' })}
+                                                    {...register('locationId')}
                                                     disabled={!selectedFloor}
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
                                                 >

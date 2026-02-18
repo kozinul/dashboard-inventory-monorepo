@@ -42,7 +42,7 @@ router.put('/:id/send', sendTicket);
 
 // Technician routes
 router.get('/assigned', getAssignedTickets);
-router.get('/department', authorize('superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'), getDepartmentTickets);
+router.get('/department', authorize('superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'technician'), getDepartmentTickets);
 
 router.put('/:id/accept', acceptTicket);
 router.put('/:id/start', startTicket);

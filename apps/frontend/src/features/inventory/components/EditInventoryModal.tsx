@@ -6,6 +6,7 @@ import { departmentService, Department } from '../../../services/departmentServi
 import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
+import { locationService, BoxLocation } from '../../../services/locationService';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -26,6 +27,8 @@ interface InventoryFormInputs {
     requiresExternalService: boolean;
     value: string;
     purchaseDate: string;
+    locationId: string;
+    locationDetail: string;
 
     // Vendor Fields
     vendorName: string;
@@ -45,6 +48,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const [categories, setCategories] = useState<Category[]>([]);
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [allAssets, setAllAssets] = useState<Asset[]>([]); // For parent selection
+    const [locations, setLocations] = useState<BoxLocation[]>([]);
 
     // File Upload State
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -70,12 +74,14 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 departmentService.getAll(),
                 categoryService.getAll(),
                 vendorService.getAll(),
-                assetService.getAll()
-            ]).then(([depts, cats, vends, allAss]) => {
+                assetService.getAll(),
+                locationService.getAll()
+            ]).then(([depts, cats, vends, allAss, locs]) => {
                 setDepartments(depts);
                 setCategories(cats);
                 setVendors(vends.filter(v => v.status === 'active'));
                 setAllAssets(allAss.data);
+                setLocations(locs.filter(l => l.status === 'Active'));
                 setIsDataLoaded(true);
             }).catch(err => {
                 console.error("Failed to load master data", err);
@@ -98,6 +104,8 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 serial: asset.serial,
                 departmentId: deptId || '',
                 parentAssetId: parentId || '',
+                locationId: asset.locationId || '',
+                locationDetail: asset.locationDetail || '',
                 status: asset.status,
                 requiresExternalService: asset.requiresExternalService || false,
                 value: asset.value?.toString() || '0',
@@ -140,6 +148,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
         if (!asset) return;
 
         const selectedDept = departments.find(d => d._id === data.departmentId);
+        const selectedLoc = locations.find(l => l._id === data.locationId);
 
         try {
             setIsUploading(true);
@@ -160,6 +169,9 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
             onUpdate(asset.id || asset._id, {
                 ...data,
                 departmentId: (data.departmentId || null) as any, // Convert empty string to null for Mongoose
+                locationId: (data.locationId || null) as any,
+                locationDetail: data.locationDetail,
+                location: selectedLoc?.name || asset.location,
                 parentAssetId: (data.parentAssetId || null) as any, // Convert empty string to null for Mongoose
                 department: selectedDept?.name || asset.department,
                 value: isNaN(Number(data.value)) ? asset.value : Number(data.value),
@@ -285,6 +297,36 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.serial && <span className="text-xs text-red-500 mt-1">{errors.serial.message}</span>}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Location (Optional)
+                                                </label>
+                                                <select
+                                                    {...register('locationId')}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                >
+                                                    <option value="">Auto (Gudang/Warehouse)</option>
+                                                    {locations
+                                                        .filter(loc => !selectedDepartmentId || loc.departmentId?._id === selectedDepartmentId || loc.departmentId === selectedDepartmentId || !loc.departmentId)
+                                                        .map(loc => (
+                                                            <option key={loc._id} value={loc._id}>{loc.name} ({loc.type})</option>
+                                                        ))}
+                                                </select>
+                                                <p className="text-[10px] text-slate-400 mt-1">Leave empty to auto-assign to Warehouse.</p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Location Detail (Optional)
+                                                </label>
+                                                <textarea
+                                                    {...register('locationDetail')}
+                                                    rows={2}
+                                                    placeholder="e.g. Near the main entrance, north wall"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                />
                                             </div>
                                         </div>
 

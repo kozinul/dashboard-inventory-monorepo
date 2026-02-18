@@ -7,8 +7,8 @@
  */
 export function formatCurrency(
     value: number,
-    currency = 'USD',
-    locale = 'en-US'
+    currency = 'IDR',
+    locale = 'id-ID'
 ): string {
     return new Intl.NumberFormat(locale, {
         style: 'currency',

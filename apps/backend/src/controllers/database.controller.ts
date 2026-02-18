@@ -215,20 +215,17 @@ export const resetTransactions = async (req: Request, res: Response, next: NextF
             Rental.deleteMany({}),
             Event.deleteMany({}),
             SupplyHistory.deleteMany({}),
-            // Notification.deleteMany({}) // Uncomment if model exists
+            Asset.deleteMany({}), // Assets are inventory/transactional
+            Supply.deleteMany({}), // Supplies are inventory/transactional
+            // Notification.deleteMany({}),
+            // AuditLog.deleteMany({}) 
         ]);
 
-        // Reset Assets
-        await Asset.updateMany({}, {
-            $set: {
-                status: 'Active',
-                assignedTo: null,
-                assignedToType: null,
-                nextMaintenanceDate: null
-            }
-        });
+        // Note: Masterdata (Branches, Departments, Users, etc.) are PRESERVED
 
-        res.json({ message: 'Database transactions reset successfully' });
+        console.log(`Database reset completed successfully by ${req.user.email}`);
+
+        res.json({ message: 'System transactional data reset successfully. Masterdata preserved.' });
     } catch (error) {
         next(error);
     }

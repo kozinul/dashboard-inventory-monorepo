@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Supply, supplyService } from '../../../../services/supplyService';
 import { getUnits } from '../../../../services/unitService';
 import axios from '@/lib/axios';
+import { showSuccess, showError } from '@/utils/swal';
 
 interface EditSupplyModalProps {
     isOpen: boolean;
@@ -13,7 +14,7 @@ interface EditSupplyModalProps {
 }
 
 export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSupplyModalProps) {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<Supply>();
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<Supply>();
 
     const [locations, setLocations] = useState<any[]>([]);
     const [vendors, setVendors] = useState<any[]>([]);
@@ -21,15 +22,47 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
     const [units, setUnits] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Location Cascade State
+    const [selectedBuilding, setSelectedBuilding] = useState<string>('');
+    const [selectedFloor, setSelectedFloor] = useState<string>('');
+
+    // Filtered lists
+    const buildings = locations.filter(l => l.type === 'Building');
+    const floors = locations.filter(l => l.type === 'Floor' && l.parentId === selectedBuilding);
+
+    // Get all locations that are not Building or Floor
+    const rooms = locations.filter(l => {
+        const isBuildingOrFloor = l.type === 'Building' || l.type === 'Floor';
+        if (isBuildingOrFloor) return false;
+
+        // If a floor is selected, show items belonging to that floor
+        if (selectedFloor) {
+            return l.parentId === selectedFloor;
+        }
+
+        // If only a building is selected, show items belonging directly to that building
+        if (selectedBuilding) {
+            return l.parentId === selectedBuilding;
+        }
+
+        return false;
+    });
+
+    // Initial reset and data fetch
     useEffect(() => {
         if (isOpen && supply) {
-            // Reset form with supply data
+            const supplyDeptId = typeof supply.departmentId === 'object' ? (supply.departmentId as any)?._id : supply.departmentId;
+            const supplyLocId = typeof supply.locationId === 'object' ? (supply.locationId as any)?._id : supply.locationId;
+            const supplyUnitId = typeof supply.unitId === 'object' ? (supply.unitId as any)?._id : supply.unitId;
+            const supplyVendorId = typeof supply.vendorId === 'object' ? (supply.vendorId as any)?._id : supply.vendorId;
+
+            // Step 1: Immediate reset with current data
             reset({
                 ...supply,
-                unitId: typeof supply.unitId === 'object' ? (supply.unitId as any)?._id : supply.unitId,
-                locationId: typeof supply.locationId === 'object' ? (supply.locationId as any)?._id : supply.locationId,
-                vendorId: typeof supply.vendorId === 'object' ? (supply.vendorId as any)?._id : supply.vendorId,
-                departmentId: typeof supply.departmentId === 'object' ? (supply.departmentId as any)?._id : supply.departmentId,
+                unitId: supplyUnitId,
+                locationId: supplyLocId,
+                vendorId: supplyVendorId,
+                departmentId: supplyDeptId || '',
             });
 
             const fetchData = async () => {
@@ -40,10 +73,42 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
                         axios.get('/departments'),
                         getUnits()
                     ]);
-                    setLocations(locRes.data);
+                    const allLocations = locRes.data;
+                    setLocations(allLocations);
                     setVendors(vendRes.data);
                     setDepartments(deptRes.data);
                     setUnits(unitRes);
+
+                    // Step 2: Handle Location Cascade
+                    if (supplyLocId) {
+                        const targetLoc = allLocations.find((l: any) => l._id === supplyLocId);
+                        if (targetLoc) {
+                            let floor = null;
+                            let building = null;
+
+                            if (targetLoc.type === 'Building') {
+                                building = targetLoc;
+                            } else {
+                                const findParent = (id: string) => allLocations.find((l: any) => l._id === id);
+                                let current = targetLoc;
+                                while (current && current.type !== 'Building') {
+                                    if (current.type === 'Floor') floor = current;
+                                    current = findParent(current.parentId);
+                                }
+                                building = current;
+                            }
+
+                            if (building) {
+                                setSelectedBuilding(building._id);
+                                if (floor) setSelectedFloor(floor._id);
+
+                                // Set final locationId after options are populated in DOM
+                                setTimeout(() => {
+                                    setValue('locationId', supplyLocId);
+                                }, 0);
+                            }
+                        }
+                    }
                 } catch (error) {
                     console.error('Error fetching dependencies:', error);
                 }
@@ -52,16 +117,46 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
         }
     }, [isOpen, supply, reset]);
 
+    // Secondary effect for reinforcement (Ensures dropdowns select the correct values once list is populated)
+    useEffect(() => {
+        if (isOpen && supply) {
+            const supplyDeptId = typeof supply.departmentId === 'object' ? (supply.departmentId as any)?._id : supply.departmentId;
+            const supplyUnitId = typeof supply.unitId === 'object' ? (supply.unitId as any)?._id : supply.unitId;
+            const supplyVendorId = typeof supply.vendorId === 'object' ? (supply.vendorId as any)?._id : supply.vendorId;
+
+            if (departments.length > 0 && supplyDeptId) {
+                setTimeout(() => setValue('departmentId', supplyDeptId), 0);
+            }
+            if (units.length > 0 && supplyUnitId) {
+                setTimeout(() => setValue('unitId', supplyUnitId), 0);
+            }
+            if (vendors.length > 0 && supplyVendorId) {
+                setTimeout(() => setValue('vendorId', supplyVendorId), 0);
+            }
+        }
+    }, [isOpen, supply, departments.length, units.length, vendors.length, setValue]);
+
     const onSubmit = async (data: Supply) => {
         if (!supply?._id) return;
         try {
             setIsSubmitting(true);
-            await supplyService.update(supply._id, data);
+
+            // Fallback to warehouse if no location selected
+            let finalData = { ...data };
+            if (!finalData.locationId) {
+                const warehouse = locations.find(l => l.name.toLowerCase().includes('warehouse'));
+                if (warehouse) {
+                    finalData.locationId = warehouse._id;
+                }
+            }
+
+            await supplyService.update(supply._id, finalData);
+            await showSuccess('Supply Updated!', `${finalData.name} details have been successfully updated.`);
             onUpdate();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating supply:', error);
-            alert('Failed to update supply');
+            showError('Update Failed', error.response?.data?.message || 'Something went wrong while updating the supply.');
         } finally {
             setIsSubmitting(false);
         }
@@ -148,12 +243,52 @@ export function EditSupplyModal({ isOpen, onClose, onUpdate, supply }: EditSuppl
                                                 <input type="number" step="0.01" {...register('cost', { min: 0 })} className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
-                                                <select {...register('locationId')} className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">
-                                                    <option value="">Select Location</option>
-                                                    {locations.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Building</label>
+                                                <select
+                                                    value={selectedBuilding}
+                                                    onChange={e => {
+                                                        setSelectedBuilding(e.target.value);
+                                                        setSelectedFloor('');
+                                                    }}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                >
+                                                    <option value="">Select Building</option>
+                                                    {buildings.map(b => (
+                                                        <option key={b._id} value={b._id}>{b.name}</option>
+                                                    ))}
                                                 </select>
                                             </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Floor</label>
+                                                <select
+                                                    value={selectedFloor}
+                                                    onChange={e => setSelectedFloor(e.target.value)}
+                                                    disabled={!selectedBuilding}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                >
+                                                    <option value="">Select Floor</option>
+                                                    {floors.map(f => (
+                                                        <option key={f._id} value={f._id}>{f.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Room / Location</label>
+                                                <select
+                                                    {...register('locationId')}
+                                                    disabled={!selectedFloor}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                >
+                                                    <option value="">Select Room</option>
+                                                    {rooms.map(r => (
+                                                        <option key={r._id} value={r._id}>{r.name}</option>
+                                                    ))}
+                                                </select>
+                                                {errors.locationId && <span className="text-xs text-red-500 mt-1">Location is required</span>}
+                                            </div>
+
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
                                                 <select {...register('departmentId')} className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary">

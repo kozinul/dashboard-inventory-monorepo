@@ -20,6 +20,15 @@ interface Category {
     branchId?: string;
 }
 
+const COMMON_ICONS = [
+    'laptop_mac', 'desktop_windows', 'smartphone', 'tablet',
+    'videocam', 'print', 'router', 'memory', 'storage',
+    'dns', 'category', 'inventory_2', 'package_2', 'hub',
+    'settings_input_component', 'power', 'cable', 'lan',
+    'tv', 'monitor', 'headset', 'keyboard', 'mouse',
+    'apartment', 'chair', 'ac_unit', 'security', 'construction'
+];
+
 export default function CategoryManagement() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -405,14 +414,39 @@ export default function CategoryManagement() {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Icon (Material Symbol)</label>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-background-dark border border-border-dark rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary"
-                                                value={formData.icon}
-                                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                            />
-                                            <div className="mt-2 text-xs text-slate-500">
-                                                Preview: <span className="material-symbols-outlined align-middle ml-1 text-primary">{formData.icon}</span>
+                                            <div className="flex gap-2 mb-3">
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full bg-background-dark border border-border-dark rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary"
+                                                        value={formData.icon}
+                                                        onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                                        placeholder="Type icon name..."
+                                                    />
+                                                </div>
+                                                <div className="size-10 bg-background-dark border border-border-dark rounded-lg flex items-center justify-center text-primary shadow-inner">
+                                                    <span className="material-symbols-outlined text-2xl">{formData.icon || 'category'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-3 bg-background-dark/50 border border-border-dark rounded-xl">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Quick Select</p>
+                                                <div className="grid grid-cols-7 gap-2">
+                                                    {COMMON_ICONS.map(iconName => (
+                                                        <button
+                                                            key={iconName}
+                                                            type="button"
+                                                            onClick={() => setFormData({ ...formData, icon: iconName })}
+                                                            className={`size-8 flex items-center justify-center rounded-lg transition-all ${formData.icon === iconName
+                                                                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                                                    : 'bg-surface-dark text-slate-400 hover:text-white hover:bg-surface-lighter'
+                                                                }`}
+                                                            title={iconName}
+                                                        >
+                                                            <span className="material-symbols-outlined text-[18px]">{iconName}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                         <div>

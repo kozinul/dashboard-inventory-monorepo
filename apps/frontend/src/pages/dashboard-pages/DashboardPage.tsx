@@ -1,6 +1,7 @@
 import { DashboardMetrics } from '@/features/dashboard/components/DashboardMetrics';
 import { VisualActivityFeed } from '@/features/dashboard/components/VisualActivityFeed';
 import { HighPriorityGearPanel } from '@/features/dashboard/components/HighPriorityGearPanel';
+import { LowStockSuppliesCard } from '@/features/dashboard/components/LowStockSuppliesCard';
 import { useAuthStore } from '@/store/authStore';
 
 export default function DashboardPage() {
@@ -23,7 +24,10 @@ export default function DashboardPage() {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <VisualActivityFeed />
+                <div className="lg:col-span-2 space-y-12">
+                    <VisualActivityFeed />
+                    <LowStockSuppliesCard />
+                </div>
                 <HighPriorityGearPanel />
             </div>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatIDR } from '@/utils/currency';
 import imageCompression from 'browser-image-compression';
 import { useNavigate } from 'react-router-dom';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
@@ -480,12 +481,12 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                                             <span className="font-bold dark:text-white">{item.name}</span>
                                             <span className="text-slate-500 ml-2">x{item.quantity}</span>
                                         </div>
-                                        <span className="font-mono text-slate-600">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.cost * item.quantity)}</span>
+                                        <span className="font-mono text-slate-600">{formatIDR(item.cost * item.quantity)}</span>
                                     </div>
                                 ))}
                                 <div className="pt-3 flex justify-between font-bold text-lg dark:text-white">
                                     <span>Total Cost</span>
-                                    <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(ticket.suppliesUsed.reduce((acc, i) => acc + (i.cost * i.quantity), 0))}</span>
+                                    <span>{formatIDR(ticket.suppliesUsed.reduce((acc, i) => acc + (i.cost * i.quantity), 0))}</span>
                                 </div>
                             </div>
                         ) : <p className="text-sm text-slate-500 italic">No supplies used yet.</p>}

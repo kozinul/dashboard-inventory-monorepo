@@ -12,6 +12,7 @@ export interface Asset {
     serial: string;
     locationId?: string;
     location?: string;
+    locationDetail?: string;
     parentAssetId?: string | { _id: string; name: string; serial: string };
     children?: Asset[];
     departmentId?: string;

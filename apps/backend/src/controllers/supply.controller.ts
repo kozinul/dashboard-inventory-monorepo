@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Supply } from '../models/supply.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
+import { Location } from '../models/location.model.js';
 
 export const createSupply = async (req: Request, res: Response) => {
     try {
@@ -12,6 +13,20 @@ export const createSupply = async (req: Request, res: Response) => {
             // Also assign department name if available, to keep data consistent
             if (req.user.department) {
                 supplyData.department = req.user.department;
+            }
+        }
+
+        // Auto-assign default Warehouse location if not provided
+        if (!supplyData.locationId) {
+            const warehouse = await Location.findOne({
+                name: /Warehouse/i,
+                branchId: req.user.role === 'superuser'
+                    ? (req.body.branchId || (req.user as any).branchId)
+                    : (req.user as any).branchId
+            });
+            if (warehouse) {
+                supplyData.locationId = warehouse._id;
+                supplyData.location = warehouse.name;
             }
         }
 
@@ -131,7 +146,7 @@ export const updateSupply = async (req: Request, res: Response) => {
                 return res.status(403).json({ message: 'You can only update supplies from your department' });
             }
             // Prevent changing department
-            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
+            if (req.body.departmentId && req.body.departmentId.toString() !== req.user.departmentId.toString()) {
                 return res.status(403).json({ message: 'You cannot transfer supplies to other departments' });
             }
         }

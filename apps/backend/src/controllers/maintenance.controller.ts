@@ -111,19 +111,17 @@ export const getAssignedTickets = async (req: Request, res: Response, next: Next
 // Get department tickets (for managers)
 export const getDepartmentTickets = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const managerId = req.user._id;
-        const manager = await User.findById(managerId);
+        const callerId = req.user._id;
+        const caller = await User.findById(callerId);
 
-        if (!manager) {
+        if (!caller) {
             return res.status(403).json({ message: 'User not found' });
         }
-
-
 
         let records: any[] = [];
 
         // If user is admin/superuser without department, show all tickets
-        if (!manager.departmentId && (manager.role === 'admin' || manager.role === 'superuser')) {
+        if (!caller.departmentId && (caller.role === 'admin' || caller.role === 'superuser' || caller.role === 'system_admin')) {
             records = await MaintenanceRecord.find({})
                 .populate('asset', 'name serial department departmentId')
                 .populate('requestedBy', 'name email department')
@@ -134,20 +132,20 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
                     select: 'name avatar'
                 })
                 .sort({ createdAt: -1 });
-        } else if (manager.departmentId) {
+        } else if (caller.departmentId) {
             // Find all users in the same department
-            const departmentUsers = await User.find({ departmentId: manager.departmentId }).select('_id');
+            const departmentUsers = await User.find({ departmentId: caller.departmentId }).select('_id');
             const userIds = departmentUsers.map(u => u._id);
 
             // Find all assets in the same department
-            const departmentAssets = await Asset.find({ departmentId: manager.departmentId }).select('_id');
+            const departmentAssets = await Asset.find({ departmentId: caller.departmentId }).select('_id');
             const assetIds = departmentAssets.map(a => a._id);
 
             // Get tickets from those users OR assigned to this department OR for assets in this department
             records = await MaintenanceRecord.find({
                 $or: [
                     { requestedBy: { $in: userIds } },
-                    { assignedDepartment: manager.departmentId },
+                    { assignedDepartment: caller.departmentId },
                     { asset: { $in: assetIds } }
                 ]
             })
@@ -162,8 +160,8 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
                 })
                 .sort({ createdAt: -1 });
         } else {
-            // If manager has no department assigned, return empty list instead of error
-            // This prevents UI errors for unassigned managers
+            // If caller has no department assigned (and is not an admin), return empty list instead of error
+            // This prevents UI errors for unassigned users
             records = [];
         }
 

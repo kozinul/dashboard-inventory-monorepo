@@ -1,5 +1,5 @@
 import { Asset } from '../../../services/assetService';
-import { AssetImageCell, AssetNameCell, AssetMetaCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
+import { AssetImageCell, AssetNameCell, AssetLocationCell, AssetMetaCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
 
 interface AssetTableProps {
     assets: Asset[];
@@ -20,7 +20,7 @@ export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect, action
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest w-16">Image</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Asset Details</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Identity</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Location</th>
                             {!onSelect && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Department</th>}
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Actions</th>
@@ -41,7 +41,7 @@ export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect, action
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <AssetMetaCell title={asset.id || asset._id} subtitle={asset.serial} />
+                                    <AssetLocationCell asset={asset} />
                                 </td>
                                 {!onSelect && (
                                     <td className="px-6 py-4">

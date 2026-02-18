@@ -15,6 +15,17 @@ import Rental, { IRental } from '../models/rental.model.js';
 import Event from '../models/event.model.js';
 import PDFDocument from 'pdfkit-table';
 
+const formatIDR = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    if (isNaN(num)) return 'Rp 0';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(num);
+};
+
 // --- Templates ---
 
 export const downloadTemplate = async (req: Request, res: Response, next: NextFunction) => {
@@ -172,7 +183,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             headerMap = {
                 name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
                 department: 'Departemen', branch: 'Cabang', location: 'Lokasi',
-                status: 'Status', assignment: 'Assignment'
+                status: 'Status', assignment: 'Assignment', value: 'Nilai (IDR)',
+                purchaseDate: 'Tgl Pembelian', lastUpdate: 'Terakhir Update'
             };
 
             // Fetch active assignments for these assets
@@ -206,7 +218,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     branch: (a.branchId as any)?.name,
                     location: (a.locationId as any)?.name || a.location,
                     status: a.status,
-                    assignment: assignmentInfo
+                    assignment: assignmentInfo,
+                    value: a.value || 0,
+                    purchaseDate: a.purchaseDate ? new Date(a.purchaseDate).toLocaleDateString('id-ID') : '-',
+                    lastUpdate: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('id-ID') : '-'
                 };
             });
             filename = `export_assets_${Date.now()}`;
@@ -242,7 +257,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 return {
                     supply: s?.name || 'N/A',
                     sn: s?.partNumber || 'N/A',
-                    date: h.createdAt ? h.createdAt.toLocaleString('id-ID') : 'N/A',
+                    date: h.createdAt ? h.createdAt.toLocaleString('id-ID', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A',
                     action: h.action,
                     change: h.quantityChange || 0,
                     stock: h.newStock || 0,
@@ -362,8 +383,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
             headerMap = {
                 event: 'Event', item: 'Nama Item', type: 'Tipe',
-                venue: 'Venue', qty: 'Qty', price: 'Harga',
-                amount: 'Total', rentalDate: 'Tgl Pinjam',
+                venue: 'Venue', qty: 'Qty', price: 'Harga (IDR)',
+                amount: 'Total (IDR)', rentalDate: 'Tgl Pinjam',
                 returnDate: 'Estimasi Kembali', status: 'Status', branch: 'Cabang'
             };
 
@@ -378,8 +399,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     qty: 1,
                     price: price,
                     amount: price,
-                    rentalDate: r.rentalDate ? r.rentalDate.toISOString().split('T')[0] : '',
-                    returnDate: r.expectedReturnDate ? r.expectedReturnDate.toISOString().split('T')[0] : '',
+                    rentalDate: r.rentalDate ? new Date(r.rentalDate).toLocaleDateString('id-ID') : '',
+                    returnDate: r.expectedReturnDate ? new Date(r.expectedReturnDate).toLocaleDateString('id-ID') : '',
                     status: r.status,
                     branch: (r.branchId as any)?.name || 'N/A'
                 };
@@ -401,8 +422,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     qty: 1,
                     price: price,
                     amount: price,
-                    rentalDate: ev.startTime ? ev.startTime.toISOString().split('T')[0] : '',
-                    returnDate: ev.endTime ? ev.endTime.toISOString().split('T')[0] : '',
+                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('id-ID') : '',
+                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('id-ID') : '',
                     status: ev.status,
                     branch: (ev.branchId as any)?.name || 'N/A'
                 };
@@ -416,6 +437,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 }
 
                 const price = ps.cost || 0;
+                const amount = (ps.quantity || 0) * price;
                 return {
                     event: ev.name,
                     item: supply?.name || 'N/A',
@@ -423,9 +445,9 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     venue: ev.room || 'N/A',
                     qty: ps.quantity || 0,
                     price: price,
-                    amount: (ps.quantity || 0) * price,
-                    rentalDate: ev.startTime ? ev.startTime.toISOString().split('T')[0] : '',
-                    returnDate: ev.endTime ? ev.endTime.toISOString().split('T')[0] : '',
+                    amount: amount,
+                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('id-ID') : '',
+                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('id-ID') : '',
                     status: ev.status,
                     branch: (ev.branchId as any)?.name || 'N/A'
                 };
@@ -478,7 +500,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             const totalRow: any = {};
             Object.values(headerMap).forEach(h => totalRow[h] = '');
             totalRow[headerMap.type] = 'GRAND TOTAL';
-            totalRow[headerMap.amount] = grandTotalValue;
+            totalRow[headerMap.amount] = format === 'excel' ? grandTotalValue : formatIDR(grandTotalValue);
             data.push(totalRow);
         }
 
@@ -503,7 +525,11 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     groupedData.push(headerRow);
 
                     // Add items
-                    groupedData.push(...eventItems);
+                    groupedData.push(...eventItems.map(item => ({
+                        ...item,
+                        [headerMap.price]: formatIDR(item[headerMap.price]),
+                        [headerMap.amount]: formatIDR(item[headerMap.amount])
+                    })));
 
                     // Subtotal row
                     const subtotal = eventItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.amount]) || 0), 0);
@@ -511,7 +537,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const subtotalRow: any = {};
                     Object.values(headerMap).forEach(h => subtotalRow[h] = '');
                     subtotalRow[headerMap.item] = 'TOTAL EVENT';
-                    subtotalRow[headerMap.amount] = subtotal;
+                    subtotalRow[headerMap.amount] = formatIDR(subtotal);
                     groupedData.push(subtotalRow);
 
                     // Spacer
@@ -522,7 +548,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 const grandTotalRow: any = {};
                 Object.values(headerMap).forEach(h => grandTotalRow[h] = '');
                 grandTotalRow[headerMap.item] = 'GRAND TOTAL';
-                grandTotalRow[headerMap.amount] = grandTotal;
+                grandTotalRow[headerMap.amount] = formatIDR(grandTotal);
                 groupedData.push(grandTotalRow);
 
                 return res.json({
@@ -549,7 +575,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     groupedData.push(headerRow);
 
                     // Add items
-                    groupedData.push(...groupItems);
+                    groupedData.push(...groupItems.map(item => ({
+                        ...item,
+                        [headerMap.cost]: formatIDR(item[headerMap.cost])
+                    })));
 
                     // Subtotal row
                     const subtotal = groupItems.reduce((acc, curr) => acc + (parseFloat(curr[headerMap.cost]) || 0), 0);
@@ -557,7 +586,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const subtotalRow: any = {};
                     Object.values(headerMap).forEach(h => subtotalRow[h] = '');
                     subtotalRow[headerMap.title] = 'TOTAL ASSET';
-                    subtotalRow[headerMap.cost] = subtotal;
+                    subtotalRow[headerMap.cost] = formatIDR(subtotal);
                     groupedData.push(subtotalRow);
 
                     // Spacer
@@ -568,7 +597,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 const grandTotalRow: any = {};
                 Object.values(headerMap).forEach(h => grandTotalRow[h] = '');
                 grandTotalRow[headerMap.title] = 'GRAND TOTAL';
-                grandTotalRow[headerMap.cost] = grandTotal;
+                grandTotalRow[headerMap.cost] = formatIDR(grandTotal);
                 groupedData.push(grandTotalRow);
 
                 return res.json({
@@ -642,7 +671,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     groupedData.push(headerRow);
 
                     // Items
-                    groupedData.push(...groupItems);
+                    groupedData.push(...groupItems.map(item => ({
+                        ...item,
+                        [headerMap.value]: formatIDR(item[headerMap.value])
+                    })));
 
                     // Total Unit row
                     const totalUnitRow: any = {};
@@ -699,7 +731,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `ASSET: ${name} (MODEL: ${model}) - Kategori: ${groupItems[0][headerMap.category]}`,
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                        rows: groupItems.map(item => Object.values({
+                            ...item,
+                            [headerMap.value]: formatIDR(item[headerMap.value])
+                        }).map(v => String(v || '')))
                     };
 
                     // Add total unit row
@@ -735,13 +770,17 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `EVENT: ${eventName}`,
                         headers: Object.values(headerMap),
-                        rows: eventItems.map(item => Object.values(item).map(v => String(v || '')))
+                        rows: eventItems.map(item => Object.values({
+                            ...item,
+                            [headerMap.price]: formatIDR(item[headerMap.price]),
+                            [headerMap.amount]: formatIDR(item[headerMap.amount])
+                        }).map(v => String(v || '')))
                     };
 
                     // Add subtotal row to the table rows
                     const subtotalRow = Object.values(headerMap).map(h => '');
                     subtotalRow[Object.keys(headerMap).indexOf('item')] = 'TOTAL EVENT';
-                    subtotalRow[Object.keys(headerMap).indexOf('amount')] = String(subtotal);
+                    subtotalRow[Object.keys(headerMap).indexOf('amount')] = formatIDR(subtotal);
                     table.rows.push(subtotalRow);
 
                     await doc.table(table, {
@@ -775,13 +814,16 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `ASSET: ${assetName} (MODEL: ${assetModel})`,
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                        rows: groupItems.map(item => Object.values({
+                            ...item,
+                            [headerMap.cost]: formatIDR(item[headerMap.cost])
+                        }).map(v => String(v || '')))
                     };
 
                     // Add subtotal row
                     const subtotalRow = Object.values(headerMap).map(h => '');
                     subtotalRow[Object.keys(headerMap).indexOf('title')] = 'TOTAL ASSET';
-                    subtotalRow[Object.keys(headerMap).indexOf('cost')] = String(subtotal);
+                    subtotalRow[Object.keys(headerMap).indexOf('cost')] = formatIDR(subtotal);
                     table.rows.push(subtotalRow);
 
                     await doc.table(table, {

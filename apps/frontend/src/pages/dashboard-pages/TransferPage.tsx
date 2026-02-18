@@ -102,7 +102,7 @@ export default function TransferPage() {
     // 1. Drafts (Pending) - Shows for Requester
     const isSuperUser = user?.role === 'superuser';
     const drafts = transfers.filter(t =>
-        t.status === 'Pending' &&
+        t.status === 'Pending' && t.assetId &&
         (isSuperUser || t.requestedBy?._id === user?._id || t.requestedBy === user?._id)
     );
 
@@ -110,7 +110,7 @@ export default function TransferPage() {
     // Only show if user is admin/manager and is part of the sending branch/dept
     const isManager = ['superuser', 'admin', 'manager'].includes(user?.role || '');
     const approvalPending = transfers.filter(t => {
-        if (t.status !== 'WaitingApproval') return false;
+        if (t.status !== 'WaitingApproval' || !t.assetId) return false;
         if (isSuperUser) return true; // Superuser sees all
 
         if (!isManager) return false;
@@ -128,15 +128,15 @@ export default function TransferPage() {
 
     // 3. Incoming (InTransit) - Shows for Receiver
     const incoming = transfers.filter(t =>
-        t.status === 'InTransit' &&
+        t.status === 'InTransit' && t.assetId &&
         (isSuperUser || t.toDepartmentId?._id === user?.departmentId || t.toDepartmentId === user?.departmentId)
     );
 
     // 4. History - Shows Completed, Rejected, Cancelled (and WaitingApproval for requester if they want to see progress)
     const history = transfers.filter(t =>
-        ['Completed', 'Rejected', 'Cancelled', 'Approved'].includes(t.status) ||
-        (!isSuperUser && t.status === 'WaitingApproval' && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) ||
-        (!isSuperUser && t.status === 'InTransit' && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) // Also show InTransit to sender in history? Or maybe a separate 'Outgoing' tab?
+        (['Completed', 'Rejected', 'Cancelled', 'Approved'].includes(t.status) && t.assetId) ||
+        (!isSuperUser && t.status === 'WaitingApproval' && t.assetId && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) ||
+        (!isSuperUser && t.status === 'InTransit' && t.assetId && (t.requestedBy?._id === user?._id || t.requestedBy === user?._id)) // Also show InTransit to sender in history? Or maybe a separate 'Outgoing' tab?
     );
 
     // Global Branch Filter for Superuser
@@ -256,10 +256,10 @@ export default function TransferPage() {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                                        {typeof transfer.assetId === 'object' ? transfer.assetId.name : 'Unknown Asset'}
+                                                        {(typeof transfer.assetId === 'object' && transfer.assetId !== null) ? transfer.assetId.name : 'Deleted Asset'}
                                                     </p>
                                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest">
-                                                        {typeof transfer.assetId === 'object' ? transfer.assetId.serial : '-'}
+                                                        {(typeof transfer.assetId === 'object' && transfer.assetId !== null) ? transfer.assetId.serial : '-'}
                                                     </p>
                                                 </div>
                                             </div>

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Asset } from '../models/asset.model.js';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import Rental from '../models/rental.model.js';
+import { Supply } from '../models/supply.model.js';
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -86,6 +87,43 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
             .populate('technician', 'name');
 
         res.json(recentMaintenance);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getLowStockSupplies = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const branchId = req.query.branchId as string;
+        const branchFilter: any = {};
+
+        // Apply branch scoping based on role and query
+        if (req.user.role !== 'superuser') {
+            branchFilter.branchId = (req.user as any).branchId;
+        } else if (branchId && branchId !== 'ALL') {
+            branchFilter.branchId = branchId;
+        }
+
+        // Apply department scoping for non-admin/superuser
+        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+            if (req.user.departmentId) {
+                branchFilter.departmentId = req.user.departmentId;
+            } else if (req.user.department) {
+                branchFilter.department = req.user.department;
+            }
+        }
+
+        // Fetch supplies where quantity <= minimumStock
+        const lowStockSupplies = await Supply.find({
+            ...branchFilter,
+            $expr: { $lte: ['$quantity', '$minimumStock'] }
+        })
+            .sort({ quantity: 1 }) // Show out of stock first
+            .limit(10)
+            .populate('locationId', 'name')
+            .populate('unitId', 'name');
+
+        res.json(lowStockSupplies);
     } catch (error) {
         next(error);
     }

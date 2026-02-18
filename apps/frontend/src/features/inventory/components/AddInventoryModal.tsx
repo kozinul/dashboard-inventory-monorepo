@@ -6,6 +6,7 @@ import { departmentService, Department } from '../../../services/departmentServi
 import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
+import { locationService, BoxLocation } from '../../../services/locationService';
 import { useAuthStore } from '../../../store/authStore';
 
 interface AddInventoryModalProps {
@@ -24,6 +25,8 @@ interface InventoryFormInputs {
     requiresExternalService: boolean;
     value: string;
     purchaseDate: string;
+    locationId: string;
+    locationDetail: string;
 
     // Vendor Fields
     vendorName: string;
@@ -42,6 +45,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const [departments, setDepartments] = useState<Department[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [locations, setLocations] = useState<BoxLocation[]>([]);
 
     // File Upload State
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -55,7 +59,9 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<InventoryFormInputs>({
         defaultValues: {
             status: 'active',
-            departmentId: isNonAdmin ? user?.departmentId : ''
+            departmentId: isNonAdmin ? user?.departmentId : '',
+            locationId: '',
+            locationDetail: ''
         }
     });
 
@@ -77,18 +83,20 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
             Promise.all([
                 departmentService.getAll(),
                 categoryService.getAll(),
-                vendorService.getAll()
-            ]).then(([depts, cats, vends]) => {
+                vendorService.getAll(),
+                locationService.getAll()
+            ]).then(([depts, cats, vends, locs]) => {
                 setDepartments(depts);
                 setCategories(cats);
                 setVendors(vends.filter(v => v.status === 'active'));
+                setLocations(locs.filter(l => l.status === 'Active'));
 
                 // Definitive selection for non-admins after options are rendered
                 if (isNonAdmin && user?.departmentId) {
                     // Small delay ensures Browser DOM has updated with the <options>
                     // before we try to set the value.
                     setTimeout(() => {
-                        setValue('departmentId', user.departmentId, { shouldValidate: true });
+                        setValue('departmentId', user.departmentId || '', { shouldValidate: true });
                     }, 100);
                 }
             }).catch(err => {
@@ -111,6 +119,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
 
     const onSubmit = async (data: InventoryFormInputs) => {
         const selectedDept = departments.find(d => d._id === data.departmentId);
+        const selectedLoc = locations.find(l => l._id === data.locationId);
 
         try {
             setIsUploading(true);
@@ -135,6 +144,9 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                 serial: data.serial,
                 departmentId: data.departmentId,
                 department: selectedDept?.name || 'Unknown',
+                locationId: data.locationId || undefined,
+                location: selectedLoc?.name || undefined,
+                locationDetail: data.locationDetail,
                 status: data.status,
                 requiresExternalService: data.requiresExternalService,
                 value: parseFloat(data.value.replace(/[^0-9.]/g, '')), // Basic cleaning
@@ -160,7 +172,9 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
             // Reset form and local state, preserving default department for non-admins
             reset({
                 status: 'active',
-                departmentId: isNonAdmin ? user?.departmentId : ''
+                departmentId: isNonAdmin ? user?.departmentId : '',
+                locationId: '',
+                locationDetail: ''
             });
             setInvoiceFile(null);
             setUploadProgress(0);
@@ -175,7 +189,9 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const handleClose = () => {
         reset({
             status: 'active',
-            departmentId: isNonAdmin ? user?.departmentId : ''
+            departmentId: isNonAdmin ? user?.departmentId : '',
+            locationId: '',
+            locationDetail: ''
         });
         setInvoiceFile(null);
         onClose();
@@ -273,6 +289,36 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.serial && <span className="text-xs text-red-500 mt-1">{errors.serial.message}</span>}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Location (Optional)
+                                                </label>
+                                                <select
+                                                    {...register('locationId')}
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary disabled:opacity-50"
+                                                >
+                                                    <option value="">Auto (Gudang/Warehouse)</option>
+                                                    {locations
+                                                        .filter(loc => !selectedDepartmentId || loc.departmentId?._id === selectedDepartmentId || loc.departmentId === selectedDepartmentId || !loc.departmentId)
+                                                        .map(loc => (
+                                                            <option key={loc._id} value={loc._id}>{loc.name} ({loc.type})</option>
+                                                        ))}
+                                                </select>
+                                                <p className="text-[10px] text-slate-400 mt-1">Leave empty to auto-assign to Warehouse.</p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                                    Location Detail (Optional)
+                                                </label>
+                                                <textarea
+                                                    {...register('locationDetail')}
+                                                    rows={2}
+                                                    placeholder="e.g. Near the main entrance, north wall"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                />
                                             </div>
                                         </div>
 

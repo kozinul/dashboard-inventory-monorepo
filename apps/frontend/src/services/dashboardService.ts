@@ -28,6 +28,22 @@ export interface RecentTicket {
     };
 }
 
+export interface LowStockSupply {
+    _id: string;
+    name: string;
+    partNumber: string;
+    quantity: number;
+    minimumStock: number;
+    unit?: string;
+    unitId?: {
+        name: string;
+    };
+    location?: string;
+    locationId?: {
+        name: string;
+    };
+}
+
 export const dashboardService = {
     getStats: async (branchId?: string): Promise<DashboardStats> => {
         const params = branchId && branchId !== 'ALL' ? { branchId } : {};
@@ -36,6 +52,11 @@ export const dashboardService = {
     },
     getRecentActivity: async (): Promise<RecentTicket[]> => {
         const response = await axios.get(`${API_URL}/recent-activity`);
+        return response.data;
+    },
+    getLowStockSupplies: async (branchId?: string): Promise<LowStockSupply[]> => {
+        const params = branchId && branchId !== 'ALL' ? { branchId } : {};
+        const response = await axios.get(`${API_URL}/low-stock`, { params });
         return response.data;
     }
 };

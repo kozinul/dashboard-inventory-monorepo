@@ -217,6 +217,15 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
+        // Set status to 'in_use' if assigned to a specific location (not a warehouse)
+        if (asset.locationId) {
+            const { Location } = await import('../models/location.model.js');
+            const targetLocation = await Location.findById(asset.locationId);
+            if (targetLocation && !targetLocation.isWarehouse) {
+                asset.status = 'in_use';
+            }
+        }
+
         await asset.save();
 
         // Record Audit Log
@@ -224,11 +233,11 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             userId: req.user._id,
             action: 'create',
             resourceType: 'Asset',
-            resourceId: asset._id,
+            resourceId: asset._id.toString(),
             resourceName: asset.name,
             details: `Created new asset: ${asset.name} (${asset.serial})`,
-            branchId: req.user.branchId,
-            departmentId: req.user.departmentId
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: (req.user as any).departmentId?.toString()
         });
 
         res.status(201).json(asset);
@@ -274,6 +283,18 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
             delete updateData.branchId;
         }
 
+        // Auto-update status if location changed
+        if (updateData.locationId && updateData.locationId !== existingAsset.locationId?.toString()) {
+            const { Location } = await import('../models/location.model.js');
+            const targetLocation = await Location.findById(updateData.locationId);
+            if (targetLocation && !targetLocation.isWarehouse) {
+                updateData.status = 'in_use';
+            } else if (targetLocation && targetLocation.isWarehouse) {
+                // If returned to warehouse, set back to active/spare
+                updateData.status = 'active';
+            }
+        }
+
         const asset = await Asset.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
         // Record Audit Log
@@ -282,11 +303,11 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
                 userId: req.user._id,
                 action: 'update',
                 resourceType: 'Asset',
-                resourceId: asset._id,
+                resourceId: asset._id.toString(),
                 resourceName: asset.name,
                 details: `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`,
-                branchId: req.user.branchId,
-                departmentId: req.user.departmentId
+                branchId: (req.user as any).branchId?.toString(),
+                departmentId: (req.user as any).departmentId?.toString()
             });
         }
 
@@ -322,11 +343,11 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
             userId: req.user._id,
             action: 'delete',
             resourceType: 'Asset',
-            resourceId: existingAsset._id,
+            resourceId: existingAsset._id.toString(),
             resourceName: existingAsset.name,
             details: `Deleted asset: ${existingAsset.name} (${existingAsset.serial})`,
-            branchId: req.user.branchId,
-            departmentId: req.user.departmentId
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: (req.user as any).departmentId?.toString()
         });
 
         res.json({ message: 'Asset deleted successfully' });
@@ -485,6 +506,9 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
         const userId = req.user?._id;
 
         const asset = await Asset.findById(id);
+        if (!asset) {
+            return res.status(404).json({ success: false, message: 'Asset not found' });
+        }
 
         // Support both parentAsset (nested asset) and locationId (rack/panel)
         let parentName = 'Target';
@@ -507,10 +531,6 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
             parentName = location.name;
         }
 
-        if (!asset) {
-            return res.status(404).json({ success: false, message: 'Asset not found' });
-        }
-
         // Update Asset
         asset.slotNumber = slotNumber;
         asset.status = 'in_use'; // Auto-update status
@@ -530,11 +550,11 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
             userId: userId,
             action: 'install',
             resourceType: 'Asset',
-            resourceId: asset._id,
+            resourceId: asset._id.toString(),
             resourceName: asset.name,
             details: `Installed asset in ${parentName} at Slot ${slotNumber}`,
-            branchId: req.user.branchId,
-            departmentId: req.user.departmentId
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: (req.user as any).departmentId?.toString()
         });
 
         res.status(200).json({ success: true, data: asset });
@@ -607,11 +627,11 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
             userId: userId,
             action: 'dismantle',
             resourceType: 'Asset',
-            resourceId: asset._id,
+            resourceId: asset._id.toString(),
             resourceName: asset.name,
             details: `Dismantled asset from ${parentName} and returned to warehouse`,
-            branchId: req.user.branchId,
-            departmentId: req.user.departmentId
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: (req.user as any).departmentId?.toString()
         });
 
         res.status(200).json({ success: true, data: asset });

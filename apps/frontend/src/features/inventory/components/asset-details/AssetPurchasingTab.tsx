@@ -1,4 +1,5 @@
 import { Asset } from "@/services/assetService";
+import { formatIDR } from "@/utils/currency";
 
 interface AssetPurchasingTabProps {
     asset: Asset;
@@ -32,7 +33,7 @@ export function AssetPurchasingTab({ asset }: AssetPurchasingTabProps) {
                     <div>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Purchase Cost</p>
                         <p className="text-base font-medium text-slate-900 dark:text-slate-200">
-                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(asset.value || 0)}
+                            {formatIDR(asset.value || 0)}
                         </p>
                     </div>
                 </div>

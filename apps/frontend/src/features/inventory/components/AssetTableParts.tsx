@@ -24,6 +24,27 @@ export function AssetNameCell({ asset }: { asset: Asset }) {
         <div>
             <p className="text-sm font-bold dark:text-slate-100">{asset.name}</p>
             <p className="text-[11px] text-slate-500">{asset.model}</p>
+            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{asset.serial}</p>
+        </div>
+    );
+}
+
+export function AssetLocationCell({ asset }: { asset: Asset }) {
+    if (!asset.location) {
+        return <span className="text-xs text-slate-400 italic">No Location</span>;
+    }
+
+    return (
+        <div className="flex flex-col gap-0.5">
+            <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-primary/70">location_on</span>
+                {asset.location}
+            </p>
+            {asset.locationDetail && (
+                <p className="text-[10px] text-slate-400 italic flex items-center gap-1 px-1 border-l border-slate-200 dark:border-slate-800 ml-2">
+                    {asset.locationDetail}
+                </p>
+            )}
         </div>
     );
 }

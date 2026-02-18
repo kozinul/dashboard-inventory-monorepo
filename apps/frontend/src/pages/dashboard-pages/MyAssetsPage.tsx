@@ -36,8 +36,8 @@ export default function MyAssetsPage() {
         );
     }
 
-    const activeAssignments = assignments.filter(a => a.status === 'assigned');
-    const pastAssignments = assignments.filter(a => a.status !== 'assigned');
+    const activeAssignments = assignments.filter(a => a.status === 'assigned' && a.assetId);
+    const pastAssignments = assignments.filter(a => a.status !== 'assigned' && a.assetId);
 
     return (
         <div className="space-y-8">
@@ -60,18 +60,18 @@ export default function MyAssetsPage() {
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     Assigned {format(new Date(assignment.assignedDate), 'dd MMM yyyy')}
                                 </span>
-                                <AssetStatusBadge status={assignment.assetId.status} />
+                                <AssetStatusBadge status={assignment.assetId?.status || 'unknown'} />
                             </div>
                             <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
-                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{assignment.assetId.name}</h3>
-                                        <p className="text-sm text-slate-500 font-mono">{assignment.assetId.serial}</p>
+                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white">{assignment.assetId?.name || 'Deleted Asset'}</h3>
+                                        <p className="text-sm text-slate-500 font-mono">{assignment.assetId?.serial || '-'}</p>
                                     </div>
                                     {(assignment.assetId as any).imageUrl && (
                                         <img
                                             src={(assignment.assetId as any).imageUrl}
-                                            alt={assignment.assetId.name}
+                                            alt={assignment.assetId?.name || 'Asset'}
                                             className="w-12 h-12 rounded-lg object-cover bg-slate-100"
                                         />
                                     )}
@@ -79,11 +79,11 @@ export default function MyAssetsPage() {
                                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                                     <div className="flex justify-between">
                                         <span>Category:</span>
-                                        <span className="font-medium">{assignment.assetId.category}</span>
+                                        <span className="font-medium">{assignment.assetId?.category || '-'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Model:</span>
-                                        <span className="font-medium">{assignment.assetId.model || '-'}</span>
+                                        <span className="font-medium">{assignment.assetId?.model || '-'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@ export default function MyAssetsPage() {
                                 {pastAssignments.map(assignment => (
                                     <tr key={assignment._id}>
                                         <td className="px-6 py-3 font-medium text-slate-900 dark:text-white">
-                                            {assignment.assetId.name} <span className="text-slate-400 font-normal">({assignment.assetId.serial})</span>
+                                            {assignment.assetId?.name || 'Deleted Asset'} <span className="text-slate-400 font-normal">({assignment.assetId?.serial || '-'})</span>
                                         </td>
                                         <td className="px-6 py-3 text-slate-500">
                                             {format(new Date(assignment.assignedDate), 'dd MMM yyyy')}

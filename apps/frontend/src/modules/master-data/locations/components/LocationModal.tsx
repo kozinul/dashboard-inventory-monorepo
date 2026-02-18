@@ -82,7 +82,7 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
 
                 setFormData({
                     name: '',
-                    type: defaultType,
+                    type: defaultType || '',
                     description: '',
                     status: 'Active',
                     parentId: parentLocation ? parentLocation._id : null,

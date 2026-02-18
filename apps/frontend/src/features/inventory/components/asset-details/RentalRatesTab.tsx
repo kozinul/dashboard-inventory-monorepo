@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Asset, assetService } from '@/services/assetService';
+import { formatIDR } from '@/utils/currency';
 import { PlusIcon, TrashIcon, PencilSquareIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import Swal from 'sweetalert2';
@@ -210,7 +211,7 @@ export function RentalRatesTab({ asset, onUpdate }: RentalRatesTabProps) {
                                     <>
                                         <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-200">{rate.name}</td>
                                         <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-300">
-                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(rate.rate)}
+                                            {formatIDR(rate.rate)}
                                         </td>
                                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400">/{rate.unit}</td>
                                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{rate.notes || '-'}</td>
