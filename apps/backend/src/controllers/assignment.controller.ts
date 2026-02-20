@@ -1,8 +1,8 @@
-
 import { Request, Response, NextFunction } from 'express';
 import { Assignment } from '../models/assignment.model.js';
 import { Asset } from '../models/asset.model.js';
 import { User } from '../models/user.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 export const createAssignment = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -72,6 +72,18 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
         // Populate return data
         await assignment.populate(['assetId', 'userId', 'locationId']);
 
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'assign',
+            resourceType: 'Asset',
+            resourceId: assetId.toString(),
+            resourceName: (assignment.assetId as any).name,
+            details: `Assigned asset to ${assignedTo || (assignment.userId as any)?.name || 'Recipient'}`,
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: (assignment.assetId as any).departmentId?.toString()
+        });
+
         res.status(201).json(assignment);
     } catch (error) {
         next(error);
@@ -109,6 +121,18 @@ export const returnAsset = async (req: Request, res: Response, next: NextFunctio
         if (asset && asset.status !== 'maintenance' && asset.status !== 'request maintenance') {
             await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
         }
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'return',
+            resourceType: 'Asset',
+            resourceId: assignment.assetId.toString(),
+            resourceName: asset?.name,
+            details: `Returned asset: ${asset?.name}`,
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: asset?.departmentId?.toString()
+        });
 
         res.json(assignment);
     } catch (error) {

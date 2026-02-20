@@ -244,7 +244,7 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             resourceName: asset.name,
             details: `Created new asset: ${asset.name} (${asset.serial})`,
             branchId: (req.user as any).branchId?.toString(),
-            departmentId: (req.user as any).departmentId?.toString()
+            departmentId: asset.departmentId?.toString()
         });
 
         res.status(201).json(asset);
@@ -319,7 +319,7 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
                 resourceName: asset.name,
                 details: `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`,
                 branchId: (req.user as any).branchId?.toString(),
-                departmentId: (req.user as any).departmentId?.toString()
+                departmentId: asset.departmentId?.toString()
             });
         }
 
@@ -359,7 +359,7 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
             resourceName: existingAsset.name,
             details: `Deleted asset: ${existingAsset.name} (${existingAsset.serial})`,
             branchId: (req.user as any).branchId?.toString(),
-            departmentId: (req.user as any).departmentId?.toString()
+            departmentId: existingAsset.departmentId?.toString()
         });
 
         res.json({ message: 'Asset deleted successfully' });
@@ -566,7 +566,7 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
             resourceName: asset.name,
             details: `Installed asset in ${parentName} at Slot ${slotNumber}`,
             branchId: (req.user as any).branchId?.toString(),
-            departmentId: (req.user as any).departmentId?.toString()
+            departmentId: asset.departmentId?.toString()
         });
 
         res.status(200).json({ success: true, data: asset });
@@ -643,7 +643,7 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
             resourceName: asset.name,
             details: `Dismantled asset from ${parentName} and returned to warehouse`,
             branchId: (req.user as any).branchId?.toString(),
-            departmentId: (req.user as any).departmentId?.toString()
+            departmentId: asset.departmentId?.toString()
         });
 
         res.status(200).json({ success: true, data: asset });

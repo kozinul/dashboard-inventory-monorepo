@@ -9,12 +9,19 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
 
         const filters: any = {};
 
-        // RBAC: Non-admin roles might be restricted, but for now let's assume 
-        // this route is only called by roles authorized in the routes file.
+        // RBAC: Non-admin roles are restricted to their branch/department
+        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
 
-        // Scope by branch for non-superusers
-        if (req.user.role !== 'superuser') {
+        if (!isPowerUser) {
             filters.branchId = req.user.branchId;
+            if (req.user.departmentId) {
+                filters.$or = [
+                    { departmentId: req.user.departmentId },
+                    { userId: req.user._id }
+                ];
+            } else {
+                filters.userId = req.user._id;
+            }
         }
 
         if (req.query.userId) filters.userId = req.query.userId;
@@ -61,8 +68,18 @@ export const exportAuditLogs = async (req: Request, res: Response, next: NextFun
     try {
         const filters: any = {};
 
-        if (req.user.role !== 'superuser') {
+        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+
+        if (!isPowerUser) {
             filters.branchId = req.user.branchId;
+            if (req.user.departmentId) {
+                filters.$or = [
+                    { departmentId: req.user.departmentId },
+                    { userId: req.user._id }
+                ];
+            } else {
+                filters.userId = req.user._id;
+            }
         }
 
         if (req.query.userId) filters.userId = req.query.userId;

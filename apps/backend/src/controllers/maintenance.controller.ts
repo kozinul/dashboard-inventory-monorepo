@@ -4,6 +4,7 @@ import { Asset } from '../models/asset.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { User } from '../models/user.model.js';
 import { Supply } from '../models/supply.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 // Get all maintenance records (for admin/managers)
 export const getMaintenanceRecords = async (req: Request, res: Response, next: NextFunction) => {
@@ -244,8 +245,22 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
         await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
 
         const populated = await MaintenanceRecord.findById(record._id)
-            .populate('asset', 'name serial')
+            .populate('asset', 'name serial departmentId')
             .populate('requestedBy', 'name email');
+
+        // Record Audit Log
+        if (populated && populated.asset) {
+            await recordAuditLog({
+                userId: userId.toString(),
+                action: 'create',
+                resourceType: 'Maintenance',
+                resourceId: record._id.toString(),
+                resourceName: record.ticketNumber,
+                details: `Maintenance requested for asset: ${(populated.asset as any).name}`,
+                branchId: record.branchId?.toString(),
+                departmentId: (populated.asset as any).departmentId?.toString()
+            });
+        }
 
         res.status(201).json(populated);
     } catch (error) {
@@ -486,7 +501,7 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         const { reason } = req.body;
         const managerId = req.user._id;
 
-        const record = await MaintenanceRecord.findById(id);
+        const record = await MaintenanceRecord.findById(id).populate('asset');
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
@@ -543,6 +558,20 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         }
 
         await record.save();
+
+        // Record Audit Log
+        if (record && record.asset) {
+            await recordAuditLog({
+                userId: managerId.toString(),
+                action: 'reject',
+                resourceType: 'Maintenance',
+                resourceId: record._id.toString(),
+                resourceName: record.ticketNumber,
+                details: `Maintenance ticket rejected for asset: ${(record.asset as any).name}. Reason: ${reason}`,
+                branchId: record.branchId?.toString(),
+                departmentId: (record.asset as any).departmentId?.toString()
+            });
+        }
 
         res.json(record);
     } catch (error) {
@@ -627,6 +656,20 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
             }
         });
 
+        // Record Audit Log
+        if (record && record.asset) {
+            await recordAuditLog({
+                userId: managerId.toString(),
+                action: 'complete',
+                resourceType: 'Maintenance',
+                resourceId: record._id.toString(),
+                resourceName: record.ticketNumber,
+                details: `Maintenance completed for asset: ${(record.asset as any).name}`,
+                branchId: record.branchId?.toString(),
+                departmentId: (record.asset as any).departmentId?.toString()
+            });
+        }
+
         res.json(record);
     } catch (error) {
         next(error);
@@ -639,7 +682,7 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         const { id } = req.params;
         const userId = req.user._id;
 
-        const record = await MaintenanceRecord.findById(id);
+        const record = await MaintenanceRecord.findById(id).populate('asset');
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
@@ -672,6 +715,20 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         const finalStatus = assignment ? 'assigned' : 'active';
         await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
 
+        // Record Audit Log
+        if (record && record.asset) {
+            await recordAuditLog({
+                userId: userId.toString(),
+                action: 'cancel',
+                resourceType: 'Maintenance',
+                resourceId: record._id.toString(),
+                resourceName: record.ticketNumber,
+                details: `Maintenance ticket cancelled for asset: ${(record.asset as any).name}`,
+                branchId: record.branchId?.toString(),
+                departmentId: (record.asset as any).departmentId?.toString()
+            });
+        }
+
         res.json(record);
     } catch (error) {
         next(error);
@@ -684,7 +741,7 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
         const { id } = req.params;
         const userId = req.user._id;
 
-        const record = await MaintenanceRecord.findById(id);
+        const record = await MaintenanceRecord.findById(id).populate('asset');
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
@@ -697,26 +754,31 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
             return res.status(400).json({ message: 'Only draft tickets can be sent' });
         }
 
-        record.status = 'Sent';
-
+        record.status = 'Pending';
         record.history.push({
-            status: 'Sent',
+            status: 'Pending',
             changedBy: userId,
             changedAt: new Date(),
-            notes: 'Ticket sent to department'
+            notes: 'Ticket submitted for review'
         });
 
         await record.save();
 
-        // Update asset status
-        await Asset.findByIdAndUpdate(record.asset, { status: 'request maintenance' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+        // Record Audit Log
+        if (record && record.asset) {
+            await recordAuditLog({
+                userId: userId.toString(),
+                action: 'submit',
+                resourceType: 'Maintenance',
+                resourceId: record._id.toString(),
+                resourceName: record.ticketNumber,
+                details: `Maintenance ticket submitted for asset: ${(record.asset as any).name}`,
+                branchId: record.branchId?.toString(),
+                departmentId: (record.asset as any).departmentId?.toString()
+            });
+        }
 
-        const populated = await MaintenanceRecord.findById(record._id)
-            .populate('asset', 'name serial')
-            .populate('requestedBy', 'name email');
-
-        res.json(populated);
+        res.json(record);
     } catch (error) {
         next(error);
     }
