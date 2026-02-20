@@ -53,7 +53,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
             const accessConditions: any[] = [];
 
-            if (req.user.departmentId) {
+            if (req.user.departmentId && !['admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
                 const deptIds = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
                     deptIds.push(...(req.user as any).managedDepartments);
@@ -140,8 +140,14 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
 
             // Department check for non-privileged roles
             if (!['admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+                const deptIds = [];
+                if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments.map((id: any) => id.toString()));
+                }
+
                 const isDeptMatch =
-                    (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (asset.departmentId && deptIds.includes(asset.departmentId.toString())) ||
                     (asset.department && req.user.department && asset.department === req.user.department);
 
                 if (!isDeptMatch) {
@@ -387,9 +393,14 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
         let assetIds: any[] = [];
 
         // RBAC: Filter stats by department for non-admin users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // Aligned with getAssets logic: admin/manager/technician see entire branch
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
             if (req.user.departmentId) {
-                filter.departmentId = req.user.departmentId;
+                const deptIds = [req.user.departmentId];
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
+                filter.departmentId = { $in: deptIds };
             } else {
                 // No department = no stats
                 return res.json({

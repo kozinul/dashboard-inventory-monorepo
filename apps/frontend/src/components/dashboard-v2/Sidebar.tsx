@@ -40,7 +40,7 @@ export function Sidebar() {
 
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'manager') return true;
         if (user?.role === 'user') {
-            return ['dashboard', 'my_tickets'].includes(resource);
+            return ['dashboard', 'my_tickets', 'dept_tickets'].includes(resource);
         }
         if (user?.role === 'technician') {
             return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports', 'settings'].includes(resource);

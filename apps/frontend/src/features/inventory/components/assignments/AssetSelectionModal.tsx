@@ -50,7 +50,7 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
         setLoading(true);
         try {
             const response = await assetService.getAll({
-                status: 'active',
+                status: 'active,storage,available',
                 departmentId: selectedDepartmentId || undefined,
                 limit: 100 // Get a good batch for client-side searching
             });

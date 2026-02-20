@@ -474,17 +474,18 @@ export const updateTicketStatus = async (req: Request, res: Response, next: Next
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
 
         if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(status)) {
-            console.log(`[Maintenance] Maintenance ended (${status}), checking assignment for asset ${assetId}`);
             const assignment = await Assignment.findOneAndUpdate(
-                { assetId, status: 'maintenance' },
+                { assetId, status: 'maintenance', isDeleted: { $ne: true } },
                 { status: 'assigned' }
             );
             const finalStatus = assignment ? 'assigned' : 'active';
             await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
         } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(status)) {
-            console.log(`[Maintenance] Maintenance active (${status}), setting asset ${assetId} to maintenance`);
             await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
-            await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+            await Assignment.findOneAndUpdate(
+                { assetId, status: 'assigned', isDeleted: { $ne: true } },
+                { status: 'maintenance' }
+            );
         }
 
         res.json(record);
@@ -547,10 +548,10 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
                 notes: `Rejection reason: ${reason}`
             });
 
-            // Restore asset status
+            // Restore asset status (Back to assigned or active)
             const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
             const assignment = await Assignment.findOneAndUpdate(
-                { assetId, status: 'maintenance' },
+                { assetId, status: 'maintenance', isDeleted: { $ne: true } },
                 { status: 'assigned' }
             );
             const finalStatus = assignment ? 'assigned' : 'active';
@@ -634,10 +635,10 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
 
         await record.save();
 
-        // Update asset status and add history
+        // Update asset status and restore assignment
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
         const assignment = await Assignment.findOneAndUpdate(
-            { assetId, status: 'maintenance' },
+            { assetId, status: 'maintenance', isDeleted: { $ne: true } },
             { status: 'assigned' }
         );
         const finalStatus = assignment ? 'assigned' : 'active';
@@ -706,10 +707,10 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
 
         await record.save();
 
-        // Restore asset status
+        // Restore asset status (Back to assigned or active)
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
         const assignment = await Assignment.findOneAndUpdate(
-            { assetId, status: 'maintenance' },
+            { assetId, status: 'maintenance', isDeleted: { $ne: true } },
             { status: 'assigned' }
         );
         const finalStatus = assignment ? 'assigned' : 'active';
@@ -754,9 +755,9 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
             return res.status(400).json({ message: 'Only draft tickets can be sent' });
         }
 
-        record.status = 'Pending';
+        record.status = 'Sent';
         record.history.push({
-            status: 'Pending',
+            status: 'Sent',
             changedBy: userId,
             changedAt: new Date(),
             notes: 'Ticket submitted for review'

@@ -16,7 +16,7 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
 
         // RBAC: Check if user can assign this asset (department check)
         // UPDATE: Technicians and Managers can assign assets across departments in their branch
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'manager', 'technician', 'supervisor', 'dept_admin'].includes(req.user.role)) {
             const asset = await Asset.findById(assetId);
             if (!asset) {
                 res.status(404);
@@ -34,18 +34,27 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
             }
         }
 
-        // Sanitize userId -> if empty string, make it null/undefined so Mongoose doesn't error on casting
+        // Sanitize userId
         const finalUserId = userId || undefined;
 
-        // Check if asset is already assigned
+        // Check if asset is already assigned (exclude deleted)
         const activeAssignment = await Assignment.findOne({
             assetId,
-            status: { $in: ['assigned', 'maintenance'] }
+            status: { $in: ['assigned', 'maintenance'] },
+            isDeleted: { $ne: true }
         });
 
         if (activeAssignment) {
-            res.status(400);
-            throw new Error('Asset is already assigned');
+            const asset = await Asset.findById(assetId);
+            // If asset status is actually available, the assignment record is stale/inconsistent
+            if (asset && ['active', 'storage', 'available'].includes(asset.status)) {
+                activeAssignment.status = 'returned';
+                activeAssignment.notes = (activeAssignment.notes || '') + ' [Auto-closed due to re-assignment of available asset]';
+                await activeAssignment.save();
+            } else {
+                res.status(400);
+                throw new Error('Asset is already assigned');
+            }
         }
 
         const assignment = await Assignment.create({

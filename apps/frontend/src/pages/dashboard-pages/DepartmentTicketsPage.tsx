@@ -12,6 +12,7 @@ export default function DepartmentTicketsPage() {
     const { user } = useAuthStore();
     const { counts } = useMaintenanceStore();
 
+    const [activeTab, setActiveTab] = useState<'inbox' | 'history'>('inbox');
     const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('Sent');
@@ -73,20 +74,37 @@ export default function DepartmentTicketsPage() {
         }
     };
 
+    // Tab Logic
+    const inboxStatuses = ['Sent', 'Accepted', 'Escalated', 'In Progress', 'Done', 'Pending'];
+    const historyStatuses = ['Closed', 'Rejected', 'Cancelled'];
+
+    // If filter status doesn't match current tab, auto-switch to first status of tab
+    useEffect(() => {
+        if (activeTab === 'inbox' && !inboxStatuses.includes(statusFilter)) {
+            setStatusFilter('Sent');
+        } else if (activeTab === 'history' && !historyStatuses.includes(statusFilter)) {
+            setStatusFilter('Closed');
+        }
+    }, [activeTab]);
+
     const filteredTickets = tickets.filter(t => t.status === statusFilter);
 
     const filterStatusList = [
-        { id: 'Sent', label: 'New/Sent', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
-        { id: 'Accepted', label: 'Accepted', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
-        { id: 'Escalated', label: 'Escalated', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-        { id: 'In Progress', label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-        { id: 'Done', label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-        { id: 'Closed', label: 'Closed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-        { id: 'Rejected', label: 'Rejected', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
+        // Inbox
+        { id: 'Sent', label: 'New/Sent', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', tab: 'inbox' },
+        { id: 'Accepted', label: 'Accepted', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', tab: 'inbox' },
+        { id: 'Escalated', label: 'Escalated', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', tab: 'inbox' },
+        { id: 'In Progress', label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', tab: 'inbox' },
+        { id: 'Done', label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', tab: 'inbox' },
+        { id: 'Pending', label: 'Pending', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', tab: 'inbox' },
+        // History
+        { id: 'Closed', label: 'Closed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', tab: 'history' },
+        { id: 'Rejected', label: 'Rejected', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400', tab: 'history' },
+        { id: 'Cancelled', label: 'Cancelled', color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400', tab: 'history' },
     ];
 
     const getStatusCount = (status: string) => {
-        return counts?.deptTickets?.breakdown?.[status] || 0;
+        return counts?.deptTickets?.breakdown?.[status] || tickets.filter(t => t.status === status).length;
     };
 
     if (loading && tickets.length === 0) {
@@ -105,8 +123,39 @@ export default function DepartmentTicketsPage() {
                 </div>
             </div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800">
+                <button
+                    onClick={() => setActiveTab('inbox')}
+                    className={cn(
+                        "px-6 py-3 text-sm font-bold transition-all relative",
+                        activeTab === 'inbox'
+                            ? "text-primary border-b-2 border-primary"
+                            : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    )}
+                >
+                    Inbox
+                    {tickets.filter(t => inboxStatuses.includes(t.status)).length > 0 && (
+                        <span className="ml-2 bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">
+                            {tickets.filter(t => inboxStatuses.includes(t.status)).length}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => setActiveTab('history')}
+                    className={cn(
+                        "px-6 py-3 text-sm font-bold transition-all relative",
+                        activeTab === 'history'
+                            ? "text-primary border-b-2 border-primary"
+                            : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    )}
+                >
+                    History
+                </button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
-                {filterStatusList.map((status) => {
+                {filterStatusList.filter(s => s.tab === activeTab).map((status) => {
                     const count = getStatusCount(status.id);
                     return (
                         <button

@@ -226,7 +226,7 @@ function DashboardLayout() {
         // technician and user are always blocked
         const isDeptTicket = resource === 'dept_tickets' || item.name?.toLowerCase().includes('dept') || item.href?.includes('department-tickets');
         if (isDeptTicket) {
-            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'user'];
             return user?.role && allowedRoles.includes(user.role);
         }
 
@@ -239,7 +239,7 @@ function DashboardLayout() {
         if (resource === 'transfer' && user?.role === 'technician') return true; // Ensure transfer remains visible
 
         // Explicitly deny restricted resources for 'user' role before custom checks
-        if (user?.role === 'user' && ['inventory', 'maintenance', 'disposal', 'dept_tickets', 'users', 'settings', 'reports', 'audit_logs'].includes(resource || '')) {
+        if (user?.role === 'user' && ['inventory', 'maintenance', 'disposal', 'users', 'settings', 'reports', 'audit_logs'].includes(resource || '')) {
             return false;
         }
 
@@ -282,7 +282,7 @@ function DashboardLayout() {
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'my_tickets', 'my_assets', 'history', 'data_management'].includes(resource || '');
+            return ['dashboard', 'my_tickets', 'my_assets', 'history', 'data_management', 'dept_tickets'].includes(resource || '');
         }
 
         // Auditor permissions

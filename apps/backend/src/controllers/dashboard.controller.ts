@@ -17,38 +17,43 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         }
 
         const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
-        const deptId = req.user.departmentId;
+        const deptIds = [];
+        if (req.user.departmentId) deptIds.push(req.user.departmentId);
+        if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+            deptIds.push(...(req.user as any).managedDepartments);
+        }
 
         // Assets filter (Asset model has departmentId)
         const assetFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptId) {
-            assetFilter.departmentId = deptId;
+        if (!isPowerUser && deptIds.length > 0) {
+            assetFilter.departmentId = { $in: deptIds };
         }
 
         // Resolve Asset IDs for the department to filter other collections
         let deptAssetIds: any[] = [];
-        if (!isPowerUser && deptId) {
+        if (!isPowerUser && deptIds.length > 0) {
             const deptAssets = await Asset.find(assetFilter).select('_id');
             deptAssetIds = deptAssets.map(a => a._id);
         }
 
         // Rental filter (Rental model does NOT have departmentId)
         const rentalFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptId) {
+        if (!isPowerUser && deptIds.length > 0) {
             rentalFilter.assetId = { $in: deptAssetIds };
         }
 
         // Maintenance filter (MaintenanceRecord model does NOT have departmentId)
         const maintenanceFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptId) {
-            if (req.user.role === 'user') {
-                // Users see strictly THEIR requested tickets for THEIR department assets
+        if (!isPowerUser && deptIds.length > 0) {
+            const hasManagedDepts = (req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0;
+            if (req.user.role === 'user' && !hasManagedDepts) {
+                // Users WITHOUT managed depts see strictly THEIR requested tickets for THEIR department assets
                 maintenanceFilter.$and = [
                     { asset: { $in: deptAssetIds } },
                     { requestedBy: req.user._id }
                 ];
             } else {
-                // Managers see all tickets for their department assets
+                // Managers and users with managed departments see all tickets for their department assets
                 maintenanceFilter.asset = { $in: deptAssetIds };
             }
         } else if (!isPowerUser && req.user.role === 'user') {
@@ -97,19 +102,24 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
         }
 
         const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
-        const deptId = req.user.departmentId;
+        const deptIds = [];
+        if (req.user.departmentId) deptIds.push(req.user.departmentId);
+        if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+            deptIds.push(...(req.user as any).managedDepartments);
+        }
 
         // Fetch asset IDs for the department to filter maintenance records
         let deptAssetIds: any[] = [];
-        if (!isPowerUser && deptId) {
-            const deptAssets = await Asset.find({ ...branchFilter, departmentId: deptId }).select('_id');
+        if (!isPowerUser && deptIds.length > 0) {
+            const deptAssets = await Asset.find({ ...branchFilter, departmentId: { $in: deptIds } }).select('_id');
             deptAssetIds = deptAssets.map(a => a._id);
         }
 
         // Maintenance filter
         const maintenanceFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptId) {
-            if (req.user.role === 'user') {
+        if (!isPowerUser && deptIds.length > 0) {
+            const hasManagedDepts = (req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0;
+            if (req.user.role === 'user' && !hasManagedDepts) {
                 maintenanceFilter.$and = [
                     { asset: { $in: deptAssetIds } },
                     { requestedBy: req.user._id }

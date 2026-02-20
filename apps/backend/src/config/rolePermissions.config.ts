@@ -102,6 +102,39 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'disposal', actions: viewOnly() },
     ],
 
+    dept_admin: [
+        { resource: 'dashboard', actions: viewOnly() },
+        { resource: 'inventory', actions: viewCreateEdit() },
+        { resource: 'incoming', actions: viewCreate() },
+        { resource: 'transfer', actions: viewCreate() },
+        { resource: 'maintenance', actions: viewCreateEdit() },
+        { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewCreateEdit() },
+        { resource: 'services', actions: viewCreateEdit() },
+        { resource: 'assignments', actions: viewCreateEdit() },
+        { resource: 'rental', actions: viewCreateEdit() },
+        { resource: 'events', actions: viewCreateEdit() },
+        { resource: 'users', actions: viewCreateEdit() },
+        { resource: 'settings', actions: viewOnly() },
+        { resource: 'my_assets', actions: viewOnly() },
+        { resource: 'history', actions: viewOnly() },
+        { resource: 'reports', actions: viewOnly() },
+        { resource: 'disposal', actions: viewOnly() },
+    ],
+
+    supervisor: [
+        { resource: 'dashboard', actions: viewOnly() },
+        { resource: 'inventory', actions: viewOnly() },
+        { resource: 'maintenance', actions: viewCreateEdit() },
+        { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewCreateEdit() },
+        { resource: 'my_assets', actions: viewOnly() },
+        { resource: 'reports', actions: viewOnly() },
+        { resource: 'history', actions: viewOnly() },
+        { resource: 'assignments', actions: viewCreateEdit() },
+        { resource: 'users', actions: viewOnly() },
+    ],
+
     user: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewOnly() },
@@ -123,8 +156,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'rental', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
         { resource: 'disposal', actions: viewOnly() },
-        { resource: 'assignments', actions: viewOnly() },
+        { resource: 'assignments', actions: viewCreateEdit() },
         { resource: 'history', actions: viewOnly() },
+        { resource: 'users', actions: viewOnly() },
     ],
 
     auditor: [
