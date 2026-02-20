@@ -15,7 +15,7 @@ interface AddSupplyModalProps {
 
 export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) {
     const { user } = useAuthStore();
-    const { register, handleSubmit, reset, getValues, setValue, formState: { errors } } = useForm<Supply>({
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<Supply>({
         defaultValues: {
             quantity: 0,
             minimumStock: 1,

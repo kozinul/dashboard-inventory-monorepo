@@ -93,11 +93,17 @@ export const useAuthStore = create<AuthState>((set) => ({
                 // Update storage with latest
                 localStorage.setItem('user', JSON.stringify(user));
                 set({ user, token });
-            } catch (error) {
-                console.error('Session expired', error);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                set({ user: null, token: null });
+            } catch (error: any) {
+                // Only clear session if specifically unauthorized
+                if (error.response?.status === 401) {
+                    console.error('Session expired - 401', error);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    set({ user: null, token: null });
+                } else {
+                    console.error('Session check failed but token preserved', error);
+                    // Don't clear session for network errors/aborts
+                }
             }
         }
     },

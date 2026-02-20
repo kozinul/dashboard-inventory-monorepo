@@ -73,7 +73,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
             _id: user._id,
             email: user.email,
             name: user.name,
-            role: user.role
+            role: user.role,
+            managedDepartments: user.managedDepartments
         });
     } catch (error) {
         next(error);
@@ -140,6 +141,11 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         user.branchId = req.body.branchId || user.branchId;
         user.avatarUrl = req.body.avatarUrl || user.avatarUrl;
 
+        // Update managed departments if provided
+        if (req.body.managedDepartments) {
+            user.managedDepartments = req.body.managedDepartments;
+        }
+
         if (req.body.password) {
             user.password = req.body.password;
         }
@@ -160,6 +166,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             avatarUrl: updatedUser.avatarUrl,
             isActive: (updatedUser as any).isActive,
             lastLogin: (updatedUser as any).lastLogin,
+            managedDepartments: updatedUser.managedDepartments
         });
     } catch (error) {
         next(error);

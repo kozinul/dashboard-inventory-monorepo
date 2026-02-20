@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department'
     },
+    // Additional departments managed by this user (for multi-dept managers)
+    managedDepartments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Department'
+    }],
     branchId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branch'

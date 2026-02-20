@@ -16,7 +16,7 @@ export interface MaintenanceTicket {
     title: string;
     description?: string;
     type: string;
-    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Service' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed' | 'Pending';
+    status: 'Draft' | 'Sent' | 'Accepted' | 'In Progress' | 'Service' | 'Done' | 'Rejected' | 'Cancelled' | 'Closed' | 'Pending' | 'Escalated';
     branchId?: string | { _id: string; name: string };
     requestedBy?: {
         _id: string;

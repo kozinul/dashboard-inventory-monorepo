@@ -7,7 +7,7 @@ import { jobTitleService, JobTitle } from '@/services/jobTitleService';
 import { branchService, Branch } from '@/services/branchService';
 import { User, UserRoleSchema } from '../../../../../../packages/schemas/src/index';
 import { z } from 'zod';
-import { useRoleStore } from '@/store/roleStore';
+
 
 
 const userSchema = z.object({
@@ -40,17 +40,19 @@ interface UserModalProps {
 
 export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranchId }: UserModalProps) {
     const [showPassword, setShowPassword] = useState(false);
-    const roles = useRoleStore(state => state.roles);
+
     const [formData, setFormData] = useState<CreateUserDto & { branchId?: string; departmentId?: string }>({
         username: '',
         name: '',
         email: '',
         role: 'user',
         department: '',
+        departmentId: '',
         branchId: '',
         designation: '',
         status: 'Active',
-        avatarUrl: ''
+        avatarUrl: '',
+        managedDepartments: []
     });
     const [departments, setDepartments] = useState<Department[]>([]);
     const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
@@ -83,6 +85,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                 department: editingUser.department || '',
                 departmentId: (editingUser as any).departmentId || undefined,
                 branchId: (editingUser as any).branchId || '',
+                managedDepartments: (editingUser as any).managedDepartments || [],
                 designation: editingUser.designation || '',
                 status: (editingUser.status as any) || 'Active',
                 avatarUrl: editingUser.avatarUrl || ''
@@ -96,6 +99,7 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                 role: 'user',
                 department: '',
                 branchId: defaultBranchId || '',
+                managedDepartments: [],
                 designation: '',
                 status: 'Active',
                 avatarUrl: ''
@@ -261,20 +265,17 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                                                     <select
                                                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-700 dark:text-white p-2 border"
                                                         value={formData.role}
-                                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                                        onChange={e => setFormData({ ...formData, role: e.target.value as any })}
                                                     >
-                                                        {roles.map(role => (
-                                                            <option key={role.slug} value={role.slug}>
-                                                                {role.name}
-                                                            </option>
-                                                        ))}
-                                                        <option value="dept_admin">Dept. Admin</option>
+                                                        <option value="user">User</option>
+                                                        <option value="technician">Technician</option>
                                                         <option value="supervisor">Supervisor</option>
                                                         <option value="manager">Manager</option>
-                                                        <option value="technician">Technician</option>
-                                                        <option value="user">User</option>
+                                                        <option value="dept_admin">Department Admin</option>
                                                         <option value="auditor">Auditor</option>
-                                                        <option value="admin">Admin</option>
+                                                        <option value="admin">Administrator</option>
+                                                        <option value="system_admin">System Admin</option>
+                                                        <option value="superuser">Super User</option>
                                                     </select>
                                                 </div>
                                                 <div>
@@ -325,6 +326,41 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                                                     ))}
                                                 </select>
                                             </div>
+
+                                            {/* Managed Departments (Multi-Select) - Only for Managers/Supervisors */}
+                                            {(formData.role === 'manager' || formData.role === 'supervisor' || formData.role === 'dept_admin') && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Managed Departments (Additional)</label>
+                                                    <div className="mt-1 p-2 border border-gray-300 dark:border-slate-600 rounded-md max-h-32 overflow-y-auto bg-white dark:bg-slate-700">
+                                                        {departments.filter(d => d.status === 'Active' && d.name !== formData.department).map(dept => (
+                                                            <div key={dept._id} className="flex items-center mb-1">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`managed-${dept._id}`}
+                                                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                                                    checked={(formData as any).managedDepartments?.includes(dept._id)}
+                                                                    onChange={e => {
+                                                                        const currentManaged = (formData as any).managedDepartments || [];
+                                                                        let newManaged;
+                                                                        if (e.target.checked) {
+                                                                            newManaged = [...currentManaged, dept._id];
+                                                                        } else {
+                                                                            newManaged = currentManaged.filter((id: string) => id !== dept._id);
+                                                                        }
+                                                                        setFormData({ ...formData, managedDepartments: newManaged } as any);
+                                                                    }}
+                                                                />
+                                                                <label htmlFor={`managed-${dept._id}`} className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                                                                    {dept.name}
+                                                                </label>
+                                                            </div>
+                                                        ))}
+                                                        {departments.length === 0 && <p className="text-sm text-gray-500">No departments available</p>}
+                                                    </div>
+                                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Select additional departments this user manages.</p>
+                                                </div>
+                                            )}
+
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Designation / Job Title</label>
                                                 <select
@@ -373,6 +409,6 @@ export function UserModal({ isOpen, onClose, onSubmit, editingUser, defaultBranc
                     </div>
                 </div>
             </Dialog>
-        </Transition.Root>
+        </Transition.Root >
     );
 }

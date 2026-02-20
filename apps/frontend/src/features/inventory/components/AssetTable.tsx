@@ -1,5 +1,5 @@
 import { Asset } from '../../../services/assetService';
-import { AssetImageCell, AssetNameCell, AssetLocationCell, AssetMetaCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
+import { AssetImageCell, AssetNameCell, AssetLocationCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
 
 interface AssetTableProps {
     assets: Asset[];

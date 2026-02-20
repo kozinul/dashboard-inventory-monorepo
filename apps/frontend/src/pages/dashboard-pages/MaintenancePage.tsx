@@ -3,47 +3,44 @@ import { MaintenanceStats } from '@/features/maintenance/components/MaintenanceS
 import { MaintenanceTable } from '@/features/maintenance/components/MaintenanceTable';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 import { TicketWorkModal } from '@/features/maintenance/components/TicketWorkModal';
-import { maintenanceService, MaintenanceTicket, NavCounts } from '@/services/maintenanceService';
+import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
+import { useMaintenanceStore } from '@/store/maintenanceStore';
 
 export default function MaintenancePage() {
     const { user } = useAuthStore();
     const { activeBranchId } = useAppStore();
+    const { counts } = useMaintenanceStore();
     const isTechnician = user?.role === 'technician';
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
     const [tasks, setTasks] = useState<MaintenanceTicket[]>([]);
-    const [counts, setCounts] = useState<NavCounts | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedTask, setSelectedTask] = useState<MaintenanceTicket | null>(null);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [tasksData, countsData] = await Promise.all([
-                isTechnician
-                    ? (async () => {
-                        const [assigned, department] = await Promise.all([
-                            maintenanceService.getAssignedTickets(),
-                            maintenanceService.getDepartmentTickets()
-                        ]);
-                        const map = new Map();
-                        department.forEach(t => {
-                            const techId = t.technician && typeof t.technician === 'object' ? t.technician._id : t.technician;
-                            if (!techId || techId === user?._id) map.set(t._id, t);
-                        });
-                        assigned.forEach(t => map.set(t._id, t));
-                        return Array.from(map.values()) as MaintenanceTicket[];
-                    })()
-                    : maintenanceService.getAll(),
-                maintenanceService.getNavCounts()
-            ]);
+            const tasksData = await (isTechnician
+                ? (async () => {
+                    const [assigned, department] = await Promise.all([
+                        maintenanceService.getAssignedTickets(),
+                        maintenanceService.getDepartmentTickets()
+                    ]);
+                    const map = new Map();
+                    department.forEach(t => {
+                        const techId = t.technician && typeof t.technician === 'object' ? t.technician._id : t.technician;
+                        if (!techId || techId === user?._id) map.set(t._id, t);
+                    });
+                    assigned.forEach(t => map.set(t._id, t));
+                    return Array.from(map.values()) as MaintenanceTicket[];
+                })()
+                : maintenanceService.getAll());
 
             setTasks(tasksData);
-            setCounts(countsData);
         } catch (error) {
             console.error('Failed to fetch maintenance data:', error);
             showErrorToast('Failed to load maintenance data');

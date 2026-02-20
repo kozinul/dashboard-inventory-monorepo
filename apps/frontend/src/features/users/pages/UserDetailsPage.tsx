@@ -8,12 +8,12 @@ import { branchService, Branch } from '@/services/branchService';
 import { User } from '@dashboard/schemas';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import UserPermissionEditor from '../components/UserPermissionEditor';
-import { useRoleStore } from '@/store/roleStore';
+
 
 export default function UserDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { roles } = useRoleStore();
+
     const [user, setUser] = useState<User | null>(null);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +30,8 @@ export default function UserDetailsPage() {
         role: 'user',
         password: '',
         departmentId: '',
-        branchId: ''
+        branchId: '',
+        managedDepartments: [] as string[]
     });
     const [departments, setDepartments] = useState<Department[]>([]);
     const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
@@ -67,6 +68,7 @@ export default function UserDetailsPage() {
                 email: userData.email,
                 department: userData.department || '',
                 departmentId: userData.departmentId || '',
+                managedDepartments: (userData as any).managedDepartments || [],
                 branchId: (userData as any).branchId?._id || (userData as any).branchId || '',
                 designation: userData.designation || '',
                 status: userData.status || 'Active',
@@ -271,7 +273,41 @@ export default function UserDetailsPage() {
                                                 </option>
                                             ))}
                                         </select>
+
                                     </div>
+
+                                    {/* Managed Departments (Multi-Select) - Only for Managers/Supervisors */}
+                                    {(['manager', 'supervisor', 'dept_admin'].includes(editFormData.role)) && (
+                                        <div className="md:col-span-2">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Managed Departments (Additional)</label>
+                                            <div className="p-3 border rounded-lg dark:bg-slate-800 dark:border-slate-700 max-h-32 overflow-y-auto">
+                                                {departments.filter(d => d.status === 'Active' && d._id !== editFormData.departmentId).map(dept => (
+                                                    <div key={dept._id} className="flex items-center mb-2 last:mb-0">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`managed-${dept._id}`}
+                                                            className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:bg-slate-700 dark:border-slate-600"
+                                                            checked={editFormData.managedDepartments?.includes(dept._id)}
+                                                            onChange={e => {
+                                                                const currentManaged = editFormData.managedDepartments || [];
+                                                                let newManaged;
+                                                                if (e.target.checked) {
+                                                                    newManaged = [...currentManaged, dept._id];
+                                                                } else {
+                                                                    newManaged = currentManaged.filter((id: string) => id !== dept._id);
+                                                                }
+                                                                setEditFormData({ ...editFormData, managedDepartments: newManaged });
+                                                            }}
+                                                        />
+                                                        <label htmlFor={`managed-${dept._id}`} className="ml-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                                                            {dept.name}
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                                {departments.length === 0 && <p className="text-sm text-slate-500">No departments available</p>}
+                                            </div>
+                                        </div>
+                                    )}
                                     {/* Password */}
                                     <div>
                                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
@@ -327,11 +363,15 @@ export default function UserDetailsPage() {
                                             value={editFormData.role}
                                             onChange={e => setEditFormData({ ...editFormData, role: e.target.value })}
                                         >
-                                            {roles.map((role) => (
-                                                <option key={role.id} value={role.slug}>
-                                                    {role.name}
-                                                </option>
-                                            ))}
+                                            <option value="user">User</option>
+                                            <option value="technician">Technician</option>
+                                            <option value="supervisor">Supervisor</option>
+                                            <option value="manager">Manager</option>
+                                            <option value="dept_admin">Department Admin</option>
+                                            <option value="auditor">Auditor</option>
+                                            <option value="admin">Administrator</option>
+                                            <option value="system_admin">System Admin</option>
+                                            <option value="superuser">Super User</option>
                                         </select>
                                     </div>
                                     {/* Status (Deactivate) */}
@@ -430,7 +470,7 @@ export default function UserDetailsPage() {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

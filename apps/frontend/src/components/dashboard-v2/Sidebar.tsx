@@ -34,13 +34,13 @@ export function Sidebar() {
         }
 
         if (resource === 'dept_tickets' || resource?.toLowerCase().includes('dept')) {
-            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'user'];
             return user?.role && allowedRoles.includes(user.role);
         }
 
         if (user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'manager') return true;
         if (user?.role === 'user') {
-            return ['dashboard', 'my_tickets', 'disposal'].includes(resource);
+            return ['dashboard', 'my_tickets'].includes(resource);
         }
         if (user?.role === 'technician') {
             return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'disposal', 'assignments', 'history', 'transfer', 'reports', 'settings'].includes(resource);

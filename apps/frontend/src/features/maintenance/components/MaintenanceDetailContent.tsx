@@ -355,11 +355,13 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                         </>
                     )}
 
-                    {/* MANAGER: ACCEPT / REJECT (Only for 'Sent' status) */}
-                    {ticket.status === 'Sent' && (isAdmin || isManager) && (
+                    {/* MANAGER: ACCEPT / REJECT (Only for 'Sent' or 'Pending' or 'Escalated' status) */}
+                    {['Sent', 'Pending', 'Escalated'].includes(ticket.status) && (isAdmin || isManager || (isTechnician && (ticket.technician as any)?._id === user?._id)) && (
                         <div className="flex gap-2">
-                            <button onClick={handleReject} className="px-4 py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg font-bold text-sm">Reject</button>
-                            {/* Accept triggers form or simple button? Let's use logic from action modal if technicians are needed */}
+                            <button onClick={handleReject} className="px-4 py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg font-bold text-sm">
+                                {isTechnician ? 'Decline Assignment' : 'Reject'}
+                            </button>
+                            {/* Accept triggers form below */}
                         </div>
                     )}
 
@@ -369,8 +371,8 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                 </div>
             </div>
 
-            {/* Accept Form if status is Sent */}
-            {ticket.status === 'Sent' && (isAdmin || isManager) && (
+            {/* Accept Form if status is Sent/Escalated AND no technician assigned */}
+            {(ticket.status === 'Sent' || ticket.status === 'Escalated') && !ticket.technician && (isAdmin || isManager) && (
                 <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-xl">
                     <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-400 mb-3 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">assignment_ind</span>

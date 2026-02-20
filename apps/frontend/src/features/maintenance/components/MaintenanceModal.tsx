@@ -4,6 +4,7 @@ import { assetService, Asset } from '@/services/assetService';
 import { AssetTable } from '@/features/inventory/components/AssetTable';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
+import { cn } from '@/lib/utils';
 
 interface MaintenanceModalProps {
     isOpen: boolean;
@@ -151,7 +152,10 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
             {/* Backdrop click handler */}
             <div className="absolute inset-0" onClick={onClose}></div>
 
-            <div className="bg-[#0f172a] w-full max-w-lg rounded-xl border border-slate-700 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className={cn(
+                "bg-[#0f172a] w-full rounded-xl border border-slate-700 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]",
+                showAssetSelector ? "max-w-5xl" : "max-w-2xl"
+            )}>
                 <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center shrink-0">
                     <h3 className="text-lg font-bold tracking-tight text-white">
                         {showAssetSelector ? 'Select Asset' : (initialData ? 'Edit Maintenance Record' : 'New Maintenance Request')}

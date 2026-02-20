@@ -54,8 +54,13 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             const accessConditions: any[] = [];
 
             if (req.user.departmentId) {
+                const deptIds = [req.user.departmentId];
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
+
                 accessConditions.push({
-                    departmentId: req.user.departmentId
+                    departmentId: { $in: deptIds }
                 });
             } else if (req.user.department) {
                 accessConditions.push({
@@ -217,12 +222,14 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
-        // Set status to 'in_use' if assigned to a specific location (not a warehouse)
-        if (asset.locationId) {
+        // Auto-set status based on location for new assets if not explicitly provided
+        if (!req.body.status && req.body.locationId) {
             const { Location } = await import('../models/location.model.js');
-            const targetLocation = await Location.findById(asset.locationId);
+            const targetLocation = await Location.findById(req.body.locationId);
             if (targetLocation && !targetLocation.isWarehouse) {
                 asset.status = 'in_use';
+            } else if (targetLocation && targetLocation.isWarehouse) {
+                asset.status = 'active';
             }
         }
 
@@ -284,7 +291,12 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // Auto-update status if location changed
-        if (updateData.locationId && updateData.locationId !== existingAsset.locationId?.toString()) {
+        // ONLY if current status is active, storage or in_use
+        // We PROTECT 'assigned' and 'maintenance' statuses from being overwritten by location changes
+        const currentStatus = updateData.status || existingAsset.status;
+        const statusProtected = ['assigned', 'maintenance', 'retired', 'disposed', 'request maintenance'].includes(currentStatus);
+
+        if (!statusProtected && updateData.locationId && updateData.locationId !== existingAsset.locationId?.toString()) {
             const { Location } = await import('../models/location.model.js');
             const targetLocation = await Location.findById(updateData.locationId);
             if (targetLocation && !targetLocation.isWarehouse) {

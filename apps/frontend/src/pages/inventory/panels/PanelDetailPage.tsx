@@ -55,7 +55,10 @@ export default function PanelDetailPage() {
             children.forEach((child: Asset) => {
                 if (child.slotNumber && child.slotNumber > 0 && child.slotNumber <= capacity) {
                     if (child.slotNumber) {
-                        slotArray[child.slotNumber - 1].push(child);
+                        const slotIndex = child.slotNumber - 1;
+                        if (slotArray[slotIndex]) {
+                            slotArray[slotIndex].push(child);
+                        }
                     }
                 }
             });

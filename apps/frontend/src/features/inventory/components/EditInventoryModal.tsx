@@ -26,7 +26,7 @@ interface InventoryFormInputs {
     parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
     value: string;
-    purchaseDate: string;
+    purchaseDate?: string;
     locationId: string;
     locationDetail: string;
 
@@ -39,7 +39,7 @@ interface InventoryFormInputs {
     vendorWebsite: string;
 
     // Warranty Fields
-    warrantyExpiration: string;
+    warrantyExpiration?: string;
     warrantyDetails: string;
 }
 

@@ -35,17 +35,24 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
 
         if (userRole === 'manager' || userRole === 'dept_admin' || userRole === 'supervisor') {
             const manager = await User.findById(userId);
-            if (manager && manager.departmentId) {
-                // Same logic as getDepartmentTickets
-                const departmentUsers = await User.find({ departmentId: manager.departmentId }).select('_id');
+            if ((manager && manager.departmentId) || (manager && manager.managedDepartments && manager.managedDepartments.length > 0)) {
+                // Collect all department IDs (Home + Managed)
+                const departmentIds = [];
+                if (manager.departmentId) departmentIds.push(manager.departmentId);
+                if (manager.managedDepartments && manager.managedDepartments.length > 0) {
+                    departmentIds.push(...manager.managedDepartments);
+                }
+
+                // Find all users in these departments
+                const departmentUsers = await User.find({ departmentId: { $in: departmentIds } }).select('_id');
                 const userIds = departmentUsers.map(u => u._id);
 
-                const departmentAssets = await Asset.find({ departmentId: manager.departmentId }).select('_id');
+                const departmentAssets = await Asset.find({ departmentId: { $in: departmentIds } }).select('_id');
                 const assetIds = departmentAssets.map(a => a._id);
 
                 filter.$or = [
                     { requestedBy: { $in: userIds } },
-                    { assignedDepartment: manager.departmentId },
+                    { assignedDepartment: { $in: departmentIds } },
                     { asset: { $in: assetIds } }
                 ];
             } else {
@@ -132,20 +139,27 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
                     select: 'name avatar'
                 })
                 .sort({ createdAt: -1 });
-        } else if (caller.departmentId) {
-            // Find all users in the same department
-            const departmentUsers = await User.find({ departmentId: caller.departmentId }).select('_id');
+        } else if (caller.departmentId || (caller.managedDepartments && caller.managedDepartments.length > 0)) {
+            // Collect all department IDs (Home + Managed)
+            const departmentIds = [];
+            if (caller.departmentId) departmentIds.push(caller.departmentId);
+            if (caller.managedDepartments && caller.managedDepartments.length > 0) {
+                departmentIds.push(...caller.managedDepartments);
+            }
+
+            // Find all users in these departments
+            const departmentUsers = await User.find({ departmentId: { $in: departmentIds } }).select('_id');
             const userIds = departmentUsers.map(u => u._id);
 
-            // Find all assets in the same department
-            const departmentAssets = await Asset.find({ departmentId: caller.departmentId }).select('_id');
+            // Find all assets in these departments
+            const departmentAssets = await Asset.find({ departmentId: { $in: departmentIds } }).select('_id');
             const assetIds = departmentAssets.map(a => a._id);
 
-            // Get tickets from those users OR assigned to this department OR for assets in this department
+            // Get tickets from those users OR assigned to these departments OR for assets in these departments
             records = await MaintenanceRecord.find({
                 $or: [
                     { requestedBy: { $in: userIds } },
-                    { assignedDepartment: caller.departmentId },
+                    { assignedDepartment: { $in: departmentIds } },
                     { asset: { $in: assetIds } }
                 ]
             })
@@ -289,13 +303,23 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        if (record.status !== 'Sent') {
-            return res.status(400).json({ message: 'Only sent tickets can be accepted' });
+        if (record.status !== 'Sent' && record.status !== 'Rejected' && record.status !== 'Escalated') {
+            return res.status(400).json({ message: 'Only sent, rejected, or escalated tickets can be accepted' });
+        }
+
+        // Prevent re-assignment if already assigned and not rejected/escalated
+        if (record.technician && record.status !== 'Rejected' && record.status !== 'Escalated') {
+            return res.status(400).json({ message: 'Ticket is already assigned. Technician must reject it first.' });
         }
 
         record.technician = technicianId;
         record.processedBy = managerId;
         record.processedAt = new Date();
+        // Reset status to Sent if it was Rejected/Escalated, so technician sees it as new
+        if (record.status === 'Rejected' || record.status === 'Escalated') {
+            record.status = 'Sent';
+        }
+
         if (type) {
             record.type = type;
         }
@@ -462,40 +486,63 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
         const { reason } = req.body;
         const managerId = req.user._id;
 
-        if (!reason) {
-            return res.status(400).json({ message: 'Rejection reason is required' });
-        }
-
         const record = await MaintenanceRecord.findById(id);
         if (!record) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        if (record.status !== 'Pending') {
-            return res.status(400).json({ message: 'Only pending tickets can be rejected' });
+        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || req.user.role === 'manager';
+        const isAssignedTechnician = record.technician?.toString() === managerId.toString();
+
+        if (!isManager && !isAssignedTechnician) {
+            return res.status(403).json({ message: 'Not authorized to reject this ticket' });
         }
 
-        record.status = 'Rejected';
-        record.rejectionReason = reason;
-        record.processedBy = managerId;
-        record.processedAt = new Date();
+        if (!reason) {
+            return res.status(400).json({ message: 'Rejection reason is required' });
+        }
 
-        record.history.push({
-            status: 'Rejected',
-            changedBy: managerId,
-            changedAt: new Date(),
-            notes: `Rejection reason: ${reason}`
-        });
+        if (record.status !== 'Pending' && record.status !== 'Sent' && record.status !== 'Escalated') {
+            // Allow rejecting Escalated tickets too (final rejection by manager)
+            return res.status(400).json({ message: 'Only pending, sent, or escalated tickets can be rejected' });
+        }
+
+        // 2-Step Rejection Logic
+        if (isAssignedTechnician && !isManager) {
+            // Technician -> Escalate back to Manager
+            record.status = 'Escalated';
+            record.technician = undefined; // Unassign technician
+            record.history.push({
+                status: 'Escalated',
+                changedBy: managerId,
+                changedAt: new Date(),
+                notes: `Technician declined assignment: ${reason}`
+            });
+        } else {
+            // Manager -> Final Reject
+            record.status = 'Rejected';
+            record.rejectionReason = reason;
+            record.processedBy = managerId;
+            record.processedAt = new Date();
+
+            record.history.push({
+                status: 'Rejected',
+                changedBy: managerId,
+                changedAt: new Date(),
+                notes: `Rejection reason: ${reason}`
+            });
+
+            // Restore asset status
+            const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+            const assignment = await Assignment.findOneAndUpdate(
+                { assetId, status: 'maintenance' },
+                { status: 'assigned' }
+            );
+            const finalStatus = assignment ? 'assigned' : 'active';
+            await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
+        }
 
         await record.save();
-
-        // Restore asset status
-        const assignment = await Assignment.findOneAndUpdate(
-            { assetId: record.asset, status: 'maintenance' },
-            { status: 'assigned' }
-        );
-        const finalStatus = assignment ? 'assigned' : 'active';
-        await Asset.findByIdAndUpdate(record.asset, { status: finalStatus });
 
         res.json(record);
     } catch (error) {
@@ -559,13 +606,14 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
         await record.save();
 
         // Update asset status and add history
+        const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
         const assignment = await Assignment.findOneAndUpdate(
-            { assetId: record.asset, status: 'maintenance' },
+            { assetId, status: 'maintenance' },
             { status: 'assigned' }
         );
         const finalStatus = assignment ? 'assigned' : 'active';
 
-        await Asset.findByIdAndUpdate(record.asset, {
+        await Asset.findByIdAndUpdate(assetId, {
             status: finalStatus,
             $push: {
                 maintenanceHistory: {
@@ -616,12 +664,13 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Restore asset status
+        const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
         const assignment = await Assignment.findOneAndUpdate(
-            { assetId: record.asset, status: 'maintenance' },
+            { assetId, status: 'maintenance' },
             { status: 'assigned' }
         );
         const finalStatus = assignment ? 'assigned' : 'active';
-        await Asset.findByIdAndUpdate(record.asset, { status: finalStatus });
+        await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
 
         res.json(record);
     } catch (error) {
@@ -934,12 +983,29 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
         myTicketsCounts.forEach(c => { myTickets[c._id] = c.count; });
 
         // 2. Department Tickets breakdown
-        if (user.role === 'admin' || user.role === 'superuser' || (user.departmentId && user.role === 'manager')) {
+        // Allow anyone with a department to see their department's tickets stats (Manager, Supervisor, User, etc.)
+        if (user.role === 'admin' || user.role === 'superuser' || user.departmentId || (user.managedDepartments && user.managedDepartments.length > 0)) {
             const deptFilter: any = {};
             if (user.role !== 'admin' && user.role !== 'superuser') {
-                const departmentUsers = await User.find({ departmentId: user.departmentId }).select('_id');
+                const departmentIds = [];
+                if (user.departmentId) departmentIds.push(user.departmentId);
+                if (user.managedDepartments && user.managedDepartments.length > 0) {
+                    departmentIds.push(...user.managedDepartments);
+                }
+
+                // Match requests from users in these departments
+                const departmentUsers = await User.find({ departmentId: { $in: departmentIds } }).select('_id');
                 const userIds = departmentUsers.map(u => u._id);
-                deptFilter.requestedBy = { $in: userIds };
+
+                // Match assets in these departments
+                const departmentAssets = await Asset.find({ departmentId: { $in: departmentIds } }).select('_id');
+                const assetIds = departmentAssets.map(a => a._id);
+
+                deptFilter.$or = [
+                    { requestedBy: { $in: userIds } },
+                    { assignedDepartment: { $in: departmentIds } },
+                    { asset: { $in: assetIds } }
+                ];
             }
             const deptCounts = await MaintenanceRecord.aggregate([
                 { $match: deptFilter },
@@ -965,7 +1031,7 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
             myTickets: {
                 total: Object.values(myTickets).reduce((a: any, b: any) => a + b, 0),
                 breakdown: myTickets,
-                actionable: (myTickets['Pending'] || 0) + (myTickets['Rejected'] || 0)
+                actionable: (myTickets['Pending'] || 0) + (myTickets['Rejected'] || 0) + (myTickets['Done'] || 0)
             },
             deptTickets: {
                 total: Object.values(deptTickets).reduce((a: any, b: any) => a + b, 0),
@@ -975,7 +1041,7 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
             assignedTickets: {
                 total: Object.values(assignedTickets).reduce((a: any, b: any) => a + b, 0),
                 breakdown: assignedTickets,
-                actionable: (assignedTickets['Accepted'] || 0) + (assignedTickets['In Progress'] || 0)
+                actionable: (assignedTickets['Sent'] || 0) + (assignedTickets['Accepted'] || 0) + (assignedTickets['In Progress'] || 0)
             }
         });
     } catch (error) {

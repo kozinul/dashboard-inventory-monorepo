@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { maintenanceService, MaintenanceTicket, NavCounts } from '@/services/maintenanceService';
+import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
+import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { MaintenanceDetailModal } from '@/features/maintenance/components/MaintenanceDetailModal';
 import { cn } from '@/lib/utils';
@@ -9,9 +10,9 @@ import { cn } from '@/lib/utils';
 export default function DepartmentTicketsPage() {
     const navigate = useNavigate();
     const { user } = useAuthStore();
+    const { counts } = useMaintenanceStore();
 
     const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
-    const [counts, setCounts] = useState<NavCounts | null>(null);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<string>('Sent');
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
@@ -20,12 +21,8 @@ export default function DepartmentTicketsPage() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [ticketsData, countsData] = await Promise.all([
-                maintenanceService.getDepartmentTickets(),
-                maintenanceService.getNavCounts()
-            ]);
+            const ticketsData = await maintenanceService.getDepartmentTickets();
             setTickets(ticketsData);
-            setCounts(countsData);
         } catch (error) {
             console.error('Failed to fetch department tickets:', error);
             showErrorToast('Failed to load tickets');
@@ -36,7 +33,7 @@ export default function DepartmentTicketsPage() {
 
     useEffect(() => {
         // Strict role-based permission check
-        const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'];
+        const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'user', 'technician'];
         const isAllowed = user?.role && allowedRoles.includes(user.role);
 
         if (!isAllowed) {
@@ -81,9 +78,11 @@ export default function DepartmentTicketsPage() {
     const filterStatusList = [
         { id: 'Sent', label: 'New/Sent', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
         { id: 'Accepted', label: 'Accepted', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' },
+        { id: 'Escalated', label: 'Escalated', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
         { id: 'In Progress', label: 'In Progress', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
         { id: 'Done', label: 'Done', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
         { id: 'Closed', label: 'Closed', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+        { id: 'Rejected', label: 'Rejected', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
     ];
 
     const getStatusCount = (status: string) => {

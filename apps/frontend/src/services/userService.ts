@@ -12,6 +12,7 @@ export interface CreateUserDto {
     department?: string;
     departmentId?: string;
     branchId?: any;
+    managedDepartments?: string[];
     designation?: string;
     avatarUrl?: string;
     phone?: string;

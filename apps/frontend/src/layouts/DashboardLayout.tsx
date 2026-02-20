@@ -30,8 +30,9 @@ import { twMerge } from 'tailwind-merge'
 import { Breadcrumbs } from '../components/breadcrumbs/Breadcrumbs'
 import { BreadcrumbProvider } from '../context/BreadcrumbContext'
 import { useAuthStore } from '@/store/authStore'
-import { maintenanceService } from '@/services/maintenanceService'
+
 import { useAppStore } from '@/store/appStore'
+import { useMaintenanceStore } from '@/store/maintenanceStore'
 import { Listbox } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
@@ -99,8 +100,9 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
-    const { activeBranchId, branches, setActiveBranch, initialize, isLoading: isBranchLoading, isSwitching } = useAppStore()
-    const [counts, setCounts] = useState({ dept: 0, assigned: 0, active: 0, userAction: 0 });
+    const { activeBranchId, branches, setActiveBranch, isLoading: isBranchLoading, isSwitching } = useAppStore()
+    const activeBranch = branches.find(b => b._id === activeBranchId);
+    const { counts, startPolling } = useMaintenanceStore();
     const navigate = useNavigate();
 
     // Search state
@@ -151,55 +153,33 @@ function DashboardLayout() {
     };
 
     useEffect(() => {
-        if (user?.role === 'superuser' && branches.length === 0) {
-            initialize();
+        if (user) {
+            const stopPolling = startPolling();
+            return stopPolling;
         }
-    }, [user, branches.length, initialize]);
-
-    const activeBranch = branches.find(b => b._id === activeBranchId) || { name: 'All Branches', _id: 'ALL' };
-
-    useEffect(() => {
-        const fetchCounts = async () => {
-            if (user) {
-                try {
-                    const data = await maintenanceService.getNavCounts();
-                    setCounts({
-                        dept: data.deptTickets?.actionable || 0,
-                        assigned: data.assignedTickets?.actionable || 0,
-                        active: data.myTickets?.total || 0,
-                        userAction: data.myTickets?.actionable || 0
-                    });
-                } catch (error) {
-                    console.error('Failed to fetch nav counts', error);
-                }
-            }
-        };
-
-        fetchCounts();
-        // Poll every minute
-        const interval = setInterval(fetchCounts, 60000);
-        return () => clearInterval(interval);
-    }, [user, location.pathname]); // Re-fetch on navigation too
+    }, [user, startPolling]);
 
     // Helper to inject badges
     const getBadge = (name: string) => {
+        if (!counts) return 0;
+
         // User Action Required (Pending tickets)
-        if (name === 'My Tickets') return counts.userAction;
+        if (name === 'My Tickets') return counts.myTickets?.actionable || 0;
 
         // Manager / Admin: Pending Department Tickets (Sent status)
-        if (name === 'Dept. Tickets') return counts.dept;
+        if (name === 'Dept. Tickets') return counts.deptTickets?.actionable || 0;
 
         // Admin/Superuser: Show new requests on main 'Maintenance' item
         if (name === 'Maintenance' && (user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'system_admin')) {
-            return counts.dept;
+            return counts.deptTickets?.actionable || 0;
         }
 
         // Technician: Assigned Jobs (Accepted status)
         if (name === 'Maintenance' && user?.role === 'technician') {
-            return counts.assigned;
+            return counts.assignedTickets?.actionable || 0;
         }
 
-        if (name === 'Assigned Jobs') return counts.assigned; // Redundant if mapped to Maintenance, but safe to keep
+        if (name === 'Assigned Jobs') return counts.assignedTickets?.actionable || 0;
 
         return 0;
     };
@@ -254,9 +234,14 @@ function DashboardLayout() {
             return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
         }
 
-        if (resource === 'disposal') return true; // Force visibility for disposal menu
+        // if (resource === 'disposal') return true; // Force visibility for disposal menu - REMOVED for user restriction
         if (resource === 'assignments' && user?.role === 'technician') return true; // Force assignments for technicians
         if (resource === 'transfer' && user?.role === 'technician') return true; // Ensure transfer remains visible
+
+        // Explicitly deny restricted resources for 'user' role before custom checks
+        if (user?.role === 'user' && ['inventory', 'maintenance', 'disposal', 'dept_tickets', 'users', 'settings', 'reports', 'audit_logs'].includes(resource || '')) {
+            return false;
+        }
 
         // Check custom permissions if available
         if (user?.permissions && user.permissions.length > 0) {
@@ -297,7 +282,7 @@ function DashboardLayout() {
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'inventory', 'my_tickets', 'maintenance', 'my_assets', 'history', 'data_management', 'disposal'].includes(resource || '');
+            return ['dashboard', 'my_tickets', 'my_assets', 'history', 'data_management'].includes(resource || '');
         }
 
         // Auditor permissions
@@ -385,7 +370,7 @@ function DashboardLayout() {
                                                         <div className="relative mt-1">
                                                             <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
                                                                 <span className="block truncate text-white">
-                                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name))}
+                                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch?.name || 'Unknown Branch'))}
                                                                 </span>
                                                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                                                     <ChevronUpDownIcon
@@ -555,7 +540,7 @@ function DashboardLayout() {
                                         <div className="relative mt-1">
                                             <Listbox.Button className="relative w-full cursor-default rounded-lg bg-gray-800 py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus:visible:border-indigo-500 focus:visible:ring-2 focus:visible:ring-white/75 focus:visible:ring-offset-2 focus:visible:ring-offset-orange-300 sm:text-sm">
                                                 <span className="block truncate text-white">
-                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch.name))}
+                                                    {isSwitching ? 'Switching...' : (isBranchLoading ? 'Loading...' : (activeBranchId === 'ALL' ? 'All Branches' : activeBranch?.name || 'Unknown Branch'))}
                                                 </span>
                                                 <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                                                     <ChevronUpDownIcon
