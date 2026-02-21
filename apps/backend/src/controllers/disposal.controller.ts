@@ -14,8 +14,13 @@ export const getDisposalRecords = async (req: Request, res: Response, next: Next
         // DEPT FILTERING: Only show disposal for assets in same department for non-auditors/admins
         if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
             const { Asset } = await import('../models/asset.model.js');
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
             const deptAssets = await Asset.find({
-                departmentId: req.user.departmentId,
+                departmentId: { $in: deptIds },
                 branchId: (req.user as any).branchId
             }).select('_id');
             const assetIds = deptAssets.map(a => a._id);
@@ -117,8 +122,13 @@ export const getDisposalStats = async (req: Request, res: Response, next: NextFu
         // DEPT FILTERING for stats
         if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
             const { Asset } = await import('../models/asset.model.js');
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
             const deptAssets = await Asset.find({
-                departmentId: req.user.departmentId,
+                departmentId: { $in: deptIds },
                 branchId: (req.user as any).branchId
             }).select('_id');
             const assetIds = deptAssets.map(a => a._id);

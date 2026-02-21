@@ -121,6 +121,7 @@ export const generateAssetsFromTemplate = async (req: Request, res: Response, ne
                 department,
                 locationId,
                 location,
+                branchId: req.body.branchId || (req.user as any).branchId,
                 status: status || 'storage',
                 purchaseDate: purchaseDate || new Date()
             };

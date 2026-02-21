@@ -198,10 +198,16 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
                 throw new Error('Access denied: You can only delete users from your branch');
             }
 
-            // Managers/Dept Admins can only delete users from their department
+            // Managers/Dept Admins can only delete users from their department (inc. managed)
             if (req.user.role === 'manager' || req.user.role === 'dept_admin') {
+                const deptIds: string[] = [];
+                if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments.map((id: any) => id.toString()));
+                }
+
                 const isDeptMatch =
-                    (user.departmentId && req.user.departmentId && user.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (user.departmentId && deptIds.includes(user.departmentId.toString())) ||
                     (user.department && req.user.department && user.department === req.user.department);
 
                 if (!isDeptMatch) {

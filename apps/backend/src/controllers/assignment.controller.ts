@@ -205,11 +205,15 @@ export const getAllAssignments = async (req: Request, res: Response, next: NextF
             filter.branchId = (req.user as any).branchId;
         }
 
-        // RBAC: Department filtering for non-admin/manager/technician users
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+        // RBAC: Department filtering for non-admin users
+        if (req.user && !['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
             if (req.user.departmentId) {
-                // Get assets from user's department
-                const deptAssets = await Asset.find({ departmentId: req.user.departmentId }).select('_id');
+                const deptIds: any[] = [req.user.departmentId];
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
+                // Get assets from user's departments
+                const deptAssets = await Asset.find({ departmentId: { $in: deptIds } }).select('_id');
                 const assetIds = deptAssets.map(a => a._id);
                 filter.assetId = { $in: assetIds };
             } else {

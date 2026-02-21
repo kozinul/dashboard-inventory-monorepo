@@ -53,7 +53,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
             const accessConditions: any[] = [];
 
-            if (req.user.departmentId && !['admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+            if (req.user.departmentId && !['admin', 'system_admin'].includes(req.user.role)) {
                 const deptIds = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
                     deptIds.push(...(req.user as any).managedDepartments);
@@ -62,7 +62,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                 accessConditions.push({
                     departmentId: { $in: deptIds }
                 });
-            } else if (req.user.department) {
+            } else if (!['admin', 'system_admin'].includes(req.user.role) && req.user.department) {
                 accessConditions.push({
                     department: req.user.department
                 });
@@ -139,7 +139,7 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
             }
 
             // Department check for non-privileged roles
-            if (!['admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+            if (!['admin', 'system_admin'].includes(req.user.role)) {
                 const deptIds = [];
                 if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -394,7 +394,7 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
 
         // RBAC: Filter stats by department for non-admin users
         // Aligned with getAssets logic: admin/manager/technician see entire branch
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
             if (req.user.departmentId) {
                 const deptIds = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {

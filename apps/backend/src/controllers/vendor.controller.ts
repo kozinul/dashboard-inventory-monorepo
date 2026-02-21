@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Vendor } from '../models/vendor.model.js';
 
 export const vendorController = {
     // Get all vendors
-    getAll: async (req: Request, res: Response) => {
+    getAll: async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Build filter based on user role and branch
             const filter: any = {};
@@ -29,12 +29,12 @@ export const vendorController = {
             const vendors = await Vendor.find(filter).sort({ createdAt: -1 });
             res.json(vendors);
         } catch (error) {
-            res.status(500).json({ message: "Error fetching vendors", error });
+            next(error);
         }
     },
 
     // Get single vendor
-    getOne: async (req: Request, res: Response) => {
+    getOne: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const vendor = await Vendor.findById(req.params.id);
             if (!vendor) {
@@ -42,12 +42,12 @@ export const vendorController = {
             }
             res.json(vendor);
         } catch (error) {
-            res.status(500).json({ message: "Error fetching vendor", error });
+            next(error);
         }
     },
 
     // Create a new vendor
-    create: async (req: Request, res: Response) => {
+    create: async (req: Request, res: Response, next: NextFunction) => {
         try {
             // Set branchId based on user role
             const branchId = req.user.role === 'superuser'
@@ -61,12 +61,12 @@ export const vendorController = {
             const savedVendor = await newVendor.save();
             res.status(201).json(savedVendor);
         } catch (error) {
-            res.status(400).json({ message: "Error creating vendor", error });
+            next(error);
         }
     },
 
     // Update a vendor
-    update: async (req: Request, res: Response) => {
+    update: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const updateData = { ...req.body };
 
@@ -88,12 +88,12 @@ export const vendorController = {
             }
             res.json(updatedVendor);
         } catch (error) {
-            res.status(400).json({ message: "Error updating vendor", error });
+            next(error);
         }
     },
 
     // Delete a vendor
-    delete: async (req: Request, res: Response) => {
+    delete: async (req: Request, res: Response, next: NextFunction) => {
         try {
             const deletedVendor = await Vendor.findByIdAndDelete(req.params.id);
             if (!deletedVendor) {
@@ -101,7 +101,7 @@ export const vendorController = {
             }
             res.json({ message: "Vendor deleted successfully" });
         } catch (error) {
-            res.status(500).json({ message: "Error deleting vendor", error });
+            next(error);
         }
     }
 };

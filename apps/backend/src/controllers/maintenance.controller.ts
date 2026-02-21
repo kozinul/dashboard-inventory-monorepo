@@ -239,10 +239,8 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
         });
         await record.save();
 
-        // Update asset status
-        await Asset.findByIdAndUpdate(assetId, { status: 'request maintenance' });
-        // Sync Assignment: active -> maintenance
-        await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+        // NOTE: Asset status is NOT changed here (Draft stage).
+        // Status will change to 'request maintenance' when ticket is sent (sendTicket).
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial departmentId')
@@ -330,10 +328,8 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
         record.technician = technicianId;
         record.processedBy = managerId;
         record.processedAt = new Date();
-        // Reset status to Sent if it was Rejected/Escalated, so technician sees it as new
-        if (record.status === 'Rejected' || record.status === 'Escalated') {
-            record.status = 'Sent';
-        }
+        // Set status to Accepted for all valid incoming statuses
+        record.status = 'Accepted';
 
         if (type) {
             record.type = type;
@@ -379,7 +375,7 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
 
-        const validStatuses = ['Accepted', 'Pending', 'Draft', 'Sent'];
+        const validStatuses = ['Accepted', 'Sent'];
         if (!validStatuses.includes(record.status)) {
             return res.status(400).json({ message: 'Ticket cannot be started from current status' });
         }
@@ -692,8 +688,8 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
             return res.status(403).json({ message: 'You can only cancel your own tickets' });
         }
 
-        if (record.status !== 'Draft' && record.status !== 'Pending') {
-            return res.status(400).json({ message: 'Only draft or pending tickets can be cancelled' });
+        if (!['Draft', 'Pending', 'Sent'].includes(record.status)) {
+            return res.status(400).json({ message: 'Only draft, pending, or sent tickets can be cancelled' });
         }
 
         record.status = 'Cancelled';
@@ -764,6 +760,12 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
         });
 
         await record.save();
+
+        // Update asset status now that ticket is officially submitted
+        const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+        await Asset.findByIdAndUpdate(assetId, { status: 'request maintenance' });
+        // Sync Assignment: assigned -> maintenance
+        await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
 
         // Record Audit Log
         if (record && record.asset) {

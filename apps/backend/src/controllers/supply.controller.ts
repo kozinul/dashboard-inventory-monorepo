@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Supply } from '../models/supply.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Location } from '../models/location.model.js';
 
-export const createSupply = async (req: Request, res: Response) => {
+export const createSupply = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const supplyData = { ...req.body };
 
@@ -53,11 +53,11 @@ export const createSupply = async (req: Request, res: Response) => {
         if (error.code === 11000) {
             return res.status(400).json({ message: 'Part number already exists' });
         }
-        res.status(400).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getAllSupplies = async (req: Request, res: Response) => {
+export const getAllSupplies = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { search, category, lowStock } = req.query;
         let query: any = {};
@@ -65,7 +65,11 @@ export const getAllSupplies = async (req: Request, res: Response) => {
         // RBAC: Department filtering for non-admin users
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             if (req.user.departmentId) {
-                query.departmentId = req.user.departmentId;
+                const deptIds: any[] = [req.user.departmentId];
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
+                query.departmentId = { $in: deptIds };
             } else {
                 // No department = no access
                 return res.json([]);
@@ -104,11 +108,11 @@ export const getAllSupplies = async (req: Request, res: Response) => {
         res.json(supplies);
     } catch (error: any) {
         console.error('Error fetching supplies:', error);
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getSupplyById = async (req: Request, res: Response) => {
+export const getSupplyById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const supply = await Supply.findById(req.params.id)
             .populate('locationId', 'name')
@@ -129,11 +133,11 @@ export const getSupplyById = async (req: Request, res: Response) => {
 
         res.json(supply);
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const updateSupply = async (req: Request, res: Response) => {
+export const updateSupply = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const oldSupply = await Supply.findById(req.params.id);
         if (!oldSupply) {
@@ -197,11 +201,11 @@ export const updateSupply = async (req: Request, res: Response) => {
         if (error.code === 11000) {
             return res.status(400).json({ message: 'Part number already exists' });
         }
-        res.status(400).json({ message: error.message });
+        next(error);
     }
 };
 
-export const deleteSupply = async (req: Request, res: Response) => {
+export const deleteSupply = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const supply = await Supply.findById(req.params.id);
         if (!supply) {
@@ -218,16 +222,16 @@ export const deleteSupply = async (req: Request, res: Response) => {
         await Supply.findByIdAndDelete(req.params.id);
         res.json({ message: 'Supply deleted successfully' });
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
-export const getSupplyHistory = async (req: Request, res: Response) => {
+export const getSupplyHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const history = await SupplyHistory.find({ supplyId: req.params.id })
             .sort({ createdAt: -1 })
             .populate('userId', 'name');
         res.json(history);
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };

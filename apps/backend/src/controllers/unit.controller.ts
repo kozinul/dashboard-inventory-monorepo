@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Unit } from '../models/unit.model.js';
 
-export const createUnit = async (req: Request, res: Response) => {
+export const createUnit = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Set branchId based on user role
         const branchId = req.user.role === 'superuser'
@@ -18,11 +18,11 @@ export const createUnit = async (req: Request, res: Response) => {
         if (error.code === 11000) {
             return res.status(400).json({ message: 'Unit symbol must be unique' });
         }
-        res.status(400).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getAllUnits = async (req: Request, res: Response) => {
+export const getAllUnits = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Build filter based on user role and branch
         const filter: any = {};
@@ -48,11 +48,11 @@ export const getAllUnits = async (req: Request, res: Response) => {
         const units = await Unit.find(filter).sort({ name: 1 });
         res.json(units);
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const getUnitById = async (req: Request, res: Response) => {
+export const getUnitById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const unit = await Unit.findById(req.params.id);
         if (!unit) {
@@ -60,11 +60,11 @@ export const getUnitById = async (req: Request, res: Response) => {
         }
         res.json(unit);
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
-export const updateUnit = async (req: Request, res: Response) => {
+export const updateUnit = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const updateData = { ...req.body };
 
@@ -89,11 +89,11 @@ export const updateUnit = async (req: Request, res: Response) => {
         if (error.code === 11000) {
             return res.status(400).json({ message: 'Unit symbol must be unique' });
         }
-        res.status(400).json({ message: error.message });
+        next(error);
     }
 };
 
-export const deleteUnit = async (req: Request, res: Response) => {
+export const deleteUnit = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const unit = await Unit.findByIdAndDelete(req.params.id);
         if (!unit) {
@@ -101,6 +101,6 @@ export const deleteUnit = async (req: Request, res: Response) => {
         }
         res.json({ message: 'Unit deleted successfully' });
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };

@@ -103,33 +103,27 @@ export const getTransfers = async (req: Request, res: Response, next: NextFuncti
 
         // RBAC: Non-admin users only see transfers involving their department/branch
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            const myDept = req.user.departmentId;
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
             const myBranch = req.user.branchId;
 
-            // Expanded visibility logic:
-            // 1. Requester: See all requests they made
-            // 2. Manager (Sender): See requests from their branch/dept (WaitApproval)
-            // 3. Manager (Receiver) / Receiver: See requests to their branch/dept (InTransit+)
-
-            // Simplified:
-            // OR Condition:
-            // - requestedBy IS user
-            // - fromBranch/Dept IS user's (for Managers)
-            // - toBranch/Dept IS user's (for Receiver)
-
-            filters.$or = [
-                { requestedBy: req.user._id },
-                { fromDepartmentId: myDept, fromBranchId: myBranch },
-                { toDepartmentId: myDept, toBranchId: myBranch }
-            ];
-
-            // Fallback for users without branch
-            if (!myBranch) {
+            if (deptIds.length > 0 && myBranch) {
                 filters.$or = [
                     { requestedBy: req.user._id },
-                    { fromDepartmentId: myDept },
-                    { toDepartmentId: myDept }
+                    { fromDepartmentId: { $in: deptIds }, fromBranchId: myBranch },
+                    { toDepartmentId: { $in: deptIds }, toBranchId: myBranch }
                 ];
+            } else if (deptIds.length > 0) {
+                filters.$or = [
+                    { requestedBy: req.user._id },
+                    { fromDepartmentId: { $in: deptIds } },
+                    { toDepartmentId: { $in: deptIds } }
+                ];
+            } else {
+                filters.requestedBy = req.user._id;
             }
         }
 

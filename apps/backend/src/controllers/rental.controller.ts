@@ -1,13 +1,18 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Rental from '../models/rental.model.js';
 import { Asset } from '../models/asset.model.js';
 
-export const createRental = async (req: Request, res: Response) => {
+export const createRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // RBAC: Check if user can rent this asset (department check)
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             const asset = await Asset.findById(req.body.assetId);
-            if (!asset || asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const deptIds: string[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments.map((id: any) => id.toString()));
+            }
+            if (!asset || !deptIds.includes(asset.departmentId?.toString() || '')) {
                 return res.status(403).json({ message: 'You can only rent assets from your department' });
             }
         }
@@ -24,11 +29,11 @@ export const createRental = async (req: Request, res: Response) => {
         await rental.populate(['assetId', 'userId', 'eventId']);
         res.status(201).json(rental);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating rental', error });
+        next(error);
     }
 };
 
-export const getRentals = async (req: Request, res: Response) => {
+export const getRentals = async (req: Request, res: Response, next: NextFunction) => {
     try {
         let rentals = await Rental.find()
             .populate('assetId')
@@ -45,10 +50,15 @@ export const getRentals = async (req: Request, res: Response) => {
 
         // RBAC: Filter by department for non-admin users
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
-            if (req.user.departmentId) {
+            const deptIds: string[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments.map((id: any) => id.toString()));
+            }
+            if (deptIds.length > 0) {
                 rentals = rentals.filter((rental: any) => {
                     const asset = rental.assetId as any;
-                    return asset?.departmentId?.toString() === req.user.departmentId?.toString();
+                    return deptIds.includes(asset?.departmentId?.toString() || '');
                 });
             } else {
                 return res.json([]);
@@ -57,11 +67,11 @@ export const getRentals = async (req: Request, res: Response) => {
 
         res.status(200).json(rentals);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching rentals', error });
+        next(error);
     }
 };
 
-export const getRentalById = async (req: Request, res: Response) => {
+export const getRentalById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const rental = await Rental.findById(id)
@@ -76,18 +86,23 @@ export const getRentalById = async (req: Request, res: Response) => {
         // RBAC: Check if user can access this rental
         if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
             const asset = rental.assetId as any;
-            if (asset?.departmentId?.toString() !== req.user.departmentId?.toString()) {
+            const deptIds: string[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments.map((id: any) => id.toString()));
+            }
+            if (!deptIds.includes(asset?.departmentId?.toString() || '')) {
                 return res.status(403).json({ message: 'Access denied' });
             }
         }
 
         res.status(200).json(rental);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching rental', error });
+        next(error);
     }
 };
 
-export const updateRental = async (req: Request, res: Response) => {
+export const updateRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const rental = await Rental.findByIdAndUpdate(id, req.body, { new: true })
@@ -100,11 +115,11 @@ export const updateRental = async (req: Request, res: Response) => {
         }
         res.status(200).json(rental);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating rental', error });
+        next(error);
     }
 };
 
-export const deleteRental = async (req: Request, res: Response) => {
+export const deleteRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const rental = await Rental.findByIdAndDelete(id);
@@ -113,6 +128,6 @@ export const deleteRental = async (req: Request, res: Response) => {
         }
         res.status(200).json({ message: 'Rental deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting rental', error });
+        next(error);
     }
 };

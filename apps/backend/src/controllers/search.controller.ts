@@ -20,6 +20,18 @@ export const globalSearch = async (req: Request, res: Response, next: NextFuncti
             baseFilter.branchId = req.user.branchId;
         }
 
+        // Department filtering for non-admin roles
+        if (!['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
+            if (deptIds.length > 0) {
+                baseFilter.departmentId = { $in: deptIds };
+            }
+        }
+
         // 1. Search Assets
         const assetFilter = {
             ...baseFilter,

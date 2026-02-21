@@ -161,11 +161,15 @@ export const getLowStockSupplies = async (req: Request, res: Response, next: Nex
         }
 
         const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
-        const deptId = req.user.departmentId;
+        const deptIds: any[] = [];
+        if (req.user.departmentId) deptIds.push(req.user.departmentId);
+        if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+            deptIds.push(...(req.user as any).managedDepartments);
+        }
 
         // Apply department scoping for non-admin/superuser
-        if (!isPowerUser && deptId) {
-            branchFilter.departmentId = deptId;
+        if (!isPowerUser && deptIds.length > 0) {
+            branchFilter.departmentId = { $in: deptIds };
         }
 
         // Fetch supplies where quantity <= minimumStock

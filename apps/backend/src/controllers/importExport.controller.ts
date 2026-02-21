@@ -124,19 +124,25 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
         }
 
         // 2. RBAC & Selection: Department handling
-        // For Manager/Technician, we IGNORE the requested departmentId and force their own.
-        // For Superuser/Admin, we use the requested departmentId if provided.
-        const isRestrictedDept = req.user.role === 'manager' || req.user.role === 'technician';
-        const activeDeptId = isRestrictedDept ? req.user.departmentId : departmentId;
+        // For restricted dept roles, build array of dept IDs including managedDepartments
+        const isRestrictedDept = !['superuser', 'admin', 'system_admin'].includes(req.user.role);
+        let activeDeptIds: any[] = [];
 
-        if (activeDeptId) {
+        if (isRestrictedDept) {
+            if (req.user.departmentId) activeDeptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                activeDeptIds.push(...(req.user as any).managedDepartments);
+            }
+        } else if (departmentId) {
+            activeDeptIds = [departmentId];
+        }
+
+        if (activeDeptIds.length > 0) {
             if (type === 'asset' || type === 'supply') {
-                query.departmentId = activeDeptId;
+                query.departmentId = activeDeptIds.length === 1 ? activeDeptIds[0] : { $in: activeDeptIds };
             } else if (type === 'maintenance' || type === 'rental') {
-                // Rental & Maintenance records are linked to Assets. 
-                // We must find assets belonging to the department first.
                 const deptAssets = await Asset.find({
-                    departmentId: activeDeptId,
+                    departmentId: activeDeptIds.length === 1 ? activeDeptIds[0] : { $in: activeDeptIds },
                     branchId: query.branchId || { $exists: true }
                 }).select('_id');
                 const assetIds = deptAssets.map(a => a._id);
@@ -144,9 +150,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 if (type === 'rental') {
                     query.assetId = { $in: assetIds };
                 } else if (type === 'maintenance') {
-                    // Maintenance has its own 'assignedDepartment' OR can be tracked via asset's department
                     query.$or = [
-                        { assignedDepartment: activeDeptId },
+                        { assignedDepartment: activeDeptIds.length === 1 ? activeDeptIds[0] : { $in: activeDeptIds } },
                         { asset: { $in: assetIds } }
                     ];
                 }

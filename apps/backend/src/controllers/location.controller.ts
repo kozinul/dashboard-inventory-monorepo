@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Location } from '../models/location.model.js';
 
-export const getLocations = async (req: Request, res: Response) => {
+export const getLocations = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Build filter based on user role and branch
         const filter: any = {};
@@ -19,12 +19,16 @@ export const getLocations = async (req: Request, res: Response) => {
 
                 // If user is not admin/superuser, filter by department too
                 if (!['admin', 'system_admin'].includes(req.user.role)) {
-                    const userDeptId = (req.user as any).departmentId;
-                    if (userDeptId) {
+                    const deptIds: any[] = [];
+                    if ((req.user as any).departmentId) deptIds.push((req.user as any).departmentId);
+                    if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                        deptIds.push(...(req.user as any).managedDepartments);
+                    }
+                    if (deptIds.length > 0) {
                         filter.$and = [
                             {
                                 $or: [
-                                    { departmentId: userDeptId },
+                                    { departmentId: { $in: deptIds } },
                                     { departmentId: null },
                                     { departmentId: { $exists: false } }
                                 ]
@@ -55,7 +59,7 @@ export const getLocations = async (req: Request, res: Response) => {
         res.json(locations);
     } catch (error) {
         console.error('Error fetching locations:', error);
-        res.status(500).json({ message: 'Error fetching locations', error });
+        next(error);
     }
 };
 

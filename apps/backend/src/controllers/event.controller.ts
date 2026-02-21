@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Event from '../models/event.model.js';
 import { Supply } from '../models/supply.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Asset } from '../models/asset.model.js';
 
-export const createEvent = async (req: Request, res: Response) => {
+export const createEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const event = new Event({
             ...req.body,
@@ -22,7 +22,7 @@ export const createEvent = async (req: Request, res: Response) => {
     }
 };
 
-export const getEvents = async (req: Request, res: Response) => {
+export const getEvents = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: any = {};
 
@@ -46,7 +46,7 @@ export const getEvents = async (req: Request, res: Response) => {
     }
 };
 
-export const getEventById = async (req: Request, res: Response) => {
+export const getEventById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const event = await Event.findById(id)
@@ -71,7 +71,7 @@ export const getEventById = async (req: Request, res: Response) => {
     }
 };
 
-export const updateEvent = async (req: Request, res: Response) => {
+export const updateEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const currentEvent = await Event.findById(id);
@@ -168,7 +168,7 @@ export const updateEvent = async (req: Request, res: Response) => {
 };
 
 
-export const getEventsByAsset = async (req: Request, res: Response) => {
+export const getEventsByAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { assetId } = req.params;
         const events = await Event.find({ 'rentedAssets.assetId': assetId })
@@ -180,7 +180,7 @@ export const getEventsByAsset = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteEvent = async (req: Request, res: Response) => {
+export const deleteEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const eventToCheck = await Event.findById(id);

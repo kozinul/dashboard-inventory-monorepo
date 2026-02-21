@@ -2,8 +2,12 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
+
+// All upload routes require authentication
+router.use(protect);
 
 // Configuration for local storage
 const storage = multer.diskStorage({

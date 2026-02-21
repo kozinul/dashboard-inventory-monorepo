@@ -1,17 +1,19 @@
 import mongoose from 'mongoose';
 import { MaintenanceStatusSchema, MaintenanceTypeSchema, ServiceProviderTypeSchema } from '@dashboard/schemas';
 
-// Helper to generate ticket number
-const generateTicketNumber = async () => {
+// Helper to generate ticket number (with retry for race condition safety)
+const generateTicketNumber = async (retryCount = 0): Promise<string> => {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
     const count = await mongoose.model('MaintenanceRecord').countDocuments({
         createdAt: {
-            $gte: new Date(today.setHours(0, 0, 0, 0)),
-            $lt: new Date(today.setHours(23, 59, 59, 999))
+            $gte: startOfDay,
+            $lt: endOfDay
         }
     });
-    return `MT-${dateStr}-${String(count + 1).padStart(3, '0')}`;
+    return `MT-${dateStr}-${String(count + 1 + retryCount).padStart(3, '0')}`;
 };
 
 const maintenanceRecordSchema = new mongoose.Schema({
@@ -120,10 +122,23 @@ const maintenanceRecordSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Pre-save hook to generate ticket number
+// Pre-save hook to generate ticket number with retry logic
 maintenanceRecordSchema.pre('save', async function (next) {
     if (this.isNew && !this.ticketNumber) {
-        this.ticketNumber = await generateTicketNumber();
+        let retries = 0;
+        const maxRetries = 5;
+        while (retries < maxRetries) {
+            try {
+                this.ticketNumber = await generateTicketNumber(retries);
+                break;
+            } catch (err: any) {
+                if (err.code === 11000 && retries < maxRetries - 1) {
+                    retries++;
+                    continue;
+                }
+                throw err;
+            }
+        }
     }
     next();
 });

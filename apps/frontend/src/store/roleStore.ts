@@ -23,8 +23,12 @@ const viewCreate = (): Permission['actions'] => ({ view: true, create: true, edi
 const viewCreateEdit = (): Permission['actions'] => ({ view: true, create: true, edit: true, delete: false });
 
 const RESOURCES = [
-    'dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services',
-    'history', 'asset_templates', 'categories', 'locations', 'vendors', 'reports', 'settings', 'users', 'assigned_tickets'
+    'dashboard', 'reports',
+    'inventory', 'incoming', 'transfer', 'disposal', 'assignments',
+    'maintenance', 'my_tickets', 'dept_tickets', 'assigned_tickets', 'services',
+    'rental', 'events',
+    'my_assets', 'users', 'settings',
+    'categories', 'locations', 'vendors', 'asset_templates', 'history'
 ];
 
 // Default Roles

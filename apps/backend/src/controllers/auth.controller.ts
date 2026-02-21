@@ -31,6 +31,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 role: user.role,
                 departmentId: user.departmentId,
                 department: user.department,
+                managedDepartments: (user as any).managedDepartments || [],
                 branchId: (user as any).branchId,
                 avatarUrl: user.avatarUrl,
                 token: generateToken(user._id.toString()),
@@ -75,6 +76,7 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
                 role: user.role,
                 departmentId: user.departmentId,
                 department: user.department,
+                managedDepartments: (user as any).managedDepartments || [],
                 branchId: (user as any).branchId,
                 avatarUrl: user.avatarUrl,
                 permissions

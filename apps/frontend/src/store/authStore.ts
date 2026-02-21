@@ -19,6 +19,7 @@ interface User {
     role: string;
     department?: string;
     departmentId?: string;
+    managedDepartments?: string[];
     permissions?: Permission[];
     avatarUrl?: string;
     phone?: string;

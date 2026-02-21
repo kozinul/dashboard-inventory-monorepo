@@ -14,9 +14,14 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
 
         if (!isPowerUser) {
             filters.branchId = req.user.branchId;
-            if (req.user.departmentId) {
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
+            if (deptIds.length > 0) {
                 filters.$or = [
-                    { departmentId: req.user.departmentId },
+                    { departmentId: { $in: deptIds } },
                     { userId: req.user._id }
                 ];
             } else {
@@ -72,9 +77,14 @@ export const exportAuditLogs = async (req: Request, res: Response, next: NextFun
 
         if (!isPowerUser) {
             filters.branchId = req.user.branchId;
-            if (req.user.departmentId) {
+            const deptIds: any[] = [];
+            if (req.user.departmentId) deptIds.push(req.user.departmentId);
+            if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                deptIds.push(...(req.user as any).managedDepartments);
+            }
+            if (deptIds.length > 0) {
                 filters.$or = [
-                    { departmentId: req.user.departmentId },
+                    { departmentId: { $in: deptIds } },
                     { userId: req.user._id }
                 ];
             } else {
