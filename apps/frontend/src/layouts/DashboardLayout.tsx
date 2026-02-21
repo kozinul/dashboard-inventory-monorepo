@@ -222,39 +222,19 @@ function DashboardLayout() {
 
         const resource = resourceMap[item.name];
 
-        // Strict restriction for Dept Tickets and Audit Logs
-        // technician and user are always blocked
-        const isDeptTicket = resource === 'dept_tickets' || item.name?.toLowerCase().includes('dept') || item.href?.includes('department-tickets');
-        if (isDeptTicket) {
-            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'user'];
-            return user?.role && allowedRoles.includes(user.role);
-        }
-
+        // Audit Logs is always restricted to admin roles
         if (resource === 'audit_logs') {
             return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
         }
 
-        // if (resource === 'disposal') return true; // Force visibility for disposal menu - REMOVED for user restriction
-        if (resource === 'assignments' && user?.role === 'technician') return true; // Force assignments for technicians
-        if (resource === 'transfer' && user?.role === 'technician') return true; // Ensure transfer remains visible
-
-        // Explicitly deny restricted resources for 'user' role before custom checks
-        if (user?.role === 'user' && ['inventory', 'maintenance', 'disposal', 'users', 'settings', 'reports', 'audit_logs'].includes(resource || '')) {
-            return false;
-        }
-
-        // Check custom permissions if available
+        // ============================================================
+        // PRIMARY CHECK: Use backend permissions array (single source of truth)
+        // This array is sent by getMergedPermissions() on login/getMe
+        // It already includes role defaults + custom overrides
+        // ============================================================
         if (user?.permissions && user.permissions.length > 0) {
-            // Logic: IF specific permission exists for this resource, use it.
-            // IF NOT, strict deny? Or fallback to role default?
-            // "getMergedPermissions" in backend ALREADY merges default role perms + custom perms.
-            // So if it's not in the array, it means NO access (or view: false).
-            // We should trust the array if it exists.
-
-            // Note: 'master_data' is a group. If children are visible, it should show.
-            // But existing filtering logic handles groups by checking children.
-            // So we only care about leaf nodes or specific group permission if intended.
-            if (item.children) return true; // Allow groups to check their children
+            // Allow navigation groups (like "Master Data") to render if any child is visible
+            if (item.children) return true;
 
             if (!resource) return false; // Unknown resource, deny
 
@@ -262,8 +242,17 @@ function DashboardLayout() {
             return perm?.actions?.view === true;
         }
 
-        // BACKWARD COMPATIBILITY / FALLBACK
-        // (Only used if user.permissions is missing)
+        // ============================================================
+        // FALLBACK: Only used when user.permissions array is missing
+        // (backward compatibility for old sessions/data)
+        // ============================================================
+
+        // Dept Tickets restriction
+        const isDeptTicket = resource === 'dept_tickets' || item.name?.toLowerCase().includes('dept') || item.href?.includes('department-tickets');
+        if (isDeptTicket) {
+            const allowedRoles = ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor', 'user'];
+            return user?.role && allowedRoles.includes(user.role);
+        }
 
         // Manager permissions
         if (user?.role === 'manager' || user?.role === 'dept_admin') {
@@ -272,12 +261,12 @@ function DashboardLayout() {
 
         // Supervisor permissions
         if (user?.role === 'supervisor') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'my_assets', 'reports', 'history', 'assignments'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'my_assets', 'reports', 'history', 'assignments', 'users'].includes(resource || '');
         }
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer', 'users'].includes(resource || '');
         }
 
         // Standard User permissions
