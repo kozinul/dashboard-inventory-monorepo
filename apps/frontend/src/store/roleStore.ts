@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import axios from '../lib/axios';
 
 interface Permission {
     resource: string;
@@ -6,7 +7,7 @@ interface Permission {
 }
 
 export interface Role {
-    id: string;
+    id: string; // Internal frontend ID or slug
     name: string;
     slug: string;
     color: string;
@@ -14,190 +15,104 @@ export interface Role {
     isSystem: boolean;
     permissions: Permission[];
     usersCount: number;
+    isCustomized?: boolean;
 }
-
-// Helper functions
-const fullAccess = (): Permission['actions'] => ({ view: true, create: true, edit: true, delete: true });
-const viewOnly = (): Permission['actions'] => ({ view: true, create: false, edit: false, delete: false });
-const viewCreate = (): Permission['actions'] => ({ view: true, create: true, edit: false, delete: false });
-const viewCreateEdit = (): Permission['actions'] => ({ view: true, create: true, edit: true, delete: false });
-
-const RESOURCES = [
-    'dashboard', 'reports',
-    'inventory', 'incoming', 'transfer', 'disposal', 'assignments',
-    'maintenance', 'my_tickets', 'dept_tickets', 'assigned_tickets', 'services',
-    'rental', 'events',
-    'my_assets', 'users', 'settings',
-    'categories', 'locations', 'vendors', 'asset_templates', 'history'
-];
-
-// Default Roles — synced with backend rolePermissions.config.ts
-const DEFAULT_ROLES: Role[] = [
-    {
-        id: '1', name: 'Super User', slug: 'superuser', color: '#ef4444',
-        description: 'Full system access', isSystem: true, usersCount: 1,
-        permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
-    },
-    {
-        id: '2', name: 'System Admin', slug: 'system_admin', color: '#ea580c',
-        description: 'Full system access (Editable)', isSystem: true, usersCount: 0,
-        permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
-    },
-    {
-        id: '3', name: 'Administrator', slug: 'admin', color: '#f97316',
-        description: 'Administrative access', isSystem: true, usersCount: 3,
-        permissions: RESOURCES.map(r => ({ resource: r, actions: fullAccess() }))
-    },
-    {
-        id: '4', name: 'Manager', slug: 'manager', color: '#3b82f6',
-        description: 'Managerial access', isSystem: false, usersCount: 5,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewCreateEdit() },
-            { resource: 'incoming', actions: viewCreate() },
-            { resource: 'transfer', actions: viewCreate() },
-            { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'my_tickets', actions: viewCreateEdit() },
-            { resource: 'dept_tickets', actions: viewCreateEdit() },
-            { resource: 'services', actions: viewCreateEdit() },
-            { resource: 'assignments', actions: viewCreateEdit() },
-            { resource: 'rental', actions: viewCreateEdit() },
-            { resource: 'events', actions: viewCreateEdit() },
-            { resource: 'users', actions: viewCreateEdit() },
-            { resource: 'settings', actions: viewOnly() },
-            { resource: 'my_assets', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-            { resource: 'disposal', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '5', name: 'User', slug: 'user', color: '#22c55e',
-        description: 'Standard user access', isSystem: false, usersCount: 12,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewOnly() },
-            { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'my_tickets', actions: viewCreateEdit() },
-            { resource: 'my_assets', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '6', name: 'Auditor', slug: 'auditor', color: '#a855f7',
-        description: 'Read-only audit access', isSystem: false, usersCount: 2,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '7', name: 'Technician', slug: 'technician', color: '#06b6d4',
-        description: 'Maintenance technician access', isSystem: false, usersCount: 0,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewCreateEdit() },
-            { resource: 'transfer', actions: viewCreate() },
-            { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'my_tickets', actions: viewCreateEdit() },
-            { resource: 'assigned_tickets', actions: viewCreateEdit() },
-            { resource: 'dept_tickets', actions: viewOnly() },
-            { resource: 'my_assets', actions: viewOnly() },
-            { resource: 'rental', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-            { resource: 'disposal', actions: viewOnly() },
-            { resource: 'assignments', actions: viewCreateEdit() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'users', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '8', name: 'Department Admin', slug: 'dept_admin', color: '#8b5cf6',
-        description: 'Department-level administration', isSystem: false, usersCount: 0,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewCreateEdit() },
-            { resource: 'incoming', actions: viewCreate() },
-            { resource: 'transfer', actions: viewCreate() },
-            { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'my_tickets', actions: viewCreateEdit() },
-            { resource: 'dept_tickets', actions: viewCreateEdit() },
-            { resource: 'services', actions: viewCreateEdit() },
-            { resource: 'assignments', actions: viewCreateEdit() },
-            { resource: 'rental', actions: viewCreateEdit() },
-            { resource: 'events', actions: viewCreateEdit() },
-            { resource: 'users', actions: viewCreateEdit() },
-            { resource: 'settings', actions: viewOnly() },
-            { resource: 'my_assets', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-            { resource: 'disposal', actions: viewOnly() },
-        ]
-    },
-    {
-        id: '9', name: 'Supervisor', slug: 'supervisor', color: '#db2777',
-        description: 'Team supervisor access', isSystem: false, usersCount: 0,
-        permissions: [
-            { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewOnly() },
-            { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'my_tickets', actions: viewCreateEdit() },
-            { resource: 'dept_tickets', actions: viewCreateEdit() },
-            { resource: 'my_assets', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'assignments', actions: viewCreateEdit() },
-            { resource: 'users', actions: viewOnly() },
-        ]
-    }
-];
 
 interface RoleState {
     roles: Role[];
-    addRole: (role: Omit<Role, 'id'>) => void;
-    updateRole: (id: string, data: Partial<Role>) => void;
-    deleteRole: (id: string) => void;
-    cloneRole: (id: string) => void;
+    isLoading: boolean;
+    error: string | null;
+    fetchRoles: () => Promise<void>;
+    updateRolePermissions: (slug: string, permissions: Permission[]) => Promise<void>;
+    resetRolePermissions: (slug: string) => Promise<void>;
     getRoleBySlug: (slug: string) => Role | undefined;
 }
 
+// Initial/Fallback roles for UI consistency before API loads
+const FALLBACK_ROLES: Role[] = [
+    { id: 'superuser', name: 'Super User', slug: 'superuser', color: '#ef4444', description: 'Full system access', isSystem: true, usersCount: 1, permissions: [] },
+    { id: 'system_admin', name: 'System Admin', slug: 'system_admin', color: '#ea580c', description: 'Full system access (Editable)', isSystem: true, usersCount: 0, permissions: [] },
+    { id: 'admin', name: 'Administrator', slug: 'admin', color: '#f97316', description: 'Administrative access', isSystem: true, usersCount: 3, permissions: [] },
+    { id: 'manager', name: 'Manager', slug: 'manager', color: '#3b82f6', description: 'Managerial access', isSystem: false, usersCount: 5, permissions: [] },
+    { id: 'user', name: 'User', slug: 'user', color: '#22c55e', description: 'Standard user access', isSystem: false, usersCount: 12, permissions: [] },
+    { id: 'auditor', name: 'Auditor', slug: 'auditor', color: '#a855f7', description: 'Read-only audit access', isSystem: false, usersCount: 2, permissions: [] },
+    { id: 'technician', name: 'Technician', slug: 'technician', color: '#06b6d4', description: 'Maintenance technician access', isSystem: false, usersCount: 0, permissions: [] },
+    { id: 'dept_admin', name: 'Department Admin', slug: 'dept_admin', color: '#8b5cf6', description: 'Department-level administration', isSystem: false, usersCount: 0, permissions: [] },
+    { id: 'supervisor', name: 'Supervisor', slug: 'supervisor', color: '#db2777', description: 'Team supervisor access', isSystem: false, usersCount: 0, permissions: [] }
+];
+
 export const useRoleStore = create<RoleState>((set, get) => ({
-    roles: DEFAULT_ROLES,
+    roles: FALLBACK_ROLES,
+    isLoading: false,
+    error: null,
 
-    addRole: (roleData) => {
-        const newRole: Role = {
-            ...roleData,
-            id: Date.now().toString(),
-        };
-        set(state => ({ roles: [...state.roles, newRole] }));
+    fetchRoles: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.get('/role-permissions');
+            const apiRoles = response.data;
+
+            // Merge API data with fallback roles (to keep colors/descriptions/etc)
+            const mergedRoles = FALLBACK_ROLES.map(fallback => {
+                const apiRole = apiRoles.find((r: any) => r.roleSlug === fallback.slug);
+                if (apiRole) {
+                    return {
+                        ...fallback,
+                        permissions: apiRole.permissions,
+                        isCustomized: apiRole.isCustomized
+                    };
+                }
+                return fallback;
+            });
+
+            set({ roles: mergedRoles, isLoading: false });
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.message || 'Failed to fetch roles',
+                isLoading: false
+            });
+        }
     },
 
-    updateRole: (id, data) => {
-        set(state => ({
-            roles: state.roles.map(r => r.id === id ? { ...r, ...data } : r)
-        }));
+    updateRolePermissions: async (slug, permissions) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.put(`/role-permissions/${slug}`, { permissions });
+            const updatedData = response.data;
+
+            set(state => ({
+                roles: state.roles.map(r =>
+                    r.slug === slug
+                        ? { ...r, permissions: updatedData.permissions, isCustomized: true }
+                        : r
+                ),
+                isLoading: false
+            }));
+        } catch (error: any) {
+            const errMsg = error.response?.data?.message || 'Failed to update role permissions';
+            set({ error: errMsg, isLoading: false });
+            throw new Error(errMsg);
+        }
     },
 
-    deleteRole: (id) => {
-        set(state => ({
-            roles: state.roles.filter(r => r.id !== id)
-        }));
-    },
+    resetRolePermissions: async (slug) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axios.delete(`/role-permissions/${slug}`);
+            const updatedData = response.data;
 
-    cloneRole: (id) => {
-        const role = get().roles.find(r => r.id === id);
-        if (role) {
-            const clonedRole: Role = {
-                ...role,
-                id: Date.now().toString(),
-                name: `${role.name} (Copy)`,
-                slug: `${role.slug}_copy`,
-                isSystem: false,
-                usersCount: 0
-            };
-            set(state => ({ roles: [...state.roles, clonedRole] }));
+            set(state => ({
+                roles: state.roles.map(r =>
+                    r.slug === slug
+                        ? { ...r, permissions: updatedData.permissions, isCustomized: false }
+                        : r
+                ),
+                isLoading: false
+            }));
+        } catch (error: any) {
+            const errMsg = error.response?.data?.message || 'Failed to reset role permissions';
+            set({ error: errMsg, isLoading: false });
+            throw new Error(errMsg);
         }
     },
 
@@ -205,3 +120,4 @@ export const useRoleStore = create<RoleState>((set, get) => ({
         return get().roles.find(r => r.slug === slug);
     }
 }));
+

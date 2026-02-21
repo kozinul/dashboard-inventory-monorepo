@@ -1,5 +1,6 @@
+import { RolePermission } from '../models/rolePermission.model.js';
+
 /**
- * Default Role Permissions Configuration
  * Defines what each role can access by default
  */
 
@@ -192,6 +193,47 @@ export function getMergedPermissions(
 
     // Override with custom permissions
     for (const customPerm of customPermissions) {
+        mergedMap.set(customPerm.resource, customPerm);
+    }
+
+    return Array.from(mergedMap.values());
+}
+
+/**
+ * Get merged permissions for a role, checking DB for overrides
+ */
+export async function getMergedPermissionsFromDb(
+    role: string,
+    customUserPermissions?: Permission[]
+): Promise<Permission[]> {
+    // 1. Get default permissions for the role
+    let basePermissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
+
+    // 2. Check if there are role-level overrides in the DB
+    try {
+        const roleOverride = await RolePermission.findOne({ roleSlug: role });
+        if (roleOverride && roleOverride.permissions && roleOverride.permissions.length > 0) {
+            basePermissions = roleOverride.toObject().permissions;
+        }
+    } catch (error) {
+        console.error(`Error fetching role permissions for ${role}:`, error);
+        // Fall back to hardcoded defaults on error
+    }
+
+    // 3. Apply user-level custom overrides if any
+    if (!customUserPermissions || customUserPermissions.length === 0) {
+        return basePermissions;
+    }
+
+    const mergedMap = new Map<string, Permission>();
+
+    // Start with role permissions (defaults or DB overrides)
+    for (const perm of basePermissions) {
+        mergedMap.set(perm.resource, perm);
+    }
+
+    // Override with user-specific permissions
+    for (const customPerm of customUserPermissions) {
         mergedMap.set(customPerm.resource, customPerm);
     }
 

@@ -1,7 +1,7 @@
-import { useState, Fragment } from "react";
+import { useEffect, useState, Fragment } from "react";
 import Swal from 'sweetalert2';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useRoleStore, Role } from '@/store/roleStore';
 
 // Permission resources organized by groups
@@ -75,7 +75,7 @@ interface Permission {
 }
 
 export function RoleManager() {
-    const { roles, addRole, updateRole, deleteRole, cloneRole } = useRoleStore();
+    const { roles, fetchRoles, updateRolePermissions, resetRolePermissions, isLoading, error } = useRoleStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [formData, setFormData] = useState({
@@ -83,10 +83,14 @@ export function RoleManager() {
         slug: '',
         color: '#3b82f6',
         description: '',
-        permissions: [] as Permission[]
+        permissions: [] as any[]
     });
 
-    const initializePermissions = (): Permission[] => {
+    useEffect(() => {
+        fetchRoles();
+    }, [fetchRoles]);
+
+    const initializePermissions = (): any[] => {
         return RESOURCES.map(r => ({
             resource: r.id,
             actions: { view: false, create: false, edit: false, delete: false }
@@ -95,8 +99,8 @@ export function RoleManager() {
 
     // Merge existing permissions with all available resources
     // This ensures new resources are included when editing existing roles
-    const mergePermissions = (existingPerms: Permission[]): Permission[] => {
-        const existingMap = new Map(existingPerms.map(p => [p.resource, p]));
+    const mergePermissions = (existingPerms: any[]): any[] => {
+        const existingMap = new Map((existingPerms || []).map(p => [p.resource, p]));
         return RESOURCES.map(r => {
             const existing = existingMap.get(r.id);
             return existing || {
@@ -129,7 +133,7 @@ export function RoleManager() {
         setIsModalOpen(true);
     };
 
-    const handleToggleAction = (resourceId: string, action: keyof Permission['actions']) => {
+    const handleToggleAction = (resourceId: string, action: string) => {
         setFormData(prev => ({
             ...prev,
             permissions: prev.permissions.map(p => {
@@ -145,27 +149,37 @@ export function RoleManager() {
         e.preventDefault();
 
         if (editingRole) {
-            updateRole(editingRole.id, {
-                name: formData.name,
-                slug: formData.slug,
-                color: formData.color,
-                description: formData.description,
-                permissions: formData.permissions
-            });
-            Swal.fire('Updated!', 'Role has been updated.', 'success');
+            try {
+                await updateRolePermissions(editingRole.slug, formData.permissions);
+                Swal.fire('Updated!', 'Role permissions have been saved to database.', 'success');
+                setIsModalOpen(false);
+                setEditingRole(null);
+            } catch (err: any) {
+                Swal.fire('Error', err.message, 'error');
+            }
         } else {
-            addRole({
-                name: formData.name,
-                slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '_'),
-                color: formData.color,
-                description: formData.description,
-                isSystem: false,
-                usersCount: 0,
-                permissions: formData.permissions
-            });
-            Swal.fire('Created!', 'Role has been created.', 'success');
+            Swal.fire('Note', 'System roles are currently defined in the backend. Adding new roles through UI will be supported in a future update.', 'info');
         }
-        setIsModalOpen(false);
+    };
+
+    const handleReset = async (role: Role) => {
+        const result = await Swal.fire({
+            title: 'Reset to Defaults?',
+            text: `This will remove all custom permissions for the "${role.name}" role and revert to system defaults.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, reset it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await resetRolePermissions(role.slug);
+                Swal.fire('Reset!', 'Role permissions reverted to defaults.', 'success');
+            } catch (err: any) {
+                Swal.fire('Error', err.message, 'error');
+            }
+        }
     };
 
     const handleDelete = async (role: Role) => {
@@ -235,6 +249,11 @@ export function RoleManager() {
                                                 System
                                             </span>
                                         )}
+                                        {role.isCustomized && (
+                                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded uppercase" title="Persistent in Database">
+                                                Customized
+                                            </span>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 max-w-xs truncate">
@@ -247,29 +266,21 @@ export function RoleManager() {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-1">
-                                        <button
-                                            onClick={() => handleClone(role)}
-                                            className="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors"
-                                            title="Clone Role"
-                                        >
-                                            <DocumentDuplicateIcon className="w-5 h-5" />
-                                        </button>
+                                        {role.isCustomized && (
+                                            <button
+                                                onClick={() => handleReset(role)}
+                                                className="p-1.5 text-slate-400 hover:text-amber-600 transition-colors"
+                                                title="Reset to Defaults"
+                                            >
+                                                <ArrowPathIcon className="w-5 h-5" />
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => handleOpenModal(role)}
                                             className="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
-                                            title="Edit"
+                                            title="Edit Permissions"
                                         >
                                             <PencilIcon className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(role)}
-                                            className={`p-1.5 transition-colors ${['superuser', 'admin', 'user'].includes(role.slug)
-                                                ? 'text-slate-300 cursor-not-allowed'
-                                                : 'text-slate-400 hover:text-red-600'}`}
-                                            title={['superuser', 'admin', 'user'].includes(role.slug) ? 'System role cannot be deleted' : 'Delete'}
-                                            disabled={['superuser', 'admin', 'user'].includes(role.slug)}
-                                        >
-                                            <TrashIcon className="w-5 h-5" />
                                         </button>
                                     </div>
                                 </td>

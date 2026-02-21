@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { hasPermission, getMergedPermissions, ResourceType, Permission } from '../config/rolePermissions.config.js';
+import { hasPermission, getMergedPermissionsFromDb, ResourceType, Permission } from '../config/rolePermissions.config.js';
 
 /**
  * Middleware to check if a user has permission for a specific resource and action
@@ -7,7 +7,7 @@ import { hasPermission, getMergedPermissions, ResourceType, Permission } from '.
  * @param action The action type ('view', 'create', 'edit', 'delete')
  */
 export const checkPermission = (resource: ResourceType, action: keyof Permission['actions'] = 'view') => {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
         if (!req.user) {
             res.status(401);
             return next(new Error('Not authorized, no user found'));
@@ -18,8 +18,8 @@ export const checkPermission = (resource: ResourceType, action: keyof Permission
             return next();
         }
 
-        // Get merged permissions (Role defaults + User custom overrides)
-        const userPermissions = getMergedPermissions(
+        // Get merged permissions based on role and custom permissions (checking DB for role overrides)
+        const userPermissions = await getMergedPermissionsFromDb(
             req.user.role,
             req.user.useCustomPermissions ? req.user.customPermissions : undefined
         );

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
-import { getMergedPermissions } from '../config/rolePermissions.config.js';
+import { getMergedPermissions, getMergedPermissionsFromDb } from '../config/rolePermissions.config.js';
 import { recordAuditLog } from '../utils/logger.js';
 
 const generateToken = (id: string) => {
@@ -17,8 +17,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         const user = await User.findOne({ username: username.toLowerCase() }).populate('branchId');
 
         if (user && (await (user as any).matchPassword(password))) {
-            // Get merged permissions based on role and custom permissions
-            const permissions = getMergedPermissions(
+            // Get merged permissions based on role and custom permissions (checking DB for role overrides)
+            const permissions = await getMergedPermissionsFromDb(
                 user.role,
                 (user as any).useCustomPermissions ? (user as any).customPermissions : undefined
             );
@@ -62,8 +62,8 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
     try {
         const user = await User.findById(req.user._id).populate('branchId');
         if (user) {
-            // Get merged permissions based on role and custom permissions
-            const permissions = getMergedPermissions(
+            // Get merged permissions based on role and custom permissions (checking DB for role overrides)
+            const permissions = await getMergedPermissionsFromDb(
                 user.role,
                 (user as any).useCustomPermissions ? (user as any).customPermissions : undefined
             );
