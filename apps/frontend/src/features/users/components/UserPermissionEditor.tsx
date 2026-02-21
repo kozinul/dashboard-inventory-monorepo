@@ -12,22 +12,30 @@ interface Permission {
     };
 }
 
-// All available resources
+// All available resources — synced with backend rolePermissions.config.ts
 const RESOURCES = [
     { id: 'dashboard', label: 'Dashboard', actions: ['view'] },
     { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create'] },
     { id: 'transfer', label: 'Transfer', actions: ['view', 'create'] },
+    { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'assignments', label: 'Assignments', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'maintenance', label: 'Maintenance', actions: ['view', 'create', 'edit'] },
+    { id: 'my_tickets', label: 'My Tickets', actions: ['view', 'create', 'edit'] },
+    { id: 'dept_tickets', label: 'Dept. Tickets', actions: ['view', 'create', 'edit'] },
+    { id: 'assigned_tickets', label: 'Assigned Jobs', actions: ['view', 'create', 'edit'] },
     { id: 'services', label: 'Services', actions: ['view', 'create', 'edit'] },
+    { id: 'rental', label: 'Rental', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'events', label: 'Events', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'my_assets', label: 'My Assets', actions: ['view'] },
+    { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'settings', label: 'Settings', actions: ['view', 'edit'] },
+    { id: 'reports', label: 'Laporan', actions: ['view'] },
     { id: 'history', label: 'History', actions: ['view'] },
     { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'] },
-    { id: 'reports', label: 'Laporan', actions: ['view'] },
-    { id: 'settings', label: 'Settings', actions: ['view', 'edit'] },
-    { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'] },
 ];
 
 interface UserPermissionEditorProps {

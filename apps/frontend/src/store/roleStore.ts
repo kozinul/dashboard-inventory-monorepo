@@ -31,7 +31,7 @@ const RESOURCES = [
     'categories', 'locations', 'vendors', 'asset_templates', 'history'
 ];
 
-// Default Roles
+// Default Roles — synced with backend rolePermissions.config.ts
 const DEFAULT_ROLES: Role[] = [
     {
         id: '1', name: 'Super User', slug: 'superuser', color: '#ef4444',
@@ -57,9 +57,18 @@ const DEFAULT_ROLES: Role[] = [
             { resource: 'incoming', actions: viewCreate() },
             { resource: 'transfer', actions: viewCreate() },
             { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'my_tickets', actions: viewCreateEdit() },
+            { resource: 'dept_tickets', actions: viewCreateEdit() },
             { resource: 'services', actions: viewCreateEdit() },
+            { resource: 'assignments', actions: viewCreateEdit() },
+            { resource: 'rental', actions: viewCreateEdit() },
+            { resource: 'events', actions: viewCreateEdit() },
+            { resource: 'users', actions: viewCreateEdit() },
+            { resource: 'settings', actions: viewOnly() },
+            { resource: 'my_assets', actions: viewOnly() },
             { resource: 'history', actions: viewOnly() },
             { resource: 'reports', actions: viewOnly() },
+            { resource: 'disposal', actions: viewOnly() },
         ]
     },
     {
@@ -68,8 +77,10 @@ const DEFAULT_ROLES: Role[] = [
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
             { resource: 'inventory', actions: viewOnly() },
-            { resource: 'history', actions: viewOnly() },
+            { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'my_tickets', actions: viewCreateEdit() },
             { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'history', actions: viewOnly() },
         ]
     },
     {
@@ -87,12 +98,19 @@ const DEFAULT_ROLES: Role[] = [
         description: 'Maintenance technician access', isSystem: false, usersCount: 0,
         permissions: [
             { resource: 'dashboard', actions: viewOnly() },
-            { resource: 'inventory', actions: viewOnly() },
-            { resource: 'maintenance', actions: viewOnly() },
-            { resource: 'assigned_tickets', actions: viewCreateEdit() }, // Custom resource
-            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'inventory', actions: viewCreateEdit() },
             { resource: 'transfer', actions: viewCreate() },
-            { resource: 'disposal', actions: viewCreate() },
+            { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'my_tickets', actions: viewCreateEdit() },
+            { resource: 'assigned_tickets', actions: viewCreateEdit() },
+            { resource: 'dept_tickets', actions: viewOnly() },
+            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'rental', actions: viewOnly() },
+            { resource: 'reports', actions: viewOnly() },
+            { resource: 'disposal', actions: viewOnly() },
+            { resource: 'assignments', actions: viewCreateEdit() },
+            { resource: 'history', actions: viewOnly() },
+            { resource: 'users', actions: viewOnly() },
         ]
     },
     {
@@ -104,18 +122,18 @@ const DEFAULT_ROLES: Role[] = [
             { resource: 'incoming', actions: viewCreate() },
             { resource: 'transfer', actions: viewCreate() },
             { resource: 'maintenance', actions: viewCreateEdit() },
+            { resource: 'my_tickets', actions: viewCreateEdit() },
+            { resource: 'dept_tickets', actions: viewCreateEdit() },
             { resource: 'services', actions: viewCreateEdit() },
-            { resource: 'history', actions: viewOnly() },
-            { resource: 'reports', actions: viewOnly() },
-            { resource: 'users', actions: viewCreateEdit() },
-            { resource: 'settings', actions: viewCreateEdit() },
-            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'assignments', actions: viewCreateEdit() },
             { resource: 'rental', actions: viewCreateEdit() },
             { resource: 'events', actions: viewCreateEdit() },
-            { resource: 'categories', actions: viewCreateEdit() },
-            { resource: 'locations', actions: viewCreateEdit() },
-            { resource: 'vendors', actions: viewCreateEdit() },
-            { resource: 'disposal', actions: viewCreateEdit() },
+            { resource: 'users', actions: viewCreateEdit() },
+            { resource: 'settings', actions: viewOnly() },
+            { resource: 'my_assets', actions: viewOnly() },
+            { resource: 'history', actions: viewOnly() },
+            { resource: 'reports', actions: viewOnly() },
+            { resource: 'disposal', actions: viewOnly() },
         ]
     },
     {
@@ -125,12 +143,13 @@ const DEFAULT_ROLES: Role[] = [
             { resource: 'dashboard', actions: viewOnly() },
             { resource: 'inventory', actions: viewOnly() },
             { resource: 'maintenance', actions: viewCreateEdit() },
-            { resource: 'dept_tickets', actions: viewCreateEdit() },
             { resource: 'my_tickets', actions: viewCreateEdit() },
+            { resource: 'dept_tickets', actions: viewCreateEdit() },
             { resource: 'my_assets', actions: viewOnly() },
             { resource: 'reports', actions: viewOnly() },
             { resource: 'history', actions: viewOnly() },
             { resource: 'assignments', actions: viewCreateEdit() },
+            { resource: 'users', actions: viewOnly() },
         ]
     }
 ];

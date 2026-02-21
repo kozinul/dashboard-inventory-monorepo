@@ -65,9 +65,11 @@ const validateFilename = (req: any, res: any, next: any) => {
     next();
 };
 
+// Named routes MUST come before /:filename catch-all
+router.delete('/reset-transactions', resetTransactions);
+
 router.post('/:filename/restore', validateFilename, restoreBackup);
 router.delete('/:filename', validateFilename, deleteBackup);
 router.get('/:filename/download', validateFilename, downloadBackup);
-router.delete('/reset-transactions', resetTransactions);
 
 export default router;
