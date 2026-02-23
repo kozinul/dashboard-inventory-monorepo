@@ -374,6 +374,74 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+export const bulkDeleteAssets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { ids } = req.body;
+
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'An array of asset IDs is required for bulk delete' });
+        }
+
+        // Fetch all assets to verify permissions
+        const assetsToDelete = await Asset.find({ _id: { $in: ids } });
+
+        if (assetsToDelete.length === 0) {
+            return res.status(404).json({ message: 'No valid assets found to delete' });
+        }
+
+        const allowedDeleteIds: string[] = [];
+        const auditLogEntries: any[] = [];
+
+        for (const asset of assetsToDelete) {
+            // RBAC: Check if user can delete this asset
+            let canDelete = true;
+            if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+                const isDeptMatch =
+                    (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
+                    (asset.department && req.user.department && asset.department === req.user.department);
+
+                if (!isDeptMatch) {
+                    canDelete = false;
+                }
+            }
+
+            if (canDelete) {
+                allowedDeleteIds.push(asset._id.toString());
+                auditLogEntries.push({
+                    userId: req.user._id,
+                    action: 'delete',
+                    resourceType: 'Asset',
+                    resourceId: asset._id.toString(),
+                    resourceName: asset.name,
+                    details: `Bulk deleted asset: ${asset.name} (${asset.serial})`,
+                    branchId: (req.user as any).branchId?.toString(),
+                    departmentId: asset.departmentId?.toString()
+                });
+            }
+        }
+
+        if (allowedDeleteIds.length === 0) {
+            return res.status(403).json({ message: 'You do not have permission to delete any of the selected assets' });
+        }
+
+        // Perform deletion
+        await Asset.deleteMany({ _id: { $in: allowedDeleteIds } });
+
+        // Record Audit Logs
+        for (const logEntry of auditLogEntries) {
+            await recordAuditLog(logEntry);
+        }
+
+        res.json({
+            message: `Successfully deleted ${allowedDeleteIds.length} assets`,
+            deletedCount: allowedDeleteIds.length,
+            rejectedCount: ids.length - allowedDeleteIds.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import Rental from '../models/rental.model.js';
 

@@ -12,6 +12,8 @@ interface Permission {
     };
 }
 
+import { useRoleStore } from '@/store/roleStore';
+
 // All available resources — synced with backend rolePermissions.config.ts
 const RESOURCES = [
     { id: 'dashboard', label: 'Dashboard', actions: ['view'] },
@@ -49,9 +51,17 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
+    const { roles, fetchRoles } = useRoleStore();
+
     useEffect(() => {
-        fetchUserPermissions();
-    }, [userId]);
+        fetchRoles();
+    }, [fetchRoles]);
+
+    useEffect(() => {
+        if (roles.length > 0) {
+            fetchUserPermissions();
+        }
+    }, [userId, roles]);
 
     const fetchUserPermissions = async () => {
         try {
@@ -61,15 +71,30 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
 
             setUseCustomPermissions(user.useCustomPermissions || false);
 
-            // Initialize permissions from user data or create default empty ones
+            // Initialize permissions from user data or fallback to their role's default permissions
             if (user.customPermissions && user.customPermissions.length > 0) {
-                setPermissions(user.customPermissions);
+                // Ensure all resources exist even if backend array was older
+                const existingMap = new Map(user.customPermissions.map((p: any) => [p.resource, p]));
+                setPermissions(RESOURCES.map(r => {
+                    const existing = existingMap.get(r.id) as any;
+                    return existing || {
+                        resource: r.id,
+                        actions: { view: false, create: false, edit: false, delete: false }
+                    };
+                }));
             } else {
-                // Initialize with all resources set to false
-                setPermissions(RESOURCES.map(r => ({
-                    resource: r.id,
-                    actions: { view: false, create: false, edit: false, delete: false }
-                })));
+                // Pre-fill with the default permissions for their current role
+                const userRoleData = roles.find(r => r.slug === userRole);
+                const rolePerms = userRoleData?.permissions || [];
+                const rolePermsMap = new Map(rolePerms.map(p => [p.resource, p]));
+
+                setPermissions(RESOURCES.map(r => {
+                    const defaultPerm = rolePermsMap.get(r.id);
+                    return {
+                        resource: r.id,
+                        actions: defaultPerm ? { ...defaultPerm.actions } : { view: false, create: false, edit: false, delete: false }
+                    };
+                }));
             }
         } catch (error) {
             console.error('Failed to fetch user permissions', error);

@@ -1,7 +1,7 @@
 import { useEffect, useState, Fragment } from "react";
 import Swal from 'sweetalert2';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, PencilIcon, TrashIcon, DocumentDuplicateIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useRoleStore, Role } from '@/store/roleStore';
 
 // Permission resources organized by groups
@@ -69,13 +69,8 @@ const RESOURCE_GROUPS = [
 // Flatten for backwards compatibility
 const RESOURCES = RESOURCE_GROUPS.flatMap(g => g.resources);
 
-interface Permission {
-    resource: string;
-    actions: { view: boolean; create: boolean; edit: boolean; delete: boolean };
-}
-
 export function RoleManager() {
-    const { roles, fetchRoles, updateRolePermissions, resetRolePermissions, isLoading, error } = useRoleStore();
+    const { roles, fetchRoles, updateRolePermissions, resetRolePermissions } = useRoleStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [formData, setFormData] = useState({
@@ -180,33 +175,6 @@ export function RoleManager() {
                 Swal.fire('Error', err.message, 'error');
             }
         }
-    };
-
-    const handleDelete = async (role: Role) => {
-        // Protect strict system roles
-        if (['superuser', 'admin', 'user'].includes(role.slug)) {
-            Swal.fire('Cannot Delete', 'This default system role cannot be deleted.', 'warning');
-            return;
-        }
-
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: `Delete role "${role.name}"?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        });
-
-        if (result.isConfirmed) {
-            deleteRole(role.id);
-            Swal.fire('Deleted!', 'Role has been deleted.', 'success');
-        }
-    };
-
-    const handleClone = (role: Role) => {
-        cloneRole(role.id);
-        Swal.fire('Cloned!', `Role "${role.name}" has been cloned.`, 'success');
     };
 
     return (

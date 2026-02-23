@@ -31,7 +31,7 @@ async function diagnose() {
 
         console.log(`Found ${mixerAssets.length} potential assets:`);
         mixerAssets.forEach(a => {
-            console.log(`- ID: ${a._id}, Name: ${a.name}, Status: ${a.status}, Branch: ${a.branchId?.name || (a.branchId as any)}, Dept: ${a.departmentId?.name || a.department}`);
+            console.log(`- ID: ${a._id}, Name: ${a.name}, Status: ${a.status}, Branch: ${(a.branchId as any)?.name || (a.branchId as any)}, Dept: ${(a.departmentId as any)?.name || a.department}`);
         });
 
         if (mixerAssets.length > 0) {
@@ -44,7 +44,7 @@ async function diagnose() {
 
             console.log(`\nFound ${transfers.length} transfers related to these assets:`);
             transfers.forEach(t => {
-                console.log(`- ID: ${t._id}, Asset: ${t.assetId}, Status: ${t.status}, From: ${t.fromBranchId?.name}, To: ${t.toBranchId?.name}, Created: ${t.createdAt}`);
+                console.log(`- ID: ${t._id}, Asset: ${t.assetId}, Status: ${t.status}, From: ${(t.fromBranchId as any)?.name}, To: ${(t.toBranchId as any)?.name}, Created: ${t.createdAt}`);
             });
         }
 

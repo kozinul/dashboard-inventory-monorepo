@@ -106,6 +106,11 @@ export const assetService = {
         await axios.delete(`${API_URL}/items/${id}`);
     },
 
+    bulkDelete: async (ids: string[]) => {
+        const response = await axios.post<{ message: string; deletedCount: number; rejectedCount: number; }>(`${API_URL}/items/bulk-delete`, { ids });
+        return response.data;
+    },
+
     getStats: async () => {
         const response = await axios.get<any>(`${API_URL}/stats`);
         return response.data;

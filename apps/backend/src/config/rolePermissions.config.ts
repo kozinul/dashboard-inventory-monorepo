@@ -213,7 +213,7 @@ export async function getMergedPermissionsFromDb(
     try {
         const roleOverride = await RolePermission.findOne({ roleSlug: role });
         if (roleOverride && roleOverride.permissions && roleOverride.permissions.length > 0) {
-            basePermissions = roleOverride.toObject().permissions;
+            basePermissions = roleOverride.toObject().permissions as unknown as Permission[];
         }
     } catch (error) {
         console.error(`Error fetching role permissions for ${role}:`, error);

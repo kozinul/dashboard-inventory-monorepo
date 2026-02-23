@@ -9,10 +9,11 @@ import {
     getInventoryStats,
     getAvailableAssetsForEvent,
     installAsset,
-    dismantleAsset
+    dismantleAsset,
+    bulkDeleteAssets
 } from '../controllers/inventory.controller.js';
 import { checkPermission } from '../middleware/permission.middleware.js';
-import { cloneAsset } from '../controllers/assetTemplate.controller.js';
+import { cloneAsset, bulkCloneAssets } from '../controllers/assetTemplate.controller.js';
 
 const router = express.Router();
 
@@ -30,6 +31,8 @@ router.post('/items', createAsset);
 // Clone
 router.post('/:id/clone', cloneAsset);
 router.post('/items/:id/clone', cloneAsset);
+router.post('/:id/clone-bulk', bulkCloneAssets);
+router.post('/items/:id/clone-bulk', bulkCloneAssets);
 
 // Panel Actions
 router.post('/:id/install', protect, authorize('manager', 'admin', 'superuser', 'dept_admin', 'technician'), installAsset);
@@ -43,6 +46,10 @@ router.get('/items/:id', getAssetById);
 router.patch('/:id', checkPermission('inventory', 'edit'), updateAsset);
 router.put('/:id', checkPermission('inventory', 'edit'), updateAsset);
 router.put('/items/:id', checkPermission('inventory', 'edit'), updateAsset);
+
+// Bulk Delete (Must be before specific ID routes that use DELETE)
+router.post('/items/bulk-delete', checkPermission('inventory', 'delete'), bulkDeleteAssets);
+
 router.delete('/:id', checkPermission('inventory', 'delete'), deleteAsset);
 router.delete('/items/:id', checkPermission('inventory', 'delete'), deleteAsset);
 

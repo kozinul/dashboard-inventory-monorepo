@@ -24,6 +24,9 @@ export default function InventoryPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
+    // Bulk selection state
+    const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+
     // Clone modal state
     const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
     const [cloneAssetId, setCloneAssetId] = useState<string | null>(null);
@@ -102,9 +105,36 @@ export default function InventoryPage() {
                 await assetService.delete(id);
                 fetchData();
                 showSuccessToast('Asset deleted successfully!');
+                setSelectedAssetIds(prev => prev.filter(selectedId => selectedId !== id));
             } catch (error) {
                 console.error("Failed to delete asset:", error);
                 showErrorToast('Failed to delete asset.');
+            }
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedAssetIds.length === 0) return;
+
+        const result = await showConfirmDialog(
+            `Delete ${selectedAssetIds.length} Assets?`,
+            "This action cannot be undone!",
+            "Yes, delete them!"
+        );
+
+        if (result.isConfirmed) {
+            try {
+                const res = await assetService.bulkDelete(selectedAssetIds);
+                fetchData();
+                setSelectedAssetIds([]);
+                if (res.rejectedCount > 0) {
+                    showSuccessToast(`Deleted ${res.deletedCount} assets. ${res.rejectedCount} bypassed due to permissions.`);
+                } else {
+                    showSuccessToast(`Successfully deleted ${res.deletedCount} assets!`);
+                }
+            } catch (error: any) {
+                console.error("Failed to bulk delete assets:", error);
+                showErrorToast(error.response?.data?.message || 'Failed to bulk delete assets.');
             }
         }
     };
@@ -154,6 +184,15 @@ export default function InventoryPage() {
                             ))}
                         </select>
                     </div>
+                    {canEdit && selectedAssetIds.length > 0 && (
+                        <button
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 rounded-lg font-bold text-sm hover:bg-red-100 dark:hover:bg-red-500/20 transition-all shadow-sm"
+                        >
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                            Delete {selectedAssetIds.length} Selected
+                        </button>
+                    )}
                     {canEdit && (
                         <button
                             onClick={() => setIsAddModalOpen(true)}
@@ -185,6 +224,8 @@ export default function InventoryPage() {
                     onEdit={canEdit ? openEditModal : undefined}
                     onDelete={canEdit ? handleDeleteAsset : undefined}
                     onClone={canEdit ? openCloneModal : undefined}
+                    selectedIds={selectedAssetIds}
+                    onSelectionChange={canEdit ? setSelectedAssetIds : undefined}
                 />
             )}
 

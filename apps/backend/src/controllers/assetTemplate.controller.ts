@@ -186,3 +186,53 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 };
+
+export const bulkCloneAssets = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { serials } = req.body;
+
+        if (!serials || !Array.isArray(serials) || serials.length === 0) {
+            res.status(400);
+            throw new Error('An array of serial numbers is required for bulk clone');
+        }
+
+        const originalAsset = await Asset.findById(id);
+        if (!originalAsset) {
+            res.status(404);
+            throw new Error('Original asset not found');
+        }
+
+        // Check if any serial already exists
+        const existingAssets = await Asset.find({ serial: { $in: serials } });
+        if (existingAssets.length > 0) {
+            const existingSerials = existingAssets.map(a => a.serial).join(', ');
+            res.status(400);
+            throw new Error(`The following serial numbers already exist: ${existingSerials}`);
+        }
+
+        const assetsToCreate = serials.map(serial => ({
+            name: originalAsset.name,
+            model: originalAsset.model,
+            category: originalAsset.category,
+            serial,
+            value: originalAsset.value,
+            technicalSpecifications: originalAsset.technicalSpecifications,
+            images: [], // Don't clone images
+            status: 'active', // Cloned assets are set to active by default
+            departmentId: originalAsset.departmentId,
+            department: originalAsset.department,
+            branchId: originalAsset.branchId,
+            purchaseDate: new Date()
+        }));
+
+        const clonedAssets = await Asset.insertMany(assetsToCreate);
+
+        res.status(201).json({
+            message: `Successfully cloned ${clonedAssets.length} assets`,
+            assets: clonedAssets
+        });
+    } catch (error) {
+        next(error);
+    }
+};

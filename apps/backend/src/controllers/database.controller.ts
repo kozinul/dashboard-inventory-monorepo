@@ -20,7 +20,6 @@ import { Supply } from '../models/supply.model.js';
 import { Unit } from '../models/unit.model.js';
 import { User } from '../models/user.model.js';
 import { Vendor } from '../models/vendor.model.js';
-import { Notification } from '../models/notification.model.js';
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 

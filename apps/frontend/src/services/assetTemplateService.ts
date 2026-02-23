@@ -66,3 +66,9 @@ export const cloneAsset = async (id: string, serial: string) => {
     const response = await axios.post(`inventory/items/${id}/clone`, { serial });
     return response.data;
 };
+
+// Bulk clone asset function (uses inventory endpoint)
+export const bulkCloneAsset = async (id: string, serials: string[]) => {
+    const response = await axios.post(`inventory/items/${id}/clone-bulk`, { serials });
+    return response.data;
+};

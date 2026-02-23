@@ -253,7 +253,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
                 action: 'create',
                 resourceType: 'Maintenance',
                 resourceId: record._id.toString(),
-                resourceName: record.ticketNumber,
+                resourceName: record.ticketNumber || undefined,
                 details: `Maintenance requested for asset: ${(populated.asset as any).name}`,
                 branchId: record.branchId?.toString(),
                 departmentId: (populated.asset as any).departmentId?.toString()
@@ -563,7 +563,7 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
                 action: 'reject',
                 resourceType: 'Maintenance',
                 resourceId: record._id.toString(),
-                resourceName: record.ticketNumber,
+                resourceName: record.ticketNumber || undefined,
                 details: `Maintenance ticket rejected for asset: ${(record.asset as any).name}. Reason: ${reason}`,
                 branchId: record.branchId?.toString(),
                 departmentId: (record.asset as any).departmentId?.toString()
@@ -660,7 +660,7 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
                 action: 'complete',
                 resourceType: 'Maintenance',
                 resourceId: record._id.toString(),
-                resourceName: record.ticketNumber,
+                resourceName: record.ticketNumber || undefined,
                 details: `Maintenance completed for asset: ${(record.asset as any).name}`,
                 branchId: record.branchId?.toString(),
                 departmentId: (record.asset as any).departmentId?.toString()
@@ -719,7 +719,7 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
                 action: 'cancel',
                 resourceType: 'Maintenance',
                 resourceId: record._id.toString(),
-                resourceName: record.ticketNumber,
+                resourceName: record.ticketNumber || undefined,
                 details: `Maintenance ticket cancelled for asset: ${(record.asset as any).name}`,
                 branchId: record.branchId?.toString(),
                 departmentId: (record.asset as any).departmentId?.toString()
@@ -774,7 +774,7 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
                 action: 'submit',
                 resourceType: 'Maintenance',
                 resourceId: record._id.toString(),
-                resourceName: record.ticketNumber,
+                resourceName: record.ticketNumber || undefined,
                 details: `Maintenance ticket submitted for asset: ${(record.asset as any).name}`,
                 branchId: record.branchId?.toString(),
                 departmentId: (record.asset as any).departmentId?.toString()

@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import { Transfer } from '../models/transfer.model.js';
-import { Disposal } from '../models/disposal.model.js';
+import { DisposalRecord as Disposal } from '../models/disposal.model.js';
 import { Assignment } from '../models/assignment.model.js';
-import { Rental } from '../models/rental.model.js';
-import { Event } from '../models/event.model.js';
+import Rental from '../models/rental.model.js';
+import Event from '../models/event.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Asset } from '../models/asset.model.js';
 
