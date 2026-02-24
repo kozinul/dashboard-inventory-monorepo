@@ -36,7 +36,13 @@ export function CloneAssetModal({ isOpen, onClose, assetId, assetName, onSuccess
                 const bstr = evt.target?.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const wsname = wb.SheetNames[0];
+                if (!wsname) {
+                    throw new Error("No sheets found in the Excel file");
+                }
                 const ws = wb.Sheets[wsname];
+                if (!ws) {
+                    throw new Error("Worksheet is undefined");
+                }
 
                 // Convert to array of arrays
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
