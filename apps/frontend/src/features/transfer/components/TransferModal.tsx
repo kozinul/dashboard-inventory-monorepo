@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Asset, assetService } from '../../../services/assetService';
 import { departmentService, Department } from '../../../services/departmentService';
 import { branchService, Branch } from '../../../services/branchService';
+import { categoryService } from '../../../services/categoryService';
 import { transferService, Transfer } from '../../../services/transferService';
 import { AssetTable } from '../../inventory/components/AssetTable';
 import { showSuccessToast, showErrorToast } from '../../../utils/swal';
@@ -55,12 +56,18 @@ export function TransferModal({ isOpen, onClose, onSuccess, editingTransfer }: T
     // ... fetchData
     const fetchData = async () => {
         try {
-            const [assetsData, deptsData, branchesData] = await Promise.all([
+            const [assetsData, deptsData, branchesData, categoriesData] = await Promise.all([
                 assetService.getAll({ limit: 100 }),
                 departmentService.getAll(),
-                branchService.getAll()
+                branchService.getAll(),
+                categoryService.getAll()
             ]);
-            setAssets(assetsData.data);
+
+            // Exclude 'Infrastructure' assets from transfer options dynamically
+            const infraCategoryNames = categoriesData.filter(c => c.isInfrastructure).map(c => c.name);
+            const transferableAssets = assetsData.data.filter((a: any) => !infraCategoryNames.includes(a.category));
+
+            setAssets(transferableAssets);
             setDepartments(deptsData);
             setBranches(branchesData);
         } catch (error) {

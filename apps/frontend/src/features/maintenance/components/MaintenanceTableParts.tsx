@@ -1,6 +1,23 @@
 import { cn } from '@/lib/utils';
 
 export function AssetInfoCell({ task }: { task: any }) {
+    if (task.isInternalDepartment) {
+        return (
+            <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-indigo-500 text-[16px]" title="Internal Panel Ticket">dns</span>
+                    <span className="font-bold text-sm dark:text-white">{task.title || task.locationTarget?.name || 'Internal Infrastructure'}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-indigo-500 font-medium tracking-tight bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded">
+                        Internal Dept
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">{task.locationTarget?.type || 'Panel'}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col">
             <span className="font-bold text-sm dark:text-white">{task.title || task.asset?.name || 'Unknown Asset'}</span>

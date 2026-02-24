@@ -51,7 +51,7 @@ export default function DepartmentTicketsPage() {
     };
 
     const handleComplete = async (id: string) => {
-        const result = await showConfirmDialog('Complete Ticket?', 'Mark this ticket as Done.');
+        const result = await showConfirmDialog('Complete Ticket?', 'Mark this ticket as Done.', 'Yes, complete it!', 'info');
         if (!result.isConfirmed) return;
         try {
             await maintenanceService.completeTicket(id);
@@ -63,7 +63,7 @@ export default function DepartmentTicketsPage() {
     };
 
     const handleClose = async (id: string) => {
-        const result = await showConfirmDialog('Close Ticket?', 'This will permanently close the ticket.');
+        const result = await showConfirmDialog('Close Ticket?', 'This will permanently close the ticket.', 'Yes, close it!', 'warning');
         if (!result.isConfirmed) return;
         try {
             await maintenanceService.updateStatus(id, 'Closed', 'Ticket closed by department manager.');

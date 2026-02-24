@@ -24,7 +24,7 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, code, authorizedDepartments, description, icon } = req.body;
+        const { name, code, authorizedDepartments, description, icon, isInfrastructure } = req.body;
 
         // Check for duplicates
         // If code is provided and not empty, check both name and code
@@ -45,6 +45,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
             authorizedDepartments,
             description,
             icon,
+            isInfrastructure: !!isInfrastructure,
             ...(code && { code }), // Only include code if it's truthy
             // Set branchId based on user role
             branchId: req.user.role === 'superuser'

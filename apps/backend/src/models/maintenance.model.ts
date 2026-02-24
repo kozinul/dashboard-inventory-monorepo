@@ -24,7 +24,16 @@ const maintenanceRecordSchema = new mongoose.Schema({
     asset: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Asset',
-        required: true
+        required: false
+    },
+    locationTarget: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location',
+        required: false
+    },
+    isInternalDepartment: {
+        type: Boolean,
+        default: false
     },
     title: {
         type: String,
@@ -122,8 +131,12 @@ const maintenanceRecordSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Pre-save hook to generate ticket number with retry logic
+// Pre-save hook to generate ticket number with retry logic, and validate target
 maintenanceRecordSchema.pre('save', async function (next) {
+    if (!this.asset && !this.locationTarget) {
+        throw new Error('Maintenance record must have either an asset or a locationTarget');
+    }
+
     if (this.isNew && !this.ticketNumber) {
         let retries = 0;
         const maxRetries = 5;

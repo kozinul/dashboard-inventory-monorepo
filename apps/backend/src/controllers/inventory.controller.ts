@@ -228,10 +228,10 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
-        // Auto-set status based on location for new assets if not explicitly provided
-        if (!req.body.status && req.body.locationId) {
+        // Auto-set status based on location
+        if (asset.locationId) {
             const { Location } = await import('../models/location.model.js');
-            const targetLocation = await Location.findById(req.body.locationId);
+            const targetLocation = await Location.findById(asset.locationId);
             if (targetLocation && !targetLocation.isWarehouse) {
                 asset.status = 'in_use';
             } else if (targetLocation && targetLocation.isWarehouse) {
@@ -296,19 +296,18 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
             delete updateData.branchId;
         }
 
-        // Auto-update status if location changed
-        // ONLY if current status is active, storage or in_use
+        // Auto-update status if location is present and status is not protected
         // We PROTECT 'assigned' and 'maintenance' statuses from being overwritten by location changes
         const currentStatus = updateData.status || existingAsset.status;
         const statusProtected = ['assigned', 'maintenance', 'retired', 'disposed', 'request maintenance'].includes(currentStatus);
 
-        if (!statusProtected && updateData.locationId && updateData.locationId !== existingAsset.locationId?.toString()) {
+        const resolvedLocationId = updateData.locationId ?? existingAsset.locationId?.toString();
+        if (!statusProtected && resolvedLocationId) {
             const { Location } = await import('../models/location.model.js');
-            const targetLocation = await Location.findById(updateData.locationId);
+            const targetLocation = await Location.findById(resolvedLocationId);
             if (targetLocation && !targetLocation.isWarehouse) {
                 updateData.status = 'in_use';
             } else if (targetLocation && targetLocation.isWarehouse) {
-                // If returned to warehouse, set back to active/spare
                 updateData.status = 'active';
             }
         }

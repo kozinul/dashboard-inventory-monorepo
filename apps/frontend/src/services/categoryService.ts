@@ -11,6 +11,7 @@ export interface Category {
     authorizedDepartments: Department[];
     icon?: string;
     description?: string;
+    isInfrastructure?: boolean;
     technicalSpecsTemplate?: Record<string, string>;
     createdAt: string;
     updatedAt: string;
@@ -22,6 +23,7 @@ export interface CreateCategoryDto {
     authorizedDepartments: string[]; // IDs
     icon?: string;
     description?: string;
+    isInfrastructure?: boolean;
 }
 
 export const categoryService = {

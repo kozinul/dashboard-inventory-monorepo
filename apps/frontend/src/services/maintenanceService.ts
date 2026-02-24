@@ -5,7 +5,7 @@ const API_URL = '/maintenance';
 export interface MaintenanceTicket {
     _id: string;
     ticketNumber: string;
-    asset: {
+    asset?: {
         _id: string;
         name: string;
         serial?: string;
@@ -13,6 +13,14 @@ export interface MaintenanceTicket {
         departmentId?: string;
         branchId?: string | { _id: string; name: string };
     };
+    locationTarget?: {
+        _id: string;
+        name: string;
+        type?: string;
+        departmentId?: string;
+        branchId?: string | { _id: string; name: string };
+    };
+    isInternalDepartment?: boolean;
     title: string;
     description?: string;
     type: string;
@@ -84,7 +92,8 @@ export interface NavCounts {
 }
 
 export interface CreateTicketDto {
-    asset: string;
+    asset?: string;
+    locationTarget?: string;
     title: string;
     description?: string;
     type: string;

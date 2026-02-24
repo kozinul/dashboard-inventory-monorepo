@@ -86,8 +86,8 @@ export const showInfo = (title: string, text?: string) => {
 export const showConfirmDialog = (
     title: string,
     text: string,
-    confirmButtonText = 'Yes, delete it!',
-    type: 'delete' | 'warning' | 'info' = 'delete'
+    confirmButtonText = 'Confirm',
+    type: 'delete' | 'warning' | 'info' = 'warning'
 ) => {
     const colors = {
         delete: { confirm: '#ef4444', cancel: '#6b7280' },

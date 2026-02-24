@@ -7,7 +7,7 @@ export interface BoxLocation {
     _id: string;
     name: string;
     type: string;
-    parentId: string | null;
+    parentId?: string | { _id: string, name: string } | null;
     description?: string;
     status: 'Active' | 'Inactive' | 'Maintenance';
     children?: BoxLocation[];

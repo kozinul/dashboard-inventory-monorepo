@@ -4,6 +4,7 @@ import { Asset } from '../models/asset.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { User } from '../models/user.model.js';
 import { Supply } from '../models/supply.model.js';
+import { Category } from '../models/category.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 
 // Get all maintenance records (for admin/managers)
@@ -51,22 +52,44 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
                 const departmentAssets = await Asset.find({ departmentId: { $in: departmentIds } }).select('_id');
                 const assetIds = departmentAssets.map(a => a._id);
 
+                // Admin/Managers see tickets for their users, assets, assigned tickets to their dept, AND internal tickets for their dept
                 filter.$or = [
                     { requestedBy: { $in: userIds } },
                     { assignedDepartment: { $in: departmentIds } },
-                    { asset: { $in: assetIds } }
+                    { asset: { $in: assetIds } },
+                    { isInternalDepartment: true, assignedDepartment: { $in: departmentIds } }
                 ];
+
+                // Exclude internal tickets that do NOT belong to their departments (safety net)
+                filter.isInternalDepartment = { $ne: true };
+                // Wait, if we set $ne: true, it cancels out the $or condition above.
+                // We must use a combined $and logic for safety:
+                const baseFilterOr = filter.$or;
+                delete filter.$or;
+                filter.$and = [
+                    { $or: baseFilterOr },
+                    {
+                        $or: [
+                            { isInternalDepartment: { $ne: true } },
+                            { isInternalDepartment: true, assignedDepartment: { $in: departmentIds } }
+                        ]
+                    }
+                ];
+
             } else {
                 // Manager/Admin/Supervisor with no department sees nothing (or empty list)
                 return res.json([]);
             }
         } else if (userRole !== 'superuser' && userRole !== 'admin' && userRole !== 'system_admin') {
-            // Technicians and regular users (though users usually hit getMyTickets)
+            // Technicians and regular users
             filter.technician = { $exists: true, $ne: null };
+            // Ensure they don't see internal tickets
+            filter.isInternalDepartment = { $ne: true };
         }
 
         const records = await MaintenanceRecord.find(filter)
             .populate('asset', 'name serial department departmentId')
+            .populate({ path: 'locationTarget', select: 'name type departmentId branchId' })
             .populate('technician', 'name avatar')
             .populate('vendor', 'name')
             .populate('requestedBy', 'name email department')
@@ -84,6 +107,7 @@ export const getMyTickets = async (req: Request, res: Response, next: NextFuncti
         const userId = req.user._id;
         const records = await MaintenanceRecord.find({ requestedBy: userId })
             .populate('asset', 'name serial department departmentId')
+            .populate({ path: 'locationTarget', select: 'name type departmentId branchId' })
             .populate('processedBy', 'name')
             .populate({
                 path: 'history.changedBy',
@@ -102,6 +126,7 @@ export const getAssignedTickets = async (req: Request, res: Response, next: Next
         const userId = req.user._id;
         const records = await MaintenanceRecord.find({ technician: userId })
             .populate('asset', 'name serial department departmentId')
+            .populate({ path: 'locationTarget', select: 'name type departmentId branchId' })
             .populate('technician', 'name avatar')
             .populate('requestedBy', 'name email department')
             .populate('processedBy', 'name')
@@ -132,6 +157,7 @@ export const getDepartmentTickets = async (req: Request, res: Response, next: Ne
         if (!caller.departmentId && (caller.role === 'admin' || caller.role === 'superuser' || caller.role === 'system_admin')) {
             records = await MaintenanceRecord.find({})
                 .populate('asset', 'name serial department departmentId')
+                .populate({ path: 'locationTarget', select: 'name type departmentId branchId' })
                 .populate('requestedBy', 'name email department')
                 .populate('processedBy', 'name')
                 .populate('technician', 'name email')
@@ -191,23 +217,59 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
     try {
         const userId = req.user._id;
         const userRole = req.user.role;
-        const { asset: assetId } = req.body;
+        const { asset: assetId, locationTarget: locationTargetId } = req.body;
 
-        // Superuser and admin can access all assets
         const isPrivileged = userRole === 'superuser' || userRole === 'admin';
 
         if (!isPrivileged) {
-            // Check if asset is assigned to this user
-            const assignment = await Assignment.findOne({
-                assetId,
-                userId,
-                status: 'assigned'
-            });
+            if (locationTargetId) {
+                // If it's a location target, ensure user has at least department admin rights or is manager
+                if (userRole === 'user') {
+                    return res.status(403).json({
+                        message: 'Regular users cannot request maintenance for internal infrastructure panels'
+                    });
+                }
+            } else if (assetId) {
+                // Check if the asset is an Infrastructure category asset
+                const targetAsset = await Asset.findById(assetId);
 
-            if (!assignment) {
-                return res.status(403).json({
-                    message: 'You can only request maintenance for assets assigned to you'
-                });
+                if (!targetAsset) {
+                    return res.status(404).json({ message: 'Asset not found' });
+                }
+
+                const categoryDoc = await Category.findOne({ name: targetAsset.category });
+
+                if (categoryDoc?.isInfrastructure) {
+                    // Bypass assignment check, but verify department match (unless manager/admin)
+                    const isManager = ['manager', 'dept_admin'].includes(userRole);
+                    const isDeptMatch = targetAsset.departmentId?.toString() === req.user.departmentId?.toString();
+                    const isManagedMatch = req.user.managedDepartments?.includes(targetAsset.departmentId?.toString() || '');
+
+                    if (!isDeptMatch && (!isManager || !isManagedMatch)) {
+                        return res.status(403).json({
+                            message: 'You can only request maintenance for infrastructure assets within your department'
+                        });
+                    }
+
+                    // Automatically flag as internal department ticket so it gets the appropriate tags and routing
+                    req.body.isInternalDepartment = true;
+                    // Force the assigned department to the asset's department
+                    req.body.assignedDepartment = targetAsset.departmentId;
+
+                } else {
+                    // Standard validation: Check if asset is assigned to this user
+                    const assignment = await Assignment.findOne({
+                        assetId,
+                        userId,
+                        status: 'assigned'
+                    });
+
+                    if (!assignment) {
+                        return res.status(403).json({
+                            message: 'You can only request maintenance for assets assigned to you (unless it is an Infrastructure category asset)'
+                        });
+                    }
+                }
             }
         }
 
@@ -225,6 +287,10 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
             requestedBy: userId,
             requestedAt: new Date(),
             status: 'Draft',
+            // Flag as internal if locationTarget is provided OR it was forced by Infrastructure check
+            isInternalDepartment: !!req.body.locationTarget || !!req.body.isInternalDepartment,
+            // If internal panel/infra, auto-assign to user's department to manage it
+            assignedDepartment: (req.body.locationTarget || req.body.isInternalDepartment) ? (req.body.assignedDepartment || req.user.departmentId) : req.body.assignedDepartment,
             // Set branchId based on user role (or inherit from user)
             branchId: userRole === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
@@ -244,22 +310,24 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial departmentId')
+            .populate('locationTarget', 'name type departmentId')
             .populate('requestedBy', 'name email');
 
         // Record Audit Log
-        if (populated && populated.asset) {
-            await recordAuditLog({
-                userId: userId.toString(),
-                action: 'create',
-                resourceType: 'Maintenance',
-                resourceId: record._id.toString(),
-                resourceName: record.ticketNumber || undefined,
-                details: `Maintenance requested for asset: ${(populated.asset as any).name}`,
-                branchId: record.branchId?.toString(),
-                departmentId: (populated.asset as any).departmentId?.toString()
-            });
-        }
+        const resourceNameDisplay = populated?.asset ? (populated.asset as any).name :
+            (populated?.locationTarget ? (populated.locationTarget as any).name : record.ticketNumber);
 
+        await recordAuditLog({
+            userId: userId.toString(),
+            action: 'create',
+            resourceType: 'Maintenance',
+            resourceId: record._id.toString(),
+            resourceName: record.ticketNumber || undefined,
+            details: `Maintenance requested for: ${resourceNameDisplay}`,
+            branchId: record.branchId?.toString(),
+            departmentId: populated?.asset ? (populated.asset as any).departmentId?.toString() :
+                (populated?.locationTarget ? (populated.locationTarget as any).departmentId?.toString() : undefined)
+        });
         res.status(201).json(populated);
     } catch (error) {
         next(error);
@@ -276,6 +344,8 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
             ...req.body,
             requestedBy: req.body.requestedBy || req.user._id,
             requestedAt: new Date(),
+            isInternalDepartment: !!req.body.locationTarget,
+            assignedDepartment: req.body.locationTarget ? (req.user.departmentId || req.body.assignedDepartment) : req.body.assignedDepartment,
             // Set branchId based on user role
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
@@ -292,6 +362,9 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
         if (req.body.asset) {
             await Asset.findByIdAndUpdate(req.body.asset, { status: 'request maintenance' });
             await Assignment.findOneAndUpdate({ assetId: req.body.asset, status: 'assigned' }, { status: 'maintenance' });
+        } else if (req.body.locationTarget) {
+            const Location = (await import('../models/location.model.js')).Location;
+            await Location.findByIdAndUpdate(req.body.locationTarget, { status: 'Maintenance' });
         }
 
         res.status(201).json(record);

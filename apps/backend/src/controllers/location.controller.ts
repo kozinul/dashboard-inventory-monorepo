@@ -54,6 +54,7 @@ export const getLocations = async (req: Request, res: Response, next: NextFuncti
 
         const locations = await Location.find(filter)
             .populate('departmentId', 'name')
+            .populate('parentId', 'name')
             .sort({ name: 1 });
 
         res.json(locations);

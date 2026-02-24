@@ -18,6 +18,7 @@ interface Category {
     authorizedDepartments: Department[];
     icon?: string;
     branchId?: string;
+    isInfrastructure?: boolean;
 }
 
 const COMMON_ICONS = [
@@ -44,6 +45,7 @@ export default function CategoryManagement() {
         code: '',
         authorizedDepartments: [] as string[],
         icon: 'category',
+        isInfrastructure: false,
         technicalSpecsTemplate: {} as Record<string, string>
     });
     const [deptFilter, setDeptFilter] = useState('');
@@ -119,6 +121,7 @@ export default function CategoryManagement() {
                 code: category.code || '',
                 authorizedDepartments: category.authorizedDepartments.map(d => d._id),
                 icon: category.icon || 'category',
+                isInfrastructure: category.isInfrastructure || false,
                 technicalSpecsTemplate: (category as any).technicalSpecsTemplate || {}
             });
         } else {
@@ -128,6 +131,7 @@ export default function CategoryManagement() {
                 code: '',
                 authorizedDepartments: [],
                 icon: 'category',
+                isInfrastructure: false,
                 technicalSpecsTemplate: {}
             });
         }
@@ -413,6 +417,20 @@ export default function CategoryManagement() {
                                             />
                                         </div>
                                         <div>
+                                            <label className="flex items-center gap-3 cursor-pointer p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl hover:bg-indigo-500/20 transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="size-5 rounded border-indigo-500/50 bg-surface-dark text-indigo-500 focus:ring-indigo-500"
+                                                    checked={formData.isInfrastructure}
+                                                    onChange={(e) => setFormData({ ...formData, isInfrastructure: e.target.checked })}
+                                                />
+                                                <div>
+                                                    <span className="text-sm font-bold text-slate-200 block">Is Infrastructure Category?</span>
+                                                    <span className="text-[10px] text-slate-400">Assets in this category bypass assignment checks for ticketing and cannot be transferred. Useful for CCTV, AC, etc.</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div>
                                             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Icon (Material Symbol)</label>
                                             <div className="flex gap-2 mb-3">
                                                 <div className="flex-1">
@@ -438,8 +456,8 @@ export default function CategoryManagement() {
                                                             type="button"
                                                             onClick={() => setFormData({ ...formData, icon: iconName })}
                                                             className={`size-8 flex items-center justify-center rounded-lg transition-all ${formData.icon === iconName
-                                                                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                                                                    : 'bg-surface-dark text-slate-400 hover:text-white hover:bg-surface-lighter'
+                                                                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                                                : 'bg-surface-dark text-slate-400 hover:text-white hover:bg-surface-lighter'
                                                                 }`}
                                                             title={iconName}
                                                         >

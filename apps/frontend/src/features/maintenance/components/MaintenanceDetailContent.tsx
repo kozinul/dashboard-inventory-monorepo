@@ -58,11 +58,19 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
     const isAdmin = user?.role === 'superuser' || user?.role === 'admin' || user?.role === 'administrator';
     const isManager = user?.role === 'manager';
 
+    console.log('DEBUG_TECH', {
+        assignTech: assignData.technicianId,
+        techs: technicians.map(t => t._id),
+        ticketReqBy: ticket?.requestedBy,
+        defaultTechCalculated: ticket?.isInternalDepartment ? ((ticket.requestedBy as any)?._id || ticket.requestedBy) : ''
+    });
+
     useEffect(() => {
         if (ticketId) {
             fetchTicket(ticketId);
+        } else {
+            fetchTechnicians();
         }
-        fetchTechnicians();
     }, [ticketId]);
 
     useEffect(() => {
@@ -73,9 +81,19 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
 
     useEffect(() => {
         if (ticket) {
+            const reqObj = ticket.requestedBy as any;
+            let defaultTech = (ticket.technician as any)?._id || ticket.technician || '';
+            let defaultType = ticket.type || 'Repair';
+
+            // Default to requestedBy and 'Maintenance' type for internal panel tickets
+            if (ticket.isInternalDepartment && !ticket.technician && ['Sent', 'Pending', 'Draft'].includes(ticket.status)) {
+                defaultTech = reqObj?._id || reqObj || '';
+                defaultType = 'Maintenance';
+            }
+
             setAssignData({
-                technicianId: (ticket.technician as any)?._id || '',
-                type: ticket.type || 'Repair'
+                technicianId: defaultTech,
+                type: defaultType
             });
         }
     }, [ticket]);
@@ -85,6 +103,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
             setLoading(true);
             const data = await maintenanceService.getById(id);
             setTicket(data);
+            fetchTechnicians(data);
         } catch (error) {
             console.error('Failed to fetch ticket:', error);
             showErrorToast('Failed to load ticket details');
@@ -93,10 +112,32 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
         }
     };
 
-    const fetchTechnicians = async () => {
+    const fetchTechnicians = async (currentTicket?: MaintenanceTicket) => {
         try {
             const users = await userService.getAll();
-            setTechnicians(users.filter(u => u.role === 'technician'));
+            let validTechs = users.filter(u => ['technician', 'dept_admin', 'manager', 'superuser', 'admin'].includes(u.role));
+
+            // If it's an internal ticket and the requester is not in the list, add them so the default selection works
+            if (currentTicket?.isInternalDepartment) {
+                const requesterObj = currentTicket.requestedBy as any;
+                const requesterId = requesterObj?._id || requesterObj;
+
+                if (requesterId && !validTechs.some(t => t._id === requesterId)) {
+                    const fallbackUserObj = typeof requesterObj === 'object' && requesterObj.name ? {
+                        _id: requesterId,
+                        name: requesterObj.name,
+                        department: (requesterObj.department?.name || requesterObj.department || 'User')
+                    } : null;
+
+                    const requesterData = users.find(u => u._id === requesterId) || fallbackUserObj;
+
+                    if (requesterData) {
+                        validTechs = [...validTechs, requesterData as any];
+                    }
+                }
+            }
+
+            setTechnicians(validTechs);
         } catch (error) {
             console.error('Failed to fetch technicians:', error);
         }
@@ -404,6 +445,11 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                                 {technicians.map(t => (
                                     <option key={t._id} value={t._id}>{t.name} ({t.department})</option>
                                 ))}
+                                {ticket.isInternalDepartment && assignData.technicianId && !technicians.some(t => t._id === assignData.technicianId) && ticket.requestedBy && (
+                                    <option value={assignData.technicianId}>
+                                        {typeof ticket.requestedBy === 'object' ? (ticket.requestedBy as any).name : ticket.requestedBy} (Internal)
+                                    </option>
+                                )}
                             </select>
                         </div>
                         <button
@@ -423,14 +469,26 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                     <div className="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Asset Details</h3>
+                                <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                    {ticket.isInternalDepartment ? 'Panel / Location Details' : 'Asset Details'}
+                                </h3>
                                 <div className="space-y-1">
-                                    <p className="font-bold text-lg dark:text-white">{ticket.asset?.name}</p>
-                                    <p className="text-sm text-slate-500 font-mono">{ticket.asset?.serial}</p>
+                                    <p className="font-bold text-lg dark:text-white flex items-center gap-2">
+                                        {ticket.isInternalDepartment && <span className="material-symbols-outlined text-indigo-500 text-xl" title="Internal Panel Ticket">dns</span>}
+                                        {ticket.isInternalDepartment ? ticket.locationTarget?.name : ticket.asset?.name}
+                                    </p>
+                                    <p className="text-sm text-slate-500 font-mono">
+                                        {ticket.isInternalDepartment ? `Type: ${ticket.locationTarget?.type || 'Panel'}` : ticket.asset?.serial}
+                                    </p>
                                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2">
                                         <span className="material-symbols-outlined text-sm">business</span>
-                                        {ticket.asset?.department}
+                                        {ticket.isInternalDepartment ? 'Internal Department Infrastructure' : ticket.asset?.department}
                                     </div>
+                                    {ticket.isInternalDepartment && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30">
+                                            Internal Dept Infrastructure
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div>

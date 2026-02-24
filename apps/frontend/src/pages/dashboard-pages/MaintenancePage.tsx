@@ -77,7 +77,7 @@ export default function MaintenancePage() {
     };
 
     const handleComplete = async (id: string) => {
-        const result = await showConfirmDialog('Complete Ticket?', 'This will mark the ticket as Done and update asset status.');
+        const result = await showConfirmDialog('Complete Ticket?', 'This will mark the ticket as Done and update asset status.', 'Yes, complete it!', 'info');
         if (!result.isConfirmed) return;
         try {
             await maintenanceService.completeTicket(id);
@@ -89,7 +89,7 @@ export default function MaintenancePage() {
     };
 
     const handleDelete = async (id: string) => {
-        const result = await showConfirmDialog('Are you sure?', 'You wont be able to revert this!');
+        const result = await showConfirmDialog('Are you sure?', 'You wont be able to revert this!', 'Yes, delete it!', 'delete');
         if (!result.isConfirmed) return;
         try {
             await maintenanceService.delete(id);

@@ -64,7 +64,7 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
                     type: editingLocation.type,
                     description: editingLocation.description || '',
                     status: editingLocation.status,
-                    parentId: editingLocation.parentId,
+                    parentId: typeof editingLocation.parentId === 'object' ? editingLocation.parentId?._id : editingLocation.parentId,
                     departmentId: editingLocation.departmentId?._id || editingLocation.departmentId || '',
                     isWarehouse: editingLocation.isWarehouse || false,
                     capacity: (editingLocation as any).capacity || 0

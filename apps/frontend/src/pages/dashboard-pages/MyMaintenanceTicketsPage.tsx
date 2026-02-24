@@ -4,6 +4,7 @@ import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceM
 import { MaintenanceDetailContent } from '@/features/maintenance/components/MaintenanceDetailContent';
 import { assignmentService } from '@/services/assignmentService';
 import { assetService } from '@/services/assetService';
+import { categoryService } from '@/services/categoryService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
@@ -51,10 +52,15 @@ export default function MyMaintenanceTicketsPage() {
                 );
                 setMyAssets(available);
             } else {
-                const [deptAssetsResponse, myAssignments] = await Promise.all([
+                const [deptAssetsResponse, myAssignments, categories] = await Promise.all([
                     assetService.getAll({ limit: 1000 }),
-                    assignmentService.getUserAssignments(user!._id)
+                    assignmentService.getUserAssignments(user!._id),
+                    categoryService.getAll()
                 ]);
+
+                const infraCategoryNames = categories
+                    .filter(c => c.isInfrastructure)
+                    .map(c => c.name);
 
                 const deptAssets = (deptAssetsResponse.data || []).filter((a: any) =>
                     !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
@@ -67,9 +73,15 @@ export default function MyMaintenanceTicketsPage() {
                         a && !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
                     );
 
+                // Collect unassigned "Infrastructure" assets in the user's department
+                const infraAssets = deptAssets.filter((a: any) =>
+                    infraCategoryNames.includes(a.category) &&
+                    (a.departmentId === user?.departmentId || a.department === user?.department)
+                );
+
                 const combinedMap = new Map();
-                deptAssets.forEach(a => combinedMap.set(a._id, a));
                 assignedAssets.forEach(a => combinedMap.set(a._id, a));
+                infraAssets.forEach(a => combinedMap.set(a._id, a));
 
                 setMyAssets(Array.from(combinedMap.values()));
             }
@@ -86,7 +98,7 @@ export default function MyMaintenanceTicketsPage() {
     }, []);
 
     const handleCancelTicket = async (id: string) => {
-        const result = await showConfirmDialog('Cancel Ticket?', 'This action cannot be undone.');
+        const result = await showConfirmDialog('Cancel Ticket?', 'This action cannot be undone.', 'Yes, cancel it!', 'warning');
         if (!result.isConfirmed) return;
 
         try {
@@ -100,7 +112,7 @@ export default function MyMaintenanceTicketsPage() {
     };
 
     const handleSendTicket = async (id: string) => {
-        const result = await showConfirmDialog('Send Ticket?', 'This will send the ticket to your department for processing.');
+        const result = await showConfirmDialog('Send Ticket?', 'This will send the ticket to your department for processing.', 'Yes, send it!', 'info');
         if (!result.isConfirmed) return;
 
         try {

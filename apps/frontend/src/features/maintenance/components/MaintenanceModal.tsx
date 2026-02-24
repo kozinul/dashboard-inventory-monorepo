@@ -5,6 +5,7 @@ import { AssetTable } from '@/features/inventory/components/AssetTable';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
+import { locationService, BoxLocation } from '@/services/locationService';
 
 interface MaintenanceModalProps {
     isOpen: boolean;
@@ -29,9 +30,15 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
     });
     const [loading, setLoading] = useState(false);
     const [showAssetSelector, setShowAssetSelector] = useState(false);
+    const [isInternalPanel, setIsInternalPanel] = useState(false);
     const [assets, setAssets] = useState<Asset[]>([]);
+    const [locations, setLocations] = useState<BoxLocation[]>([]);
     const [selectedAsset, setSelectedAsset] = useState<any>(null);
+    const [selectedLocation, setSelectedLocation] = useState<any>(null);
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+
+    // Determine if user can create panel tickets
+    const canCreatePanelTicket = ['superuser', 'admin', 'manager', 'dept_admin', 'technician'].includes(user?.role || '');
 
     useEffect(() => {
         if (initialData) {
@@ -45,7 +52,9 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                 technician: initialData.technician?._id || initialData.technician || '',
                 cost: initialData.cost || 0
             });
+            setIsInternalPanel(!!initialData.locationTarget);
             setSelectedAsset(initialData.asset);
+            setSelectedLocation(initialData.locationTarget);
         } else {
             setFormData({
                 title: '',
@@ -57,7 +66,9 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                 technician: '',
                 cost: 0
             });
+            setIsInternalPanel(false);
             setSelectedAsset(null);
+            setSelectedLocation(null);
         }
     }, [initialData, isOpen]);
 
@@ -68,17 +79,37 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
 
     useEffect(() => {
         if (showAssetSelector) {
-            if (availableAssets) {
-                setAssets(availableAssets);
-            } else if (assets.length === 0) {
-                assetService.getAll().then((res) => {
-                    // Show all assets, let backend handle permission filtering
-                    // Removed status filter to debug visibility
-                    setAssets(res.data || []);
-                });
+            if (isInternalPanel) {
+                if (locations.length === 0) {
+                    locationService.getAll().then((res) => {
+                        let filtered = res || [];
+
+                        // Filter to show only locations belonging to the user's department
+                        // Admin/Superusers might have access to all, but to prevent clutter we restrict to their department or managed departments.
+                        // We also might only want to show infrastructure related types (Panel, Server, etc) but the primary request is to filter by department.
+                        const userDepts = [user?.departmentId, ...(user?.managedDepartments || [])].filter(Boolean);
+
+                        if (user?.role !== 'superuser' && userDepts.length > 0) {
+                            filtered = filtered.filter(loc => {
+                                const locDeptId = typeof loc.departmentId === 'object' ? loc.departmentId?._id : loc.departmentId;
+                                return userDepts.includes(locDeptId);
+                            });
+                        }
+
+                        setLocations(filtered);
+                    });
+                }
+            } else {
+                if (availableAssets) {
+                    setAssets(availableAssets);
+                } else if (assets.length === 0) {
+                    assetService.getAll().then((res) => {
+                        setAssets(res.data || []);
+                    });
+                }
             }
         }
-    }, [showAssetSelector, availableAssets]);
+    }, [showAssetSelector, isInternalPanel, availableAssets]);
 
     if (!isOpen) return null;
 
@@ -94,7 +125,11 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                 if (mode === 'request') {
                     // Use createTicket for drafts/user requests
                     const requestData = new FormData();
-                    requestData.append('asset', formData.asset);
+                    if (isInternalPanel) {
+                        requestData.append('locationTarget', selectedLocation._id);
+                    } else {
+                        requestData.append('asset', formData.asset);
+                    }
                     requestData.append('title', formData.title);
                     requestData.append('description', formData.description);
                     requestData.append('type', formData.type);
@@ -112,10 +147,15 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                     showSuccessToast('Draft ticket created successfully');
                 } else {
                     // Use create for admin direct creation
-                    await maintenanceService.create({
+                    const submitData: any = {
                         ...formData,
                         requestedBy: user?._id
-                    });
+                    };
+                    if (isInternalPanel) {
+                        delete submitData.asset;
+                        submitData.locationTarget = selectedLocation._id;
+                    }
+                    await maintenanceService.create(submitData);
                     showSuccessToast('Maintenance record created successfully');
                 }
             }
@@ -138,6 +178,10 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
         setFormData(prev => ({ ...prev, asset: asset._id || asset.id! }));
         setSelectedAsset(asset);
         setShowAssetSelector(false);
+    };
+
+    const handleLocationSelect = (loc: BoxLocation) => {
+        setSelectedLocation(loc);
         setShowAssetSelector(false);
     };
 
@@ -158,7 +202,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
             )}>
                 <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center shrink-0">
                     <h3 className="text-lg font-bold tracking-tight text-white">
-                        {showAssetSelector ? 'Select Asset' : (initialData ? 'Edit Maintenance Record' : 'New Maintenance Request')}
+                        {showAssetSelector ? (isInternalPanel ? 'Select Panel' : 'Select Asset') : (initialData ? 'Edit Maintenance Record' : 'New Maintenance Request')}
                     </h3>
                     <button
                         onClick={onClose}
@@ -179,16 +223,61 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                                 Back to Form
                             </button>
                         </div>
-                        {/* We might need to style AssetTable to match dark theme better, but passing container styles helps */}
                         <div className="dark text-white">
-                            <AssetTable
-                                assets={assets}
-                                onSelect={handleAssetSelect}
-                            />
+                            {isInternalPanel ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {locations.map((loc) => (
+                                        <div key={loc._id} onClick={() => handleLocationSelect(loc)} className="p-4 bg-slate-800 rounded-xl border border-slate-700 hover:border-indigo-500 cursor-pointer transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-xl">dns</span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-white text-sm">{loc.name}</p>
+                                                    <p className="text-xs text-slate-400">
+                                                        {loc.type || 'Panel'}
+                                                        {loc.parentId && typeof loc.parentId === 'object' && ` • ${(loc.parentId as any).name}`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {locations.length === 0 && (
+                                        <div className="col-span-full p-8 text-center text-slate-400">
+                                            No panels found for your department.
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <AssetTable
+                                    assets={assets}
+                                    onSelect={handleAssetSelect}
+                                />
+                            )}
                         </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+
+                        {canCreatePanelTicket && !initialData && (
+                            <div className="flex items-center gap-3 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                                <input
+                                    type="checkbox"
+                                    id="isInternalPanel"
+                                    checked={isInternalPanel}
+                                    onChange={(e) => {
+                                        setIsInternalPanel(e.target.checked);
+                                        setSelectedAsset(null);
+                                        setSelectedLocation(null);
+                                    }}
+                                    className="w-4 h-4 text-indigo-600 rounded bg-slate-800 border-slate-600 focus:ring-indigo-500 focus:ring-offset-slate-900"
+                                />
+                                <label htmlFor="isInternalPanel" className="text-sm font-medium text-indigo-300 select-none cursor-pointer flex-1">
+                                    This is a request for an Internal Location/Panel
+                                </label>
+                                <span className="material-symbols-outlined text-indigo-400">dns</span>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Title</label>
@@ -203,32 +292,41 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Asset</label>
-                            {selectedAsset ? (
-                                <div className="flex items-center justify-between p-3 bg-[#1e293b] border border-slate-700 rounded-lg group hover:border-indigo-500/50 transition-colors">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{selectedAsset.name}</span>
-                                        <span className="text-xs text-slate-500">SN: {selectedAsset.serial}</span>
+                            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                                {isInternalPanel ? 'Location / Panel' : 'Asset'}
+                            </label>
+                            {isInternalPanel ? (
+                                selectedLocation ? (
+                                    <div className="flex items-center justify-between p-3 bg-[#1e293b] border border-slate-700 rounded-lg group hover:border-indigo-500/50 transition-colors">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{selectedLocation.name}</span>
+                                            <span className="text-xs text-slate-500">Type: {selectedLocation.type || 'Panel'}</span>
+                                        </div>
+                                        <button type="button" onClick={() => setShowAssetSelector(true)} className="text-xs text-indigo-400 font-bold hover:text-indigo-300 px-3 py-1 rounded hover:bg-indigo-500/10 transition-colors">Change</button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAssetSelector(true)}
-                                        className="text-xs text-indigo-400 font-bold hover:text-indigo-300 px-3 py-1 rounded hover:bg-indigo-500/10 transition-colors"
-                                    >
-                                        Change
+                                ) : (
+                                    <button type="button" onClick={() => setShowAssetSelector(true)} className="w-full py-6 border-2 border-dashed border-slate-700 rounded-lg text-slate-400 hover:border-indigo-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all text-sm font-bold flex flex-col items-center justify-center gap-2">
+                                        <span className="material-symbols-outlined text-2xl">add_location_alt</span>
+                                        Select Location/Panel
                                     </button>
-                                </div>
+                                )
                             ) : (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAssetSelector(true)}
-                                    className="w-full py-6 border-2 border-dashed border-slate-700 rounded-lg text-slate-400 hover:border-indigo-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all text-sm font-bold flex flex-col items-center justify-center gap-2"
-                                >
-                                    <span className="material-symbols-outlined text-2xl">add_circle</span>
-                                    Select Asset
-                                </button>
+                                selectedAsset ? (
+                                    <div className="flex items-center justify-between p-3 bg-[#1e293b] border border-slate-700 rounded-lg group hover:border-indigo-500/50 transition-colors">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{selectedAsset.name}</span>
+                                            <span className="text-xs text-slate-500">SN: {selectedAsset.serial}</span>
+                                        </div>
+                                        <button type="button" onClick={() => setShowAssetSelector(true)} className="text-xs text-indigo-400 font-bold hover:text-indigo-300 px-3 py-1 rounded hover:bg-indigo-500/10 transition-colors">Change</button>
+                                    </div>
+                                ) : (
+                                    <button type="button" onClick={() => setShowAssetSelector(true)} className="w-full py-6 border-2 border-dashed border-slate-700 rounded-lg text-slate-400 hover:border-indigo-500 hover:text-indigo-400 hover:bg-slate-800/50 transition-all text-sm font-bold flex flex-col items-center justify-center gap-2">
+                                        <span className="material-symbols-outlined text-2xl">add_circle</span>
+                                        Select Asset
+                                    </button>
+                                )
                             )}
-                            <input type="hidden" name="asset" value={formData.asset} required />
+                            <input type="hidden" name="asset" value={isInternalPanel ? selectedLocation?._id : formData.asset} required={!isInternalPanel} />
                         </div>
 
                         {initialData && (
@@ -288,7 +386,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
                                 Cancel
                             </button>
                             <button
-                                disabled={loading || !formData.asset}
+                                disabled={loading || (!isInternalPanel && !formData.asset) || (isInternalPanel && !selectedLocation)}
                                 className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 type="submit"
                             >

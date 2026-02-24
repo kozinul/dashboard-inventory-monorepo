@@ -302,9 +302,11 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                     <option value="">Auto (Gudang/Warehouse)</option>
                                                     {locations
                                                         .filter(loc => !selectedDepartmentId || loc.departmentId?._id === selectedDepartmentId || loc.departmentId === selectedDepartmentId || !loc.departmentId)
-                                                        .map(loc => (
-                                                            <option key={loc._id} value={loc._id}>{loc.name} ({loc.type})</option>
-                                                        ))}
+                                                        .map(loc => {
+                                                            const parentName = loc.parentId && typeof loc.parentId === 'object' ? (loc.parentId as any).name : null;
+                                                            const displayName = parentName ? `${loc.name} (${loc.type}) [${parentName}]` : `${loc.name} (${loc.type})`;
+                                                            return <option key={loc._id} value={loc._id}>{displayName}</option>
+                                                        })}
                                                 </select>
                                                 <p className="text-[10px] text-slate-400 mt-1">Leave empty to auto-assign to Warehouse.</p>
                                             </div>
