@@ -193,7 +193,7 @@ function DashboardLayout() {
             'Dashboard': 'dashboard',
             'Inventory': 'inventory',
             'Supplies': 'inventory', // grouped
-            'Panels': 'inventory',
+            'Panels': 'panels',
             'Assignments': 'assignments',
             'My Tickets': 'my_tickets',
             'Assigned Jobs': 'assigned_tickets',
@@ -256,7 +256,7 @@ function DashboardLayout() {
 
         // Manager permissions
         if (user?.role === 'manager' || user?.role === 'dept_admin') {
-            return ['dashboard', 'inventory', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal'].includes(resource || '');
+            return ['dashboard', 'inventory', 'panels', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal'].includes(resource || '');
         }
 
         // Supervisor permissions
@@ -266,7 +266,7 @@ function DashboardLayout() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer', 'users'].includes(resource || '');
+            return ['dashboard', 'inventory', 'panels', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer', 'users'].includes(resource || '');
         }
 
         // Standard User permissions

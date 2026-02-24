@@ -19,6 +19,7 @@ const RESOURCE_GROUPS = [
         icon: '📦',
         resources: [
             { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory items' },
+            { id: 'panels', label: 'Panels', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage racks, panels, and server locations' },
             { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
             { id: 'transfer', label: 'Transfer', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
             { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },

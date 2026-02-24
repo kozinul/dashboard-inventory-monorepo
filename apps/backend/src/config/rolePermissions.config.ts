@@ -22,6 +22,7 @@ export const RESOURCES = [
 
     // Inventory Management
     'inventory',
+    'panels',
     'incoming',
     'transfer',
     'disposal',
@@ -86,6 +87,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     manager: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewCreateEdit() },
+        { resource: 'panels', actions: viewCreateEdit() },
         { resource: 'incoming', actions: viewCreate() },
         { resource: 'transfer', actions: viewCreate() },
         { resource: 'maintenance', actions: viewCreateEdit() },
@@ -106,6 +108,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     dept_admin: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewCreateEdit() },
+        { resource: 'panels', actions: viewCreateEdit() },
         { resource: 'incoming', actions: viewCreate() },
         { resource: 'transfer', actions: viewCreate() },
         { resource: 'maintenance', actions: viewCreateEdit() },
@@ -126,6 +129,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     supervisor: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewOnly() },
+        { resource: 'panels', actions: viewOnly() },
         { resource: 'maintenance', actions: viewCreateEdit() },
         { resource: 'my_tickets', actions: viewCreateEdit() },
         { resource: 'dept_tickets', actions: viewCreateEdit() },
@@ -148,6 +152,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     technician: [
         { resource: 'dashboard', actions: viewOnly() },
         { resource: 'inventory', actions: viewCreateEdit() },
+        { resource: 'panels', actions: viewCreateEdit() },
         { resource: 'transfer', actions: viewCreate() },
         { resource: 'maintenance', actions: viewCreateEdit() },
         { resource: 'my_tickets', actions: viewCreateEdit() },

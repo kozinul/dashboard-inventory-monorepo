@@ -18,6 +18,7 @@ import { useRoleStore } from '@/store/roleStore';
 const RESOURCES = [
     { id: 'dashboard', label: 'Dashboard', actions: ['view'] },
     { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'panels', label: 'Panels', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create'] },
     { id: 'transfer', label: 'Transfer', actions: ['view', 'create'] },
     { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'] },
