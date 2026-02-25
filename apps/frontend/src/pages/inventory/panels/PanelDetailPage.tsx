@@ -161,7 +161,7 @@ export default function PanelDetailPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{panel.name}</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {getLocationPath()} • {panel.capacity || 0}{panel.type === 'Rack' ? 'U' : ' Slots'}
+                        {getLocationPath()} • Total: {panel.capacity || 0}{panel.type === 'Rack' ? 'U' : ' Slots'} • Used: {panel.usedCapacity || 0}{panel.type === 'Rack' ? 'U' : ' Slots'} • Available: {Math.max(0, (panel.capacity || 0) - (panel.usedCapacity || 0))}{panel.type === 'Rack' ? 'U' : ' Slots'}
                     </p>
                 </div>
             </div>

@@ -8,6 +8,7 @@ interface LocationPanel {
     name: string;
     type: string;
     capacity: number;
+    usedCapacity?: number;
     parentId?: { name: string };
     status: string;
     departmentId?: { name: string };
@@ -116,9 +117,19 @@ export default function PanelListPage() {
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg">
-                                <span>Capacity:</span>
-                                <span className="font-semibold text-gray-900 dark:text-white">{panel.capacity}{panel.type === 'Rack' ? 'U' : ' Slots'}</span>
+                            <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg">
+                                <div className="flex items-center justify-between border-b border-gray-200 dark:border-slate-600 pb-1">
+                                    <span className="font-medium">Total Capacity:</span>
+                                    <span className="font-bold text-gray-900 dark:text-white">{panel.capacity}{panel.type === 'Rack' ? 'U' : ' Slots'}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Used:</span>
+                                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">{panel.usedCapacity || 0}{panel.type === 'Rack' ? 'U' : ' Slots'}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span>Available:</span>
+                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">{Math.max(0, panel.capacity - (panel.usedCapacity || 0))}{panel.type === 'Rack' ? 'U' : ' Slots'}</span>
+                                </div>
                             </div>
                         </div>
                     </Link>

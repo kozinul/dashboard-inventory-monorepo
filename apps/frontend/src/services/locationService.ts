@@ -15,6 +15,7 @@ export interface BoxLocation {
     isWarehouse?: boolean;
     branchId?: string;
     capacity?: number;
+    usedCapacity?: number;
 }
 
 export interface CreateLocationDto {

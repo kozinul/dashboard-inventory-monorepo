@@ -6,7 +6,6 @@ import { AssetHero } from "../../features/inventory/components/asset-details/Ass
 import { AssetGallery } from "../../features/inventory/components/asset-details/AssetGallery";
 import { TechnicalSpecsEditor } from "../../features/inventory/components/asset-details/TechnicalSpecsEditor";
 import { AssetPurchasingTab } from "../../features/inventory/components/asset-details/AssetPurchasingTab";
-import { RentalRatesTab } from "../../features/inventory/components/asset-details/RentalRatesTab";
 import { AssetAssignmentTab } from "../../features/inventory/components/asset-details/AssetAssignmentTab";
 import { AssetServiceTab } from "../../features/inventory/components/asset-details/AssetServiceTab";
 import { AssetDocuments } from "../../features/inventory/components/asset-details/AssetDocuments";
@@ -176,7 +175,6 @@ export default function AssetDetailsPage() {
                             { id: 'technical_info', label: 'Technical Info' },
                             { id: 'purchasing', label: 'Purchasing' },
                             { id: 'documents', label: 'Documents' },
-                            { id: 'rental_rates', label: 'Rental Rates' },
                             { id: 'assignments', label: 'Assignments' },
                             { id: 'rental_history', label: 'Rental History' },
                             { id: 'external_services', label: 'External Services' },
@@ -201,7 +199,6 @@ export default function AssetDetailsPage() {
                     {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} />}
                     {activeTab === 'documents' && <AssetDocuments asset={asset} onUpdate={() => loadAsset(id!)} />}
-                    {activeTab === 'rental_rates' && <RentalRatesTab asset={asset} />}
                     {activeTab === 'assignments' && <AssetAssignmentTab asset={asset} />}
                     {activeTab === 'rental_history' && id && <BookingHistoryTable assetId={id} />}
                     {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}

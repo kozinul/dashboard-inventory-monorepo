@@ -57,7 +57,36 @@ export const getLocations = async (req: Request, res: Response, next: NextFuncti
             .populate('parentId', 'name')
             .sort({ name: 1 });
 
-        res.json(locations);
+        // Calculate used capacity for all locations
+        const locationIds = locations.map(loc => loc._id);
+
+        // Dynamic import Asset model to avoid circular dependency if any
+        const { Asset } = await import('../models/asset.model.js');
+
+        const capacityCounts = await Asset.aggregate([
+            {
+                $match: {
+                    locationId: { $in: locationIds },
+                    status: { $ne: 'disposed' }
+                }
+            },
+            {
+                $group: {
+                    _id: '$locationId',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const countMap = new Map(capacityCounts.map(item => [item._id.toString(), item.count]));
+
+        const locationsWithCapacity = locations.map(loc => {
+            const locObj = loc.toObject();
+            (locObj as any).usedCapacity = countMap.get(loc._id.toString()) || 0;
+            return locObj;
+        });
+
+        res.json(locationsWithCapacity);
     } catch (error) {
         console.error('Error fetching locations:', error);
         next(error);
@@ -144,7 +173,18 @@ export const getLocationById = async (req: Request, res: Response) => {
         if (!location) {
             return res.status(404).json({ message: 'Location not found' });
         }
-        res.json(location);
+
+        // Calculate used capacity
+        const { Asset } = await import('../models/asset.model.js');
+        const usedCapacity = await Asset.countDocuments({
+            locationId: id,
+            status: { $ne: 'disposed' }
+        });
+
+        const locationObj = location.toObject();
+        (locationObj as any).usedCapacity = usedCapacity;
+
+        res.json(locationObj);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching location', error });
     }

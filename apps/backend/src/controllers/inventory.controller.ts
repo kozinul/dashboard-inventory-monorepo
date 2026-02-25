@@ -53,33 +53,37 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
             const accessConditions: any[] = [];
 
-            if (req.user.departmentId && !['admin', 'system_admin'].includes(req.user.role)) {
-                const deptIds = [req.user.departmentId];
-                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
-                    deptIds.push(...(req.user as any).managedDepartments);
+            // Department check for all non-admin roles (managers, technicians etc are restricted to their department/managed departments)
+            if (!['admin', 'system_admin'].includes(req.user.role)) {
+                if (req.user.departmentId) {
+                    const deptIds = [req.user.departmentId];
+                    if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                        deptIds.push(...(req.user as any).managedDepartments);
+                    }
+
+                    accessConditions.push({
+                        departmentId: { $in: deptIds }
+                    });
+                } else if (!['admin', 'system_admin'].includes(req.user.role) && req.user.department) {
+                    accessConditions.push({
+                        department: req.user.department
+                    });
+                } else {
+                    // If user has no department, but has a branch, allow seeing all assets in that branch
+                    // No extra conditions needed as branchId is already in filters
                 }
 
-                accessConditions.push({
-                    departmentId: { $in: deptIds }
-                });
-            } else if (!['admin', 'system_admin'].includes(req.user.role) && req.user.department) {
-                accessConditions.push({
-                    department: req.user.department
-                });
-            } else {
-                // If user has no department, but has a branch, allow seeing all assets in that branch
-                // No extra conditions needed as branchId is already in filters
+                if (accessConditions.length > 0) {
+                    andConditions.push({ $or: accessConditions });
+                }
+            } else if (req.user.role === 'superuser') {
+                // Superusers see all branches by default, 
+                // but can filter if a specific branchId is provided
+                if (req.query.branchId && req.query.branchId !== 'ALL') {
+                    filters.branchId = req.query.branchId;
+                }
             }
 
-            if (accessConditions.length > 0) {
-                andConditions.push({ $or: accessConditions });
-            }
-        } else if (req.user.role === 'superuser') {
-            // Superusers see all branches by default, 
-            // but can filter if a specific branchId is provided
-            if (req.query.branchId && req.query.branchId !== 'ALL') {
-                filters.branchId = req.query.branchId;
-            }
         }
 
         if (req.query.search) {
@@ -95,8 +99,6 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         if (andConditions.length > 0) {
             filters.$and = andConditions;
         }
-        console.log('DEBUG FILTER QUERY:', JSON.stringify(filters));
-
         const assets = await Asset.find(filters)
             .sort({ createdAt: -1 })
             .skip(skip)

@@ -2,11 +2,8 @@ import { useState, useEffect } from 'react';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 import { MaintenanceDetailContent } from '@/features/maintenance/components/MaintenanceDetailContent';
-import { assignmentService } from '@/services/assignmentService';
 import { assetService } from '@/services/assetService';
-import { categoryService } from '@/services/categoryService';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
-import { useAuthStore } from '@/store/authStore';
 import { useMaintenanceStore } from '@/store/maintenanceStore';
 import { cn } from '@/lib/utils';
 
@@ -23,7 +20,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MyMaintenanceTicketsPage() {
-    const { user } = useAuthStore();
     const { counts } = useMaintenanceStore();
     const [tickets, setTickets] = useState<MaintenanceTicket[]>([]);
     const [myAssets, setMyAssets] = useState<any[]>([]);
@@ -36,55 +32,18 @@ export default function MyMaintenanceTicketsPage() {
     // Tab State: 'active' or 'history'
     const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
-    const isPrivileged = user?.role === 'superuser' || user?.role === 'admin';
-
     const fetchData = async () => {
         try {
             setLoading(true);
             const ticketsData = await maintenanceService.getMyTickets();
             setTickets(ticketsData);
 
-            // Fetch assets
-            if (isPrivileged) {
-                const allAssets = await assetService.getAll({ limit: 1000 });
-                const available = (allAssets.data || []).filter((a: any) =>
-                    !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
-                );
-                setMyAssets(available);
-            } else {
-                const [deptAssetsResponse, myAssignments, categories] = await Promise.all([
-                    assetService.getAll({ limit: 1000 }),
-                    assignmentService.getUserAssignments(user!._id),
-                    categoryService.getAll()
-                ]);
-
-                const infraCategoryNames = categories
-                    .filter(c => c.isInfrastructure)
-                    .map(c => c.name);
-
-                const deptAssets = (deptAssetsResponse.data || []).filter((a: any) =>
-                    !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
-                );
-
-                const assignedAssets = myAssignments
-                    .filter((a: any) => a.status === 'assigned')
-                    .map((a: any) => a.assetId)
-                    .filter((a: any) =>
-                        a && !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
-                    );
-
-                // Collect unassigned "Infrastructure" assets in the user's department
-                const infraAssets = deptAssets.filter((a: any) =>
-                    infraCategoryNames.includes(a.category) &&
-                    (a.departmentId === user?.departmentId || a.department === user?.department)
-                );
-
-                const combinedMap = new Map();
-                assignedAssets.forEach(a => combinedMap.set(a._id, a));
-                infraAssets.forEach(a => combinedMap.set(a._id, a));
-
-                setMyAssets(Array.from(combinedMap.values()));
-            }
+            // Fetch assets relying entirely on backend RBAC filtering
+            const allAssets = await assetService.getAll({ limit: 1000 });
+            const available = (allAssets.data || []).filter((a: any) =>
+                !['maintenance', 'under maintenance', 'request maintenance'].includes(a.status)
+            );
+            setMyAssets(available);
         } catch (error) {
             console.error('Failed to fetch data:', error);
             showErrorToast('Failed to load tickets');
