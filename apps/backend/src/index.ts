@@ -42,7 +42,7 @@ import assetTemplateRoutes from './routes/assetTemplate.routes.js';
 import auditLogRoutes from './routes/auditLog.routes.js';
 
 // Routes
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

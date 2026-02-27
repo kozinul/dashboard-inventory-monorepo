@@ -18,13 +18,13 @@ COPY apps/backend/ ./apps/backend/
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Build backend
-WORKDIR /app/apps/backend
-RUN pnpm build
+# Build backend and its workspace dependencies (e.g. schemas)
+WORKDIR /app
+RUN pnpm --filter @dashboard/backend... build
 
 # Isolate production dependencies using pnpm deploy
 WORKDIR /app
-RUN pnpm --filter @dashboard/backend --prod deploy /app/pruned
+RUN pnpm --filter @dashboard/backend --prod deploy --legacy /app/pruned
 
 # Stage 2: Production
 FROM node:20-alpine
