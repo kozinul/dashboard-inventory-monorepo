@@ -22,16 +22,19 @@ RUN pnpm install --frozen-lockfile
 WORKDIR /app/apps/backend
 RUN pnpm build
 
+# Isolate production dependencies using pnpm deploy
+WORKDIR /app
+RUN pnpm --filter @dashboard/backend --prod deploy /app/pruned
+
 # Stage 2: Production
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy built files and dependencies
-COPY --from=builder /app/apps/backend/dist ./dist
-COPY --from=builder /app/apps/backend/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
+# Copy built files and production dependencies and workspace configuration from builder
+COPY --from=builder /app/pruned/package.json ./package.json
+COPY --from=builder /app/pruned/node_modules ./node_modules
+COPY --from=builder /app/pruned/dist ./dist
 
 # Create directories for uploads and backups
 RUN mkdir -p uploads backups
