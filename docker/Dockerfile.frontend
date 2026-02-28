@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile
 
 # Build frontend
 WORKDIR /app/apps/frontend
-ARG VITE_API_URL=/api
+ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm build
 
