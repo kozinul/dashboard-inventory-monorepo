@@ -58,6 +58,17 @@ export default function UserManagementPage() {
     };
 
     const handleDelete = async (user: User) => {
+        // Prevent deletion of the default superuser
+        if (user.username === 'superuser') {
+            await showConfirmDialog(
+                'Action Denied',
+                'The default superuser account cannot be deleted as it is required for system recovery. You may disable it instead by editing the user and changing their status to Inactive.',
+                'Understood',
+                'info'
+            );
+            return;
+        }
+
         const result = await showConfirmDialog(
             'Are you sure?',
             `You want to delete ${user.name}? This action cannot be undone.`,
