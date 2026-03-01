@@ -31,7 +31,8 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     # Restart layanan Docker Compose untuk meng-apply perubahan
     echo "$(date): Me-restart service container Docker..."
     docker compose -f docker-compose.prod.yml down
-    docker compose -f docker-compose.prod.yml up -d --build
+    docker compose -f docker-compose.prod.yml build --no-cache
+    docker compose -f docker-compose.prod.yml up -d
 
     # Bersihkan image/cache usang (opsional tapi disarankan)
     docker image prune -af
