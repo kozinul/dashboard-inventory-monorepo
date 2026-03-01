@@ -1,5 +1,4 @@
 import axios from '@/lib/axios';
-import { config } from '@/config';
 
 export const uploadService = {
     upload: async (file: File, onProgress?: (progress: number) => void): Promise<{ url: string; filename: string }> => {
@@ -8,7 +7,7 @@ export const uploadService = {
 
         // Using axios directly here to support upload progress, 
         // as the fetch wrapper does not easily support it without streams.
-        const response = await axios.post<{ message: string; data: { url: string; filename: string } }>(`${config.api.baseUrl}/v1/upload`, formData, {
+        const response = await axios.post<{ message: string; data: { url: string; filename: string } }>('/upload', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             },
@@ -32,13 +31,13 @@ export const uploadService = {
             formData.append('files', file);
         });
 
-        const response = await axios.post<{ urls: string[] }>(`${config.api.baseUrl}/v1/upload/multiple`, formData, {
+        const response = await axios.post<{ urls: string[] }>('/upload/multiple', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data.urls;
     },
 
     delete: async (filename: string): Promise<void> => {
-        await axios.delete(`${config.api.baseUrl}/v1/upload/${filename}`);
+        await axios.delete(`/upload/${filename}`);
     }
 };

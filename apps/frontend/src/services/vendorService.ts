@@ -1,5 +1,4 @@
 import axios from '@/lib/axios';
-import { config } from '../config';
 
 const API_URL = '/vendors';
 
