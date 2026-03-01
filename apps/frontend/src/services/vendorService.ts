@@ -1,7 +1,7 @@
 import axios from '@/lib/axios';
 import { config } from '../config';
 
-const API_URL = `${config.api.baseUrl}/v1/vendors`;
+const API_URL = '/vendors';
 
 export interface Vendor {
     _id: string;
