@@ -8,7 +8,51 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
         const filter: any = {};
 
         if (req.user.role !== 'superuser') {
-            filter.branchId = (req.user as any).branchId;
+            const userBranchId = (req.user as any).branchId;
+            if (userBranchId) {
+                filter.$or = [
+                    { branchId: userBranchId },
+                    { branchId: null },
+                    { branchId: { $exists: false } }
+                ];
+            } else {
+                filter.$or = [
+                    { branchId: null },
+                    { branchId: { $exists: false } }
+                ];
+            }
+
+            // If user is not admin/superuser, filter by department too
+            if (!['admin', 'system_admin'].includes(req.user.role)) {
+                const deptIds: any[] = [];
+                if ((req.user as any).departmentId) deptIds.push((req.user as any).departmentId);
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
+
+                if (deptIds.length > 0) {
+                    filter.$and = [
+                        {
+                            $or: [
+                                { authorizedDepartments: { $in: deptIds } },
+                                { authorizedDepartments: { $size: 0 } },
+                                { authorizedDepartments: { $exists: false } },
+                                { authorizedDepartments: null }
+                            ]
+                        }
+                    ];
+                } else {
+                    filter.$and = [
+                        {
+                            $or: [
+                                { authorizedDepartments: { $size: 0 } },
+                                { authorizedDepartments: { $exists: false } },
+                                { authorizedDepartments: null }
+                            ]
+                        }
+                    ];
+                }
+            }
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
         }
