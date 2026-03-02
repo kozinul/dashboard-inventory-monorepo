@@ -24,6 +24,10 @@ export default function InventoryPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+
     // Bulk selection state
     const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
 
@@ -35,7 +39,8 @@ export default function InventoryPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const assetsData = await assetService.getAll();
+            // Fetch all assets (up to a large limit) to allow local filtering, stats, and pagination
+            const assetsData = await assetService.getAll({ limit: 100000 });
             setAssets(assetsData.data);
         } catch (error) {
             console.error("Failed to fetch inventory data:", error);
@@ -48,6 +53,11 @@ export default function InventoryPage() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [selectedCategory, activeBranchId, limit]);
 
     // Derive categories
     // const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
@@ -62,6 +72,11 @@ export default function InventoryPage() {
     const filteredAssets = selectedCategory === 'All Categories'
         ? branchAssets
         : branchAssets.filter(a => a.category === selectedCategory);
+
+    // Local Pagination Logic
+    const totalFiltered = filteredAssets.length;
+    const totalPages = Math.max(1, Math.ceil(totalFiltered / limit));
+    const paginatedAssets = filteredAssets.slice((page - 1) * limit, page * limit);
 
     // Recalculate stats based on branchAssets (to reflect branch view)
     // Overriding backend stats for consistency in UI
@@ -220,7 +235,13 @@ export default function InventoryPage() {
                 </div>
             ) : (
                 <AssetTable
-                    assets={filteredAssets}
+                    assets={paginatedAssets}
+                    page={page}
+                    limit={limit}
+                    totalPages={totalPages}
+                    totalItems={totalFiltered}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
                     onEdit={canEdit ? openEditModal : undefined}
                     onDelete={canEdit ? handleDeleteAsset : undefined}
                     onClone={canEdit ? openCloneModal : undefined}

@@ -10,9 +10,20 @@ interface AssetTableProps {
     actionLabel?: string;
     selectedIds?: string[];
     onSelectionChange?: (ids: string[]) => void;
+    page?: number;
+    totalPages?: number;
+    totalItems?: number;
+    limit?: number;
+    onPageChange?: (page: number) => void;
+    onLimitChange?: (limit: number) => void;
 }
 
-export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect, actionLabel = 'Select', selectedIds = [], onSelectionChange }: AssetTableProps) {
+export function AssetTable({
+    assets, onEdit, onDelete, onClone, onSelect, actionLabel = 'Select',
+    selectedIds = [], onSelectionChange,
+    page = 1, totalPages = 1, totalItems = 0, limit = 10,
+    onPageChange, onLimitChange
+}: AssetTableProps) {
     const isAllSelected = assets.length > 0 && selectedIds.length === assets.length;
     const isSomeSelected = selectedIds.length > 0 && selectedIds.length < assets.length;
 
@@ -128,10 +139,41 @@ export function AssetTable({ assets, onEdit, onDelete, onClone, onSelect, action
             </div>
 
             <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground font-medium">Showing {assets.length} assets</p>
-                <div className="flex gap-2">
-                    <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground disabled:opacity-50 transition-colors" disabled>Previous</button>
-                    <button className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground transition-colors">Next</button>
+                <div className="flex items-center gap-4">
+                    <p className="text-xs text-muted-foreground font-medium">
+                        Showing {assets.length} items {totalItems > 0 && `of ${totalItems} total`}
+                    </p>
+                    {onLimitChange && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Rows per page:</span>
+                            <select
+                                value={limit}
+                                onChange={(e) => onLimitChange(Number(e.target.value))}
+                                className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-md px-2 py-1 text-xs font-medium focus:ring-primary focus:border-primary cursor-pointer text-foreground"
+                            >
+                                <option value={10}>10</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground mr-2">Page {page} of {totalPages}</span>
+                    <button
+                        onClick={() => onPageChange && onPageChange(page - 1)}
+                        disabled={page <= 1}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground disabled:opacity-50 transition-colors"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => onPageChange && onPageChange(page + 1)}
+                        disabled={page >= totalPages}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-muted-foreground disabled:opacity-50 transition-colors"
+                    >
+                        Next
+                    </button>
                 </div>
             </div>
         </div>
