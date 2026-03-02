@@ -55,22 +55,24 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
             // Department check for all non-admin roles (managers, technicians etc are restricted to their department/managed departments)
             if (!['admin', 'system_admin'].includes(req.user.role)) {
-                if (req.user.departmentId) {
-                    const deptIds = [req.user.departmentId];
-                    if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
-                        deptIds.push(...(req.user as any).managedDepartments);
-                    }
+                const deptIds: any[] = [];
+                if (req.user.departmentId) deptIds.push(req.user.departmentId);
+                if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
+                    deptIds.push(...(req.user as any).managedDepartments);
+                }
 
+                if (deptIds.length > 0) {
                     accessConditions.push({
                         departmentId: { $in: deptIds }
                     });
-                } else if (!['admin', 'system_admin'].includes(req.user.role) && req.user.department) {
+                } else if (req.user.department) {
+                    // Fallback to string matching if no IDs are available (legacy data support)
                     accessConditions.push({
                         department: req.user.department
                     });
                 } else {
-                    // If user has no department, but has a branch, allow seeing all assets in that branch
-                    // No extra conditions needed as branchId is already in filters
+                    // If user has no department assigned, they fall back to seeing all assets in their branch.
+                    // No additional accessConditions are added, effectively ignoring department filters.
                 }
 
                 if (accessConditions.length > 0) {
