@@ -171,7 +171,10 @@ export function LocationGrid({ parentLocation, viewMode = 'grid', onViewDetails 
 
     const filteredLocations = locations
         .filter(l => activeBranchId === 'ALL' || l.branchId === activeBranchId)
-        .filter(l => l.parentId === parentId);
+        .filter(l => {
+            const locParentId = typeof l.parentId === 'object' && l.parentId !== null ? l.parentId._id : l.parentId;
+            return locParentId === parentId;
+        });
 
     const handleCreate = () => {
         setEditingLocation(null);
