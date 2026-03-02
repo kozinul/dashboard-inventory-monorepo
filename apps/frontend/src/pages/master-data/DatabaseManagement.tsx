@@ -160,8 +160,23 @@ export default function DatabaseManagement() {
         }
     };
 
-    const downloadBackup = (filename: string) => {
-        window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}${API_URL}/${filename}/download`, '_blank');
+    const downloadBackup = async (filename: string) => {
+        try {
+            const response = await axios.get(`${API_URL}/${filename}/download`, {
+                responseType: 'blob', // Important for downloading files
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to download backup', error);
+            Swal.fire({ title: 'Error', text: 'Failed to download backup', icon: 'error' });
+        }
     };
 
     useEffect(() => {

@@ -25,7 +25,10 @@ function LocationNode({ location, childrenLocations, allLocations, level, select
 
     // Recursive render helper
     const getChildNodes = (parentId: string) => {
-        return allLocations.filter(l => l.parentId === parentId);
+        return allLocations.filter(l => {
+            const lParentId = typeof l.parentId === 'object' && l.parentId !== null ? l.parentId._id : l.parentId;
+            return lParentId === parentId;
+        });
     };
 
     return (
@@ -164,7 +167,8 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
 
     const handleEdit = (location: BoxLocation) => {
         setEditingLocation(location);
-        setParentLocation(locations.find(l => l._id === location.parentId) || null);
+        const parentId = typeof location.parentId === 'object' && location.parentId !== null ? location.parentId._id : location.parentId;
+        setParentLocation(locations.find(l => l._id === parentId) || null);
         setIsModalOpen(true);
     };
 
@@ -241,7 +245,10 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
 
     // Get root nodes
     const rootNodes = visibleLocations.filter(l => !l.parentId);
-    const getChildren = (parentId: string) => visibleLocations.filter(l => l.parentId === parentId);
+    const getChildren = (parentId: string) => visibleLocations.filter(l => {
+        const lParentId = typeof l.parentId === 'object' && l.parentId !== null ? l.parentId._id : l.parentId;
+        return lParentId === parentId;
+    });
 
     if (loading) return <div className="text-sm text-text-secondary animate-pulse">Loading hierarchy...</div>;
 

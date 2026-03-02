@@ -82,7 +82,7 @@ export function LocationsPage() {
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Sidebar */}
-                <aside className="w-72 bg-background-dark border-r border-border-dark overflow-y-auto p-6 hidden lg:flex flex-col gap-6">
+                <aside className="w-72 shrink-0 bg-background-dark border-r border-border-dark overflow-y-auto p-6 flex flex-col gap-6">
                     <div>
                         <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-4">Location Hierarchy</h3>
                         <LocationHierarchy
