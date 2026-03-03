@@ -13,6 +13,7 @@ import {
     CalendarIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
+import { UAParser } from 'ua-parser-js';
 
 export default function ActivityLogPage() {
     const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -273,14 +274,38 @@ export default function ActivityLogPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1" title={log.details}>
-                                                {log.details}
-                                                {log.resourceName && (
-                                                    <span className="ml-1 font-semibold text-slate-800 dark:text-slate-200">
-                                                        ({log.resourceName})
-                                                    </span>
+                                            <div className="space-y-1.5">
+                                                <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1" title={log.details}>
+                                                    {log.details}
+                                                    {log.resourceName && (
+                                                        <span className="ml-1 font-semibold text-slate-800 dark:text-slate-200">
+                                                            ({log.resourceName})
+                                                        </span>
+                                                    )}
+                                                </p>
+                                                {(log.ipAddress || log.userAgent) && (
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {log.ipAddress && (
+                                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+                                                                <span className="material-symbols-outlined !text-[12px]">router</span>
+                                                                {log.ipAddress.includes('::') && log.ipAddress !== '::1' ? 'IPv6' : log.ipAddress}
+                                                            </span>
+                                                        )}
+                                                        {log.userAgent && (
+                                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400" title={log.userAgent}>
+                                                                <span className="material-symbols-outlined !text-[12px]">public</span>
+                                                                {(() => {
+                                                                    const parser = new UAParser(log.userAgent);
+                                                                    const browser = parser.getBrowser();
+                                                                    const os = parser.getOS();
+                                                                    if (browser.name && os.name) return `${browser.name} • ${os.name}`;
+                                                                    return 'Browser Unknown';
+                                                                })()}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
-                                            </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

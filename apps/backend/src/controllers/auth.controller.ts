@@ -46,6 +46,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 resourceId: user._id.toString(),
                 resourceName: user.name,
                 details: `User logged in: ${user.username}`,
+                ipAddress: req.ip || req.socket?.remoteAddress,
+                userAgent: req.headers['user-agent'],
                 branchId: (user as any).branchId?._id || (user as any).branchId,
                 departmentId: user.departmentId?.toString()
             });

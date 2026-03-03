@@ -8,6 +8,7 @@ interface AuditLogOptions {
     resourceName?: string;
     details?: string;
     ipAddress?: string;
+    userAgent?: string;
     branchId?: string;
     departmentId?: string;
 }
@@ -25,6 +26,7 @@ export const recordAuditLog = async (options: AuditLogOptions) => {
             resourceName: options.resourceName,
             details: options.details,
             ipAddress: options.ipAddress,
+            userAgent: options.userAgent,
             branchId: options.branchId,
             departmentId: options.departmentId
         });

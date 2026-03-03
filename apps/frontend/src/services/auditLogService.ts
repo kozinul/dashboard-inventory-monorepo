@@ -14,6 +14,7 @@ export interface AuditLog {
     resourceName?: string;
     details?: string;
     ipAddress?: string;
+    userAgent?: string;
     createdAt: string;
     branchId?: string;
     departmentId?: string;
