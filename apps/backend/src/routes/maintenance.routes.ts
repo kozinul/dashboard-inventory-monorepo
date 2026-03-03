@@ -56,7 +56,7 @@ router.get('/ticket/:id', getMaintenanceTicket);
 // Ticket actions
 router.put('/:id/cancel', cancelTicket);
 router.put('/:id/send', sendTicket);
-router.put('/:id/accept', acceptTicket);
+router.put('/:id/accept', authorize('superuser', 'admin', 'manager', 'dept_admin', 'supervisor'), acceptTicket);
 router.put('/:id/start', startTicket);
 router.put('/:id/work', upload.fields([{ name: 'beforePhotos', maxCount: 10 }, { name: 'afterPhotos', maxCount: 10 }]), updateTicketWork);
 router.put('/:id/escalate', escalateTicket);

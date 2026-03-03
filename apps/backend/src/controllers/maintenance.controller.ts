@@ -593,7 +593,7 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || req.user.role === 'manager';
+        const isManager = ['admin', 'superuser', 'manager', 'dept_admin', 'supervisor'].includes(req.user.role);
         const isAssignedTechnician = record.technician?.toString() === managerId.toString();
 
         if (!isManager && !isAssignedTechnician) {

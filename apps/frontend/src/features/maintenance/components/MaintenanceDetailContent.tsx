@@ -57,6 +57,9 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
     const isTechnician = user?.role === 'technician';
     const isAdmin = user?.role === 'superuser' || user?.role === 'admin' || user?.role === 'administrator';
     const isManager = user?.role === 'manager';
+    const isDeptAdmin = user?.role === 'dept_admin';
+    const isSupervisor = user?.role === 'supervisor';
+    const isManagerial = isAdmin || isManager || isDeptAdmin || isSupervisor;
 
     console.log('DEBUG_TECH', {
         assignTech: assignData.technicianId,
@@ -377,7 +380,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                     )}
 
                     {/* CLOSE TICKET */}
-                    {(isAdmin || isManager || (ticket.requestedBy as any)?._id === user?._id) && ticket.status === 'Done' && (
+                    {(isAdmin || isManager || isDeptAdmin || isSupervisor || (ticket.requestedBy as any)?._id === user?._id) && ticket.status === 'Done' && (
                         <button
                             onClick={handleClose}
                             className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"
@@ -397,7 +400,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                     )}
 
                     {/* MANAGER: ACCEPT / REJECT (Only for 'Sent' or 'Pending' or 'Escalated' status) */}
-                    {['Sent', 'Pending', 'Escalated'].includes(ticket.status) && (isAdmin || isManager || (isTechnician && (ticket.technician as any)?._id === user?._id)) && (
+                    {['Sent', 'Pending', 'Escalated'].includes(ticket.status) && (isManagerial || (isTechnician && (ticket.technician as any)?._id === user?._id)) && (
                         <div className="flex gap-2">
                             <button onClick={handleReject} className="px-4 py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg font-bold text-sm">
                                 {isTechnician ? 'Decline Assignment' : 'Reject'}
@@ -413,7 +416,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
             </div>
 
             {/* Accept Form if status is Sent/Escalated AND no technician assigned */}
-            {(ticket.status === 'Sent' || ticket.status === 'Escalated') && !ticket.technician && (isAdmin || isManager) && (
+            {(ticket.status === 'Sent' || ticket.status === 'Escalated') && !ticket.technician && isManagerial && (
                 <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-xl">
                     <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-400 mb-3 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">assignment_ind</span>
