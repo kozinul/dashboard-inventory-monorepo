@@ -258,15 +258,32 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
 
                 } else {
                     // Standard validation: Check if asset is assigned to this user
-                    const assignment = await Assignment.findOne({
-                        assetId,
-                        userId,
-                        status: 'assigned'
-                    });
+                    // UPDATE: Technicians and Managers can request maintenance for any asset in their branch/department 
+                    // (especially useful for manually assigned assets that lack a userId)
+                    const isStaffRole = ['manager', 'dept_admin', 'technician'].includes(userRole);
+                    const isDeptMatch = targetAsset.departmentId?.toString() === req.user.departmentId?.toString();
+                    const isManagedMatch = req.user.managedDepartments?.includes(targetAsset.departmentId?.toString() || '');
 
-                    if (!assignment) {
+                    let canCreate = false;
+
+                    if (isStaffRole && (isDeptMatch || isManagedMatch)) {
+                        canCreate = true;
+                    } else {
+                        // Strict check for regular users
+                        const assignment = await Assignment.findOne({
+                            assetId,
+                            userId,
+                            status: 'assigned'
+                        });
+
+                        if (assignment) {
+                            canCreate = true;
+                        }
+                    }
+
+                    if (!canCreate) {
                         return res.status(403).json({
-                            message: 'You can only request maintenance for assets assigned to you (unless it is an Infrastructure category asset)'
+                            message: 'You can only request maintenance for assets assigned to you or within your department (for staff)'
                         });
                     }
                 }
