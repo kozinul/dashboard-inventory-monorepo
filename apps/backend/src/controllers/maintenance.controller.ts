@@ -560,11 +560,15 @@ export const updateTicketStatus = async (req: Request, res: Response, next: Next
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
 
         if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(status)) {
+            // Try to restore assignment from 'maintenance' back to 'assigned'
             const assignment = await Assignment.findOneAndUpdate(
                 { assetId, status: 'maintenance', isDeleted: { $ne: true } },
                 { status: 'assigned' }
             );
-            const finalStatus = assignment ? 'assigned' : 'active';
+            // If no 'maintenance' assignment was found, check if there's already an 'assigned' one
+            // (e.g., Done already restored it, and now we're Closing)
+            const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
+            const finalStatus = hasAssignment ? 'assigned' : 'active';
             await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
         } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(status)) {
             await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
@@ -640,7 +644,8 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
                 { assetId, status: 'maintenance', isDeleted: { $ne: true } },
                 { status: 'assigned' }
             );
-            const finalStatus = assignment ? 'assigned' : 'active';
+            const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
+            const finalStatus = hasAssignment ? 'assigned' : 'active';
             await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
         }
 
@@ -723,11 +728,14 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
 
         // Update asset status and restore assignment
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+        // Try to restore assignment from 'maintenance' back to 'assigned'
         const assignment = await Assignment.findOneAndUpdate(
             { assetId, status: 'maintenance', isDeleted: { $ne: true } },
             { status: 'assigned' }
         );
-        const finalStatus = assignment ? 'assigned' : 'active';
+        // Fallback: check if an 'assigned' assignment already exists
+        const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
+        const finalStatus = hasAssignment ? 'assigned' : 'active';
 
         await Asset.findByIdAndUpdate(assetId, {
             status: finalStatus,
@@ -897,11 +905,14 @@ export const updateMaintenanceRecord = async (req: Request, res: Response, next:
 
             if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(req.body.status)) {
                 console.log(`[Maintenance] Maintenance ended (${req.body.status}), checking assignment for asset ${assetId}`);
+                // Try to restore assignment from 'maintenance' back to 'assigned'
                 const assignment = await Assignment.findOneAndUpdate(
                     { assetId, status: 'maintenance' },
                     { status: 'assigned' }
                 );
-                const finalStatus = assignment ? 'assigned' : 'active';
+                // Fallback: check if an 'assigned' assignment already exists
+                const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
+                const finalStatus = hasAssignment ? 'assigned' : 'active';
                 await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
             } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(req.body.status)) {
                 console.log(`[Maintenance] Maintenance active (${req.body.status}), setting asset ${assetId} to maintenance`);
