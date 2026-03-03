@@ -89,14 +89,19 @@ export function AssignmentModal({
     };
 
     // Location filtering helpers
+    const getParentId = (loc: BoxLocation) => {
+        if (!loc.parentId) return null;
+        return typeof loc.parentId === 'object' ? String(loc.parentId._id) : String(loc.parentId);
+    };
+
     // Building: Top-level locations (no parent, usually 'Building' or 'Branch')
-    const buildings = locations.filter(l => !l.parentId || l.parentId === null);
+    const buildings = locations.filter(l => !getParentId(l));
 
     // Floor: Children of selected building.
-    const floors = locations.filter(l => String(l.parentId) === selectedBuildingId);
+    const floors = locations.filter(l => getParentId(l) === selectedBuildingId);
 
     // Room: Children of selected floor.
-    const rooms = locations.filter(l => String(l.parentId) === selectedFloorId);
+    const rooms = locations.filter(l => getParentId(l) === selectedFloorId);
 
     const handleAssetsSelected = (assets: Asset[]) => {
         // Merge without duplicates

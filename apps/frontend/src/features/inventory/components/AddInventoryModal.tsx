@@ -223,7 +223,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark p-6 text-left align-middle shadow-xl transition-all">
+                            <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark p-6 text-left align-middle shadow-xl transition-all">
                                 <Dialog.Title
                                     as="h3"
                                     className="text-lg font-bold leading-6 text-slate-900 dark:text-white flex items-center gap-2"
