@@ -71,8 +71,7 @@ router.post('/', (req, res) => {
             }
 
             // Return the accessible URL for the file
-            // Assuming static serve at /uploads
-            const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            const fileUrl = `/uploads/${req.file.filename}`;
 
             res.status(201).json({
                 message: 'File uploaded successfully',
@@ -96,7 +95,7 @@ router.post('/multiple', upload.array('files', 10), (req, res) => {
         }
 
         const files = req.files as Express.Multer.File[];
-        const urls = files.map(file => `${req.protocol}://${req.get('host')}/uploads/${file.filename}`);
+        const urls = files.map(file => `/uploads/${file.filename}`);
 
         res.status(201).json({
             message: 'Files uploaded successfully',
