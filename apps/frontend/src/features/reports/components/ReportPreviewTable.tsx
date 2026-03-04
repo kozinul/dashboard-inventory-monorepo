@@ -42,9 +42,9 @@ export const ReportPreviewTable: React.FC<ReportPreviewTableProps> = ({ data, he
                 <tbody className="bg-white dark:bg-card-dark divide-y divide-slate-200 dark:divide-border-dark text-sm">
                     {data.map((row, idx) => (
                         <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-background-dark transition-colors">
-                            {Object.values(row).map((val: any, i) => (
+                            {headers.map((header, i) => (
                                 <td key={i} className="px-6 py-4 whitespace-nowrap text-slate-700 dark:text-slate-300">
-                                    {val}
+                                    {row[header] !== undefined && row[header] !== null ? String(row[header]) : ''}
                                 </td>
                             ))}
                         </tr>

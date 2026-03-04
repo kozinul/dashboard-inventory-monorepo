@@ -69,7 +69,9 @@ export default function ReportsPage() {
                 endDate: endDate || undefined
             });
             setPreviewData(result.data);
-            if (result.data.length > 0) {
+            if (result.meta?.headers) {
+                setPreviewHeaders(result.meta.headers);
+            } else if (result.data.length > 0) {
                 setPreviewHeaders(Object.keys(result.data[0]));
             }
         } catch (error) {

@@ -558,7 +558,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                 return res.json({
                     data: groupedData,
-                    meta: { reportDate, generatedBy, type, count: data.length }
+                    meta: {
+                        reportDate,
+                        generatedBy,
+                        type,
+                        count: data.length,
+                        headers: Object.values(headerMap)
+                    }
                 });
             }
 
@@ -607,7 +613,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                 return res.json({
                     data: groupedData,
-                    meta: { reportDate, generatedBy, type, count: data.length }
+                    meta: {
+                        reportDate,
+                        generatedBy,
+                        type,
+                        count: data.length,
+                        headers: Object.values(headerMap)
+                    }
                 });
             }
 
@@ -654,7 +666,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                 return res.json({
                     data: groupedData,
-                    meta: { reportDate, generatedBy, type, count: data.length }
+                    meta: {
+                        reportDate,
+                        generatedBy,
+                        type,
+                        count: data.length,
+                        headers: Object.values(headerMap)
+                    }
                 });
             }
 
@@ -694,7 +712,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                 return res.json({
                     data: groupedData,
-                    meta: { reportDate, generatedBy, type, count: data.length }
+                    meta: {
+                        reportDate,
+                        generatedBy,
+                        type,
+                        count: data.length,
+                        headers: Object.values(headerMap)
+                    }
                 });
             }
 
@@ -704,7 +728,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     reportDate,
                     generatedBy,
                     type,
-                    count: data.length
+                    count: data.length,
+                    headers: Object.values(headerMap)
                 }
             });
         }
@@ -736,10 +761,11 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `ASSET: ${name} (MODEL: ${model}) - Kategori: ${groupItems[0][headerMap.category]}`,
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.values({
-                            ...item,
-                            [headerMap.value]: formatIDR(item[headerMap.value])
-                        }).map(v => String(v || '')))
+                        rows: groupItems.map(item => Object.keys(headerMap).map(key => {
+                            const val = item[key];
+                            if (key === 'value') return formatIDR(val);
+                            return String(val !== undefined && val !== null ? val : '-');
+                        }))
                     };
 
                     // Add total unit row
@@ -775,11 +801,11 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `EVENT: ${eventName}`,
                         headers: Object.values(headerMap),
-                        rows: eventItems.map(item => Object.values({
-                            ...item,
-                            [headerMap.price]: formatIDR(item[headerMap.price]),
-                            [headerMap.amount]: formatIDR(item[headerMap.amount])
-                        }).map(v => String(v || '')))
+                        rows: eventItems.map(item => Object.keys(headerMap).map(key => {
+                            const val = item[key];
+                            if (key === 'price' || key === 'amount') return formatIDR(val);
+                            return String(val !== undefined && val !== null ? val : '-');
+                        }))
                     };
 
                     // Add subtotal row to the table rows
@@ -819,10 +845,11 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `ASSET: ${assetName} (MODEL: ${assetModel})`,
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.values({
-                            ...item,
-                            [headerMap.cost]: formatIDR(item[headerMap.cost])
-                        }).map(v => String(v || '')))
+                        rows: groupItems.map(item => Object.keys(headerMap).map(key => {
+                            const val = item[key];
+                            if (key === 'cost') return formatIDR(val);
+                            return String(val !== undefined && val !== null ? val : '-');
+                        }))
                     };
 
                     // Add subtotal row
@@ -862,7 +889,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const table = {
                         title: `BARANG: ${name} (PART NO: ${sn})`,
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.values(item).map(v => String(v || '')))
+                        rows: groupItems.map(item => Object.keys(headerMap).map(key => {
+                            const val = item[key];
+                            return String(val !== undefined && val !== null ? val : '-');
+                        }))
                     };
 
                     // Subtotal row
@@ -894,7 +924,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 const table = {
                     title: `${type?.toString().toUpperCase()} REPORT`,
                     headers: Object.values(headerMap),
-                    rows: data.map(item => Object.values(item).map(v => String(v || '')))
+                    rows: data.map(item => Object.keys(headerMap).map(key => {
+                        const val = item[key];
+                        return String(val !== undefined && val !== null ? val : '-');
+                    }))
                 };
 
                 await doc.table(table, {

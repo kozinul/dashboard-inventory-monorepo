@@ -109,10 +109,14 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                     throw new Error('Invalid JSON format');
                 }
 
-                // Verify values are strings
+                // Process values: stringify objects/arrays to avoid [object Object]
                 const validSpecs: Record<string, string> = {};
                 for (const [key, value] of Object.entries(json)) {
-                    validSpecs[key] = String(value);
+                    if (typeof value === 'object' && value !== null) {
+                        validSpecs[key] = JSON.stringify(value, null, 2);
+                    } else {
+                        validSpecs[key] = String(value);
+                    }
                 }
 
                 const result = await Swal.fire({
@@ -174,9 +178,9 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-100 dark:border-slate-700/50">
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                     {Object.entries(specs).map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-2 group">
-                            <dt className="text-sm text-slate-500 font-medium">{key}</dt>
-                            <dd className="flex items-center gap-3">
+                        <div key={key} className="flex justify-between items-start border-b border-slate-200 dark:border-slate-700/50 pb-2 group">
+                            <dt className="text-sm text-slate-500 font-medium pt-0.5">{key}</dt>
+                            <dd className="flex items-start gap-3 text-right max-w-[70%]">
                                 {editingKey === key ? (
                                     <div className="flex items-center gap-2">
                                         <input
@@ -195,7 +199,9 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                                     </div>
                                 ) : (
                                     <>
-                                        <span className="text-sm font-semibold dark:text-slate-200">{value}</span>
+                                        <span className="text-sm font-semibold dark:text-slate-200 whitespace-pre-wrap break-words">
+                                            {value}
+                                        </span>
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                                             <button
                                                 onClick={() => {
