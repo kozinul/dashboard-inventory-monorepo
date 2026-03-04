@@ -11,6 +11,7 @@ import { AssetServiceTab } from "../../features/inventory/components/asset-detai
 import { AssetDocuments } from "../../features/inventory/components/asset-details/AssetDocuments";
 import { AssetMaintenanceTab } from "../../features/inventory/components/asset-details/AssetMaintenanceTab";
 import { AssetActivityLogTab } from "../../features/inventory/components/asset-details/AssetActivityLogTab";
+import { AssetRentalRatesTab } from "../../features/inventory/components/asset-details/AssetRentalRatesTab";
 import { assetService, Asset } from "../../services/assetService";
 import axios from '@/lib/axios';
 
@@ -175,6 +176,7 @@ export default function AssetDetailsPage() {
                             { id: 'technical_info', label: 'Technical Info' },
                             { id: 'purchasing', label: 'Purchasing' },
                             { id: 'documents', label: 'Documents' },
+                            { id: 'rental_rates', label: 'Rental Price' },
                             { id: 'assignments', label: 'Assignments' },
                             { id: 'rental_history', label: 'Rental History' },
                             { id: 'external_services', label: 'External Services' },
@@ -199,6 +201,7 @@ export default function AssetDetailsPage() {
                     {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} />}
                     {activeTab === 'documents' && <AssetDocuments asset={asset} onUpdate={() => loadAsset(id!)} />}
+                    {activeTab === 'rental_rates' && <AssetRentalRatesTab asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'assignments' && <AssetAssignmentTab asset={asset} />}
                     {activeTab === 'rental_history' && id && <BookingHistoryTable assetId={id} />}
                     {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}
