@@ -27,18 +27,45 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
 
     const handleDeleteSpec = async (key: string) => {
         const result = await Swal.fire({
-            title: 'Remove specification?',
-            text: `Are you sure you want to remove "${key}"?`,
+            title: 'Hapus spesifikasi?',
+            text: `Apakah Anda yakin ingin menghapus "${key}"?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, remove it'
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
+            background: 'var(--tw-bg-opacity)',
+            customClass: {
+                popup: 'rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl'
+            }
         });
 
         if (result.isConfirmed) {
             const updatedSpecs = { ...specs };
             delete updatedSpecs[key];
             saveSpecs(updatedSpecs);
+        }
+    };
+
+    const handleClearAll = async () => {
+        const result = await Swal.fire({
+            title: 'Hapus SEMUA spesifikasi?',
+            text: "Tindakan ini tidak dapat dibatalkan. Semua data spesifikasi teknis untuk aset ini akan dikosongkan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, hapus semua!',
+            cancelButtonText: 'Batal',
+            background: 'var(--tw-bg-opacity)',
+            customClass: {
+                popup: 'rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl'
+            }
+        });
+
+        if (result.isConfirmed) {
+            saveSpecs({});
         }
     };
 
@@ -167,56 +194,73 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                         onChange={handleFileUpload}
                     />
                     <button
+                        onClick={handleClearAll}
+                        disabled={Object.keys(specs).length === 0}
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale disabled:pointer-events-none"
+                    >
+                        <TrashIcon className="w-4 h-4" /> Clear All
+                    </button>
+                    <button
                         onClick={() => setIsAddingMode(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition"
+                        className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-slate-900/10"
                     >
                         <PlusIcon className="w-4 h-4" /> Add Field
                     </button>
                 </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-100 dark:border-slate-700/50">
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                    {Object.entries(specs).map(([key, value]) => (
-                        <div key={key} className="flex justify-between items-start border-b border-slate-200 dark:border-slate-700/50 pb-2 group">
-                            <dt className="text-sm text-slate-500 font-medium pt-0.5">{key}</dt>
-                            <dd className="flex items-start gap-3 text-right max-w-[70%]">
+            <div className="bg-white dark:bg-slate-900/40 rounded-3xl p-1 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                    {Object.entries(specs).map(([key, value], index) => (
+                        <div
+                            key={key}
+                            className={`flex flex-col sm:flex-row sm:items-start justify-between p-5 group transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 ${index % 2 === 0 ? 'md:border-r border-slate-100 dark:border-slate-800' : ''
+                                } ${index < Object.entries(specs).length - (Object.entries(specs).length % 2 === 0 ? 2 : 1) ? 'border-b border-slate-100 dark:border-slate-800' : ''
+                                }`}
+                        >
+                            <div className="flex flex-col gap-1 max-w-full sm:max-w-[40%]">
+                                <dt className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{key}</dt>
+                            </div>
+
+                            <dd className="flex items-start gap-3 mt-2 sm:mt-0 text-left sm:text-right flex-1 sm:justify-end">
                                 {editingKey === key ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
                                         <input
                                             type="text"
-                                            className="h-7 w-40 text-sm px-2 rounded border border-primary bg-white dark:bg-slate-800 focus:outline-none"
+                                            className="h-9 w-full sm:w-48 text-sm px-3 rounded-xl border-2 border-primary bg-white dark:bg-slate-800 focus:outline-none shadow-lg shadow-primary/10"
                                             value={tempValue}
                                             onChange={(e) => setTempValue(e.target.value)}
                                             autoFocus
                                         />
-                                        <button onClick={() => handleSaveSpec(key, tempValue)} className="text-green-500 hover:text-green-600">
-                                            <CheckIcon className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => setEditingKey(null)} className="text-red-500 hover:text-red-600">
-                                            <XMarkIcon className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => handleSaveSpec(key, tempValue)} className="p-2 text-white bg-green-500 rounded-lg shadow-lg shadow-green-500/20 hover:scale-110 active:scale-90 transition-all">
+                                                <CheckIcon className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => setEditingKey(null)} className="p-2 text-white bg-slate-400 rounded-lg shadow-lg shadow-slate-400/20 hover:scale-110 active:scale-90 transition-all">
+                                                <XMarkIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 ) : (
                                     <>
-                                        <span className="text-sm font-semibold dark:text-slate-200 whitespace-pre-wrap break-words">
+                                        <span className="text-sm font-bold text-slate-700 dark:text-white whitespace-pre-wrap break-words leading-relaxed">
                                             {value}
                                         </span>
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                        <div className="flex sm:opacity-0 group-hover:opacity-100 transition-all duration-300 gap-1 ml-auto sm:ml-0">
                                             <button
                                                 onClick={() => {
                                                     setEditingKey(key);
                                                     setTempValue(value);
                                                 }}
-                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 rounded-lg transition-all hover:scale-110"
                                             >
-                                                <PencilSquareIcon className="w-4 h-4" />
+                                                <PencilSquareIcon className="w-3.5 h-3.5" />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteSpec(key)}
-                                                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                className="p-1.5 text-slate-400 hover:text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg transition-all hover:scale-110"
                                             >
-                                                <TrashIcon className="w-4 h-4" />
+                                                <TrashIcon className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
                                     </>
@@ -224,54 +268,57 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                             </dd>
                         </div>
                     ))}
-
-                    {isAddingMode && (
-                        <div className="col-span-1 md:col-span-2 flex items-center gap-4 bg-white dark:bg-slate-700 p-3 rounded-lg border border-primary/30 shadow-lg">
-                            <div className="flex-1 space-y-1">
-                                <label className="text-[10px] uppercase text-slate-400 font-bold">Field Name</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Battery Life"
-                                    className="w-full h-8 text-sm px-2 rounded border border-slate-300 dark:border-slate-600 bg-transparent focus:ring-1 focus:ring-primary"
-                                    value={newKey}
-                                    onChange={(e) => setNewKey(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <label className="text-[10px] uppercase text-slate-400 font-bold">Value</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. 10 Hours"
-                                    className="w-full h-8 text-sm px-2 rounded border border-slate-300 dark:border-slate-600 bg-transparent focus:ring-1 focus:ring-primary"
-                                    value={newValue}
-                                    onChange={(e) => setNewValue(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex items-end gap-2 pb-0.5">
-                                <button
-                                    onClick={handleAddSpec}
-                                    disabled={!newKey.trim()}
-                                    className="h-8 px-3 bg-primary text-white text-xs font-bold rounded hover:bg-primary/90 disabled:opacity-50"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={() => setIsAddingMode(false)}
-                                    className="h-8 px-3 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold rounded hover:bg-slate-300"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
+                </div>
+                {isAddingMode && (
+                    <div className="col-span-1 md:col-span-2 flex items-center gap-4 bg-white dark:bg-slate-700 p-4 rounded-3xl border-2 border-primary/20 shadow-xl m-4 mt-0">
+                        <div className="flex-1 space-y-1">
+                            <label className="text-[10px] uppercase text-slate-400 font-bold ml-1">Nama Field</label>
+                            <input
+                                type="text"
+                                placeholder="Misal: Sisa Baterai"
+                                className="w-full h-10 text-sm px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                value={newKey}
+                                onChange={(e) => setNewKey(e.target.value)}
+                            />
                         </div>
-                    )}
-                </dl>
-
-                {Object.keys(specs).length === 0 && !isAddingMode && (
-                    <div className="text-center py-8 text-slate-400 text-sm italic">
-                        No technical specifications added yet. Import a template or add manually.
+                        <div className="flex-1 space-y-1">
+                            <label className="text-[10px] uppercase text-slate-400 font-bold ml-1">Nilai</label>
+                            <input
+                                type="text"
+                                placeholder="Misal: 10 Jam"
+                                className="w-full h-10 text-sm px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                value={newValue}
+                                onChange={(e) => setNewValue(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex items-end gap-2 pb-0.5">
+                            <button
+                                onClick={handleAddSpec}
+                                disabled={!newKey.trim()}
+                                className="h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white text-xs font-bold rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-slate-900/10"
+                            >
+                                Simpan
+                            </button>
+                            <button
+                                onClick={() => setIsAddingMode(false)}
+                                className="h-10 px-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-200 transition-all"
+                            >
+                                Batal
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
+
+            {Object.keys(specs).length === 0 && !isAddingMode && (
+                <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 dark:bg-slate-900/20 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-xl shadow-slate-200/50 dark:shadow-none ring-8 ring-slate-50 dark:ring-slate-900/50">
+                        <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
+                    </div>
+                    <p className="font-bold text-slate-500 dark:text-slate-400">Belum ada spesifikasi teknis</p>
+                    <p className="text-xs text-slate-400 mt-1">Impor template atau tambahkan manual menggunakan tombol di atas.</p>
+                </div>
+            )}
         </div>
     );
 }
