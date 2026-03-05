@@ -15,11 +15,19 @@ export function getImageUrl(url: string | undefined | null): string {
             // We want the origin (e.g. http://localhost:3000) because the file path is typically absolute like /uploads/...
             return `${parsedUrl.origin}${url.startsWith('/') ? '' : '/'}${url}`;
         } else {
-            // It's a relative API URL (e.g., /api/v1), so just use relative paths for uploads
+            // In production, the API URL is relative, but the backend serves the images directly.
+            // So we need to point to the backend container (port 3000) using the current hostname.
+            if (typeof window !== 'undefined') {
+                return `${window.location.protocol}//${window.location.hostname}:3000${url.startsWith('/') ? '' : '/'}${url}`;
+            }
+            // Fallback for SSR/Node if window is not defined
             return url.startsWith('/') ? url : `/${url}`;
         }
     } catch (e) {
         // Fallback
+        if (typeof window !== 'undefined') {
+            return `${window.location.protocol}//${window.location.hostname}:3000${url.startsWith('/') ? '' : '/'}${url}`;
+        }
         return url.startsWith('/') ? url : `/${url}`;
     }
 }
