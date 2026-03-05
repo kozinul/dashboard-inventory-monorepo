@@ -4,6 +4,7 @@ import { Asset } from "@/services/assetService";
 import { uploadService } from "@/services/uploadService";
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import Swal from 'sweetalert2';
+import { getImageUrl } from '@/utils/imageUtils';
 
 // Helper to normalize image data
 interface ImageObject {
@@ -238,11 +239,33 @@ export function AssetGallery({ asset, onUpdate }: AssetGalleryProps) {
                             <img
                                 className="w-full h-full object-cover transition-transform group-hover:scale-110"
                                 alt={img.caption || `${asset.name} - view ${idx + 1}`}
-                                src={img.url}
+                                src={getImageUrl(img.url)}
                             />
 
                             {/* Actions Overlay */}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        Swal.fire({
+                                            imageUrl: getImageUrl(img.url),
+                                            imageAlt: img.caption || `${asset.name} - view ${idx + 1}`,
+                                            width: 'auto',
+                                            showConfirmButton: false,
+                                            showCloseButton: true,
+                                            background: 'transparent',
+                                            backdrop: 'rgba(0,0,0,0.9)',
+                                            customClass: {
+                                                image: 'max-h-[85vh] max-w-[90vw] object-contain rounded-lg',
+                                                popup: 'p-0 bg-transparent'
+                                            }
+                                        });
+                                    }}
+                                    className="p-1.5 bg-white/20 backdrop-blur rounded-full hover:bg-white/40 text-white transition"
+                                    title="View Fullscreen"
+                                >
+                                    <span className="material-symbols-outlined !text-[16px] flex items-center justify-center h-4 w-4">zoom_in</span>
+                                </button>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleEditCaption(idx); }}
                                     className="p-1.5 bg-white/20 backdrop-blur rounded-full hover:bg-white/40 text-white transition"

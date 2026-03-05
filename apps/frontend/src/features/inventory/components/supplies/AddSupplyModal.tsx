@@ -34,23 +34,28 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
     const [selectedBuilding, setSelectedBuilding] = useState<string>('');
     const [selectedFloor, setSelectedFloor] = useState<string>('');
 
+    const getParentId = (loc: any) => {
+        if (!loc.parentId) return null;
+        return typeof loc.parentId === 'object' ? String(loc.parentId._id) : String(loc.parentId);
+    };
+
     // Filtered lists
-    const buildings = locations.filter(l => l.type === 'Building');
-    const floors = locations.filter(l => l.type === 'Floor' && l.parentId === selectedBuilding);
+    const buildings = locations.filter(l => l.type === 'Building' || !getParentId(l));
+    const floors = locations.filter(l => l.type === 'Floor' && getParentId(l) === selectedBuilding);
 
     // Get all locations that are not Building or Floor
     const rooms = locations.filter(l => {
-        const isBuildingOrFloor = l.type === 'Building' || l.type === 'Floor';
+        const isBuildingOrFloor = l.type === 'Building' || l.type === 'Floor' || !getParentId(l);
         if (isBuildingOrFloor) return false;
 
         // If a floor is selected, show items belonging to that floor
         if (selectedFloor) {
-            return l.parentId === selectedFloor;
+            return getParentId(l) === selectedFloor;
         }
 
         // If only a building is selected, show items belonging directly to that building
         if (selectedBuilding) {
-            return l.parentId === selectedBuilding;
+            return getParentId(l) === selectedBuilding;
         }
 
         return false;
@@ -99,14 +104,15 @@ export function AddSupplyModal({ isOpen, onClose, onAdd }: AddSupplyModalProps) 
                         let floor = null;
                         let building = null;
 
-                        if (warehouse.type === 'Building') {
+                        if (warehouse.type === 'Building' || !warehouse.parentId) {
                             building = warehouse;
                         } else {
                             let current = warehouse;
-                            const findParent = (id: string) => allLocations.find((l: any) => l._id === id);
-                            while (current && current.type !== 'Building') {
+                            const findParent = (id: string | null) => allLocations.find((l: any) => l._id === id);
+                            while (current && current.type !== 'Building' && current.parentId) {
                                 if (current.type === 'Floor') floor = current;
-                                current = findParent(current.parentId);
+                                const parentIdStr = typeof current.parentId === 'object' ? current.parentId._id : current.parentId;
+                                current = findParent(parentIdStr);
                             }
                             building = current;
                         }

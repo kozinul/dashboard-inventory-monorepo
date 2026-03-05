@@ -2,13 +2,15 @@ import { Asset } from '../../../services/assetService';
 import { cn } from '@/lib/utils';
 
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '@/utils/imageUtils';
 
 export function AssetImageCell({ asset }: { asset: Asset }) {
     if (asset.images && asset.images.length > 0) {
+        const firstImage = typeof asset.images[0] === 'string' ? asset.images[0] : (asset.images[0] as any).url;
         return (
             <div
                 className="size-10 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-700"
-                style={{ backgroundImage: `url('${asset.images[0]}')` }}
+                style={{ backgroundImage: `url('${getImageUrl(firstImage)}')` }}
             ></div>
         );
     }

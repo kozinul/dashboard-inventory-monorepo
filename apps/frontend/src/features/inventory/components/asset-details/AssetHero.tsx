@@ -3,6 +3,7 @@ import { Asset } from "@/services/assetService";
 import { formatIDR } from "@/utils/currency";
 import QRCode from 'qrcode';
 import Swal from 'sweetalert2';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface AssetHeroProps {
     asset: Asset;
@@ -71,7 +72,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                     <img
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         alt={asset.name}
-                        src={mainImage}
+                        src={getImageUrl(mainImage)}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -79,7 +80,25 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            if (mainImage) {
+                                Swal.fire({
+                                    imageUrl: getImageUrl(mainImage),
+                                    imageAlt: asset.name,
+                                    width: 'auto',
+                                    showConfirmButton: false,
+                                    showCloseButton: true,
+                                    background: 'transparent',
+                                    backdrop: 'rgba(0,0,0,0.9)',
+                                    customClass: {
+                                        image: 'max-h-[85vh] max-w-[90vw] object-contain rounded-lg',
+                                        popup: 'p-0 bg-transparent'
+                                    }
+                                });
+                            }
+                        }}
+                        className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-white/30 transition-colors">
                         <span className="material-symbols-outlined text-sm">zoom_in</span> View Fullscreen
                     </button>
                 </div>

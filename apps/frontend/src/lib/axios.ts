@@ -21,11 +21,20 @@ instance.interceptors.request.use(
     }
 );
 
+import Swal from 'sweetalert2';
+
 instance.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
             useAuthStore.getState().logout();
+        } else if (error.response?.status === 403) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Akses Ditolak',
+                text: error.response?.data?.message || 'Anda tidak memiliki hak akses untuk melakukan tindakan ini.',
+                confirmButtonColor: '#6366F1'
+            });
         }
         return Promise.reject(error);
     }

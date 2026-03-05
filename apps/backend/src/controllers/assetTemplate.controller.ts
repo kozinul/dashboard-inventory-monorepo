@@ -173,12 +173,22 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             serial,
             value: originalAsset.value,
             technicalSpecifications: originalAsset.technicalSpecifications,
-            images: [], // Don't clone images
+            images: originalAsset.images || [],
             status: 'active', // Cloned assets are set to active by default
             departmentId: originalAsset.departmentId,
             department: originalAsset.department,
             branchId: originalAsset.branchId,
-            purchaseDate: new Date()
+            purchaseDate: originalAsset.purchaseDate || new Date(),
+            vendorId: originalAsset.vendorId,
+            cost: originalAsset.cost,
+            warrantyExpiry: originalAsset.warrantyExpiry,
+            rentalRates: originalAsset.rentalRates || [],
+            requiresExternalService: originalAsset.requiresExternalService,
+            locationId: originalAsset.locationId,
+            location: originalAsset.location,
+            supplier: originalAsset.supplier,
+            contactPerson: originalAsset.contactPerson,
+            contactPhone: originalAsset.contactPhone
         });
 
         res.status(201).json(clonedAsset);
@@ -218,12 +228,22 @@ export const bulkCloneAssets = async (req: Request, res: Response, next: NextFun
             serial,
             value: originalAsset.value,
             technicalSpecifications: originalAsset.technicalSpecifications,
-            images: [], // Don't clone images
+            images: originalAsset.images || [],
             status: 'active', // Cloned assets are set to active by default
             departmentId: originalAsset.departmentId,
             department: originalAsset.department,
             branchId: originalAsset.branchId,
-            purchaseDate: new Date()
+            purchaseDate: originalAsset.purchaseDate || new Date(),
+            vendorId: originalAsset.vendorId,
+            cost: originalAsset.cost,
+            warrantyExpiry: originalAsset.warrantyExpiry,
+            rentalRates: originalAsset.rentalRates || [],
+            requiresExternalService: originalAsset.requiresExternalService,
+            locationId: originalAsset.locationId,
+            location: originalAsset.location,
+            supplier: originalAsset.supplier,
+            contactPerson: originalAsset.contactPerson,
+            contactPhone: originalAsset.contactPhone
         }));
 
         const clonedAssets = await Asset.insertMany(assetsToCreate);

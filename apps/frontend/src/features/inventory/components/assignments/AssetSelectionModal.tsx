@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Asset } from '@/services/assetService';
 import { assetService } from '@/services/assetService';
 import { departmentService, Department } from '@/services/departmentService';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface AssetSelectionModalProps {
     isOpen: boolean;
@@ -197,7 +198,7 @@ export function AssetSelectionModal({ isOpen, onClose, onSelect, alreadySelected
                                                     <div className="flex items-center gap-3">
                                                         <div className="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
                                                             {imageUrl ? (
-                                                                <img src={imageUrl} alt={asset.name} className="size-full object-cover" />
+                                                                <img src={getImageUrl(imageUrl)} alt={asset.name} className="size-full object-cover" />
                                                             ) : (
                                                                 <span className="material-symbols-outlined text-gray-400">inventory_2</span>
                                                             )}
