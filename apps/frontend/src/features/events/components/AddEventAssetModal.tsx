@@ -88,7 +88,7 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
         if (selectedAssetIds.size === filteredAssets.length) {
             setSelectedAssetIds(new Set());
         } else {
-            setSelectedAssetIds(new Set(filteredAssets.map(a => a._id || a.id)));
+            setSelectedAssetIds(new Set(filteredAssets.map(a => a._id || a.id).filter(Boolean) as string[]));
         }
     };
 
@@ -102,11 +102,11 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
 
             const newAssets = Array.from(selectedAssetIds).map(id => {
                 const asset = assets.find(a => (a._id || a.id) === id)!;
-                const defaultRate = asset.rentalRates![0];
+                const defaultRate = asset.rentalRates?.[0];
                 return {
                     assetId: id,
-                    rentalRate: defaultRate.rate,
-                    rentalRateUnit: defaultRate.unit
+                    rentalRate: defaultRate?.rate || 0,
+                    rentalRateUnit: defaultRate?.unit || 'day'
                 };
             });
 
@@ -219,7 +219,9 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
                                                     </tr>
                                                 ) : (
                                                     filteredAssets.map(asset => {
-                                                        const assetId = asset._id || asset.id;
+                                                        const assetId = (asset._id || asset.id) as string;
+                                                        if (!assetId) return null;
+
                                                         const isSelected = selectedAssetIds.has(assetId);
 
                                                         const imageUrlRaw = asset.images && asset.images.length > 0 ? asset.images[0] : null;

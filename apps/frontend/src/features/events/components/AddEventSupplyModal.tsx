@@ -59,7 +59,7 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
     }, [supplies, searchTerm, selectedCategory]);
 
     const toggleSelection = (supply: Supply) => {
-        const id = supply._id || supply.id;
+        const id = supply._id as string;
         if (!id) return;
 
         setSelectedItems(prev => {
@@ -91,7 +91,7 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
         } else {
             const newSelection: Record<string, { quantity: number, cost: number }> = {};
             filteredSupplies.forEach(supply => {
-                const id = supply._id || supply.id;
+                const id = supply._id as string;
                 if (id) {
                     newSelection[id] = { quantity: 1, cost: supply.cost || 0 };
                 }
@@ -231,11 +231,13 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
                                                     </tr>
                                                 ) : (
                                                     filteredSupplies.map(supply => {
-                                                        const id = supply._id || supply.id;
+                                                        const id = supply._id as string;
                                                         if (!id) return null;
 
                                                         const isSelected = !!selectedItems[id];
-                                                        const imgUrlStr = supply.image ? (typeof supply.image === 'string' ? supply.image : (supply.image as any)?.url) : null;
+                                                        // Supply model image/images check. Assuming images array based on error.
+                                                        const imageRaw = (supply as any).images?.[0] || (supply as any).image;
+                                                        const imgUrlStr = imageRaw ? (typeof imageRaw === 'string' ? imageRaw : (imageRaw as any)?.url) : null;
 
                                                         return (
                                                             <tr
@@ -274,7 +276,7 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
                                                                             type="number"
                                                                             min="1"
                                                                             className="w-20 text-center rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-primary focus:border-primary text-sm p-1"
-                                                                            value={selectedItems[id].quantity}
+                                                                            value={selectedItems[id]?.quantity || 1}
                                                                             onChange={e => updateQuantity(id, parseInt(e.target.value) || 1)}
                                                                         />
                                                                     ) : (

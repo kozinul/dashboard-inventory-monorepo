@@ -41,6 +41,11 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: false,
             },
+            '/uploads': {
+                target: process.env.VITE_API_URL || 'http://localhost:3000',
+                changeOrigin: true,
+                secure: false,
+            },
         },
     },
     // Preview server configuration (for production preview)
