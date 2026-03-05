@@ -10,11 +10,16 @@ export function getImageUrl(url: string | undefined | null): string {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
     try {
-        const parsedUrl = new URL(apiUrl);
-        // We want the origin (e.g. http://localhost:3000) because the file path is typically absolute like /uploads/...
-        return `${parsedUrl.origin}${url.startsWith('/') ? '' : '/'}${url}`;
+        if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+            const parsedUrl = new URL(apiUrl);
+            // We want the origin (e.g. http://localhost:3000) because the file path is typically absolute like /uploads/...
+            return `${parsedUrl.origin}${url.startsWith('/') ? '' : '/'}${url}`;
+        } else {
+            // It's a relative API URL (e.g., /api/v1), so just use relative paths for uploads
+            return url.startsWith('/') ? url : `/${url}`;
+        }
     } catch (e) {
-        // Fallback in case VITE_API_URL is somehow invalid or just relative
-        return `http://localhost:3000${url.startsWith('/') ? '' : '/'}${url}`;
+        // Fallback
+        return url.startsWith('/') ? url : `/${url}`;
     }
 }
