@@ -179,16 +179,13 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             department: originalAsset.department,
             branchId: originalAsset.branchId,
             purchaseDate: originalAsset.purchaseDate || new Date(),
-            vendorId: originalAsset.vendorId,
-            cost: originalAsset.cost,
-            warrantyExpiry: originalAsset.warrantyExpiry,
+            vendor: originalAsset.vendor,
+            warranty: originalAsset.warranty,
+            invoice: originalAsset.invoice,
             rentalRates: originalAsset.rentalRates || [],
             requiresExternalService: originalAsset.requiresExternalService,
             locationId: originalAsset.locationId,
-            location: originalAsset.location,
-            supplier: originalAsset.supplier,
-            contactPerson: originalAsset.contactPerson,
-            contactPhone: originalAsset.contactPhone
+            location: originalAsset.location
         });
 
         res.status(201).json(clonedAsset);
@@ -234,16 +231,13 @@ export const bulkCloneAssets = async (req: Request, res: Response, next: NextFun
             department: originalAsset.department,
             branchId: originalAsset.branchId,
             purchaseDate: originalAsset.purchaseDate || new Date(),
-            vendorId: originalAsset.vendorId,
-            cost: originalAsset.cost,
-            warrantyExpiry: originalAsset.warrantyExpiry,
+            vendor: originalAsset.vendor,
+            warranty: originalAsset.warranty,
+            invoice: originalAsset.invoice,
             rentalRates: originalAsset.rentalRates || [],
             requiresExternalService: originalAsset.requiresExternalService,
             locationId: originalAsset.locationId,
-            location: originalAsset.location,
-            supplier: originalAsset.supplier,
-            contactPerson: originalAsset.contactPerson,
-            contactPhone: originalAsset.contactPhone
+            location: originalAsset.location
         }));
 
         const clonedAssets = await Asset.insertMany(assetsToCreate);
