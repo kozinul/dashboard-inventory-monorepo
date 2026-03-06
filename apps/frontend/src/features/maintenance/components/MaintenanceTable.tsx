@@ -22,12 +22,10 @@ export function MaintenanceTable({ tasks, onEdit, onDelete, onComplete, userRole
     useEffect(() => {
         const fetchTechnicians = async () => {
             try {
-                const users = await userService.getAll();
-                // Filter users who have 'technician' role
-                const techs = users.filter(u => u.role === 'technician');
+                const techs = await userService.getTechnicians();
                 setTechnicians(techs);
             } catch (error) {
-                console.error("Failed to fetch technicians for filter", error);
+                console.error('Failed to fetch technicians:', error);
             }
         };
 

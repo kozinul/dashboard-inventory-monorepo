@@ -3,6 +3,21 @@ import { User } from '../models/user.model.js';
 import { CreateUserSchema } from '@dashboard/schemas'; // Assuming this export exists or we fix it to allow import
 // If @dashboard/schemas is not linked yet, this might fail in strict compilation, but code is correct.
 
+export const getTechnicians = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const filter: any = {
+            role: { $in: ["technician", "dept_admin", "manager", "superuser", "admin"] }
+        };
+        if (req.user export const getUsersexport const getUsers req.user.role !== "superuser") {
+            filter.branchId = (req.user as any).branchId;
+        }
+        const users = await User.find(filter).select("_id name department role branchId email").populate("branchId");
+        res.json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: any = {};

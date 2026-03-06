@@ -27,6 +27,11 @@ export const userService = {
         return response.data;
     },
 
+    getTechnicians: async () => {
+        const response = await axios.get<User[]>(`${API_URL}/technicians`);
+        return response.data;
+    },
+
     getById: async (id: string) => {
         const response = await axios.get<User>(`${API_URL}/${id}`);
         return response.data;

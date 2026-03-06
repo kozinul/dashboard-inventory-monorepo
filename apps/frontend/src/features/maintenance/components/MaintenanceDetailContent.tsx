@@ -117,8 +117,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
 
     const fetchTechnicians = async (currentTicket?: MaintenanceTicket) => {
         try {
-            const users = await userService.getAll();
-            let validTechs = users.filter(u => ['technician', 'dept_admin', 'manager', 'superuser', 'admin'].includes(u.role));
+            let validTechs = await userService.getTechnicians();
 
             // If it's an internal ticket and the requester is not in the list, add them so the default selection works
             if (currentTicket?.isInternalDepartment) {
@@ -132,7 +131,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                         department: (requesterObj.department?.name || requesterObj.department || 'User')
                     } : null;
 
-                    const requesterData = users.find(u => u._id === requesterId) || fallbackUserObj;
+                    const requesterData = validTechs.find((u: User) => u._id === requesterId) || fallbackUserObj;
 
                     if (requesterData) {
                         validTechs = [...validTechs, requesterData as any];

@@ -1,6 +1,7 @@
 import express from 'express';
 import {
     getUsers,
+    getTechnicians,
     getUser,
     createUser,
     updateUser,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/', checkPermission('users', 'view'), getUsers);
+router.get('/technicians', getTechnicians);
 router.post('/', checkPermission('users', 'create'), createUser);
 router.get('/:id', checkPermission('users', 'view'), getUser);
 router.put('/:id', checkPermission('users', 'edit'), updateUser);
