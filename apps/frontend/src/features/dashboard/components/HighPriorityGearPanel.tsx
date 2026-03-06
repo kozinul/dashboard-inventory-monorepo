@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { SystemInfoCard } from './SystemInfoCard';
 import { eventService, Event } from '@/services/eventService';
 import { Card } from '@/components/common/Card/Card';
 import { cn } from '@/lib/utils';
@@ -128,8 +127,6 @@ export function HighPriorityGearPanel() {
                     )}
                 </div>
             </div>
-
-            <SystemInfoCard />
         </div>
     );
 }

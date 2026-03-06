@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Asset, assetService } from "@/services/assetService";
 import { formatIDR } from "@/utils/currency";
 import axios from "@/lib/axios";
-import { showSuccessToast, showErrorToast } from "@/utils/swal";
+import { showSuccessToast, showErrorToast, showConfirmDelete } from "@/utils/swal";
 
 interface AssetPurchasingTabProps {
     asset: Asset;
@@ -13,7 +13,14 @@ export function AssetPurchasingTab({ asset, onUpdate }: AssetPurchasingTabProps)
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteInvoice = async () => {
-        if (!asset.invoice || !window.confirm('Are you sure you want to delete this invoice?')) return;
+        if (!asset.invoice) return;
+
+        const isConfirmed = await showConfirmDelete(
+            'Delete Invoice',
+            'Are you sure you want to delete this invoice?'
+        );
+        if (!isConfirmed) return;
+
         setIsDeleting(true);
         try {
             await axios.delete(`/upload/${asset.invoice.filename}`).catch((err) => {
