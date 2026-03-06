@@ -199,7 +199,7 @@ export default function AssetDetailsPage() {
 
                 <div className="min-h-[400px] bg-white dark:bg-slate-800 rounded-b-xl p-6 border-x border-b border-gray-200 dark:border-gray-700">
                     {activeTab === 'technical_info' && <TechnicalSpecsEditor asset={asset} onUpdate={() => loadAsset(id!)} />}
-                    {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} />}
+                    {activeTab === 'purchasing' && <AssetPurchasingTab asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'documents' && <AssetDocuments asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'rental_rates' && <AssetRentalRatesTab asset={asset} onUpdate={() => loadAsset(id!)} />}
                     {activeTab === 'assignments' && <AssetAssignmentTab asset={asset} />}

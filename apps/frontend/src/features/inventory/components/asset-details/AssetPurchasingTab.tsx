@@ -1,11 +1,35 @@
-import { Asset } from "@/services/assetService";
+import { useState } from "react";
+import { Asset, assetService } from "@/services/assetService";
 import { formatIDR } from "@/utils/currency";
+import axios from "@/lib/axios";
+import { showSuccessToast, showErrorToast } from "@/utils/swal";
 
 interface AssetPurchasingTabProps {
     asset: Asset;
+    onUpdate?: () => void;
 }
 
-export function AssetPurchasingTab({ asset }: AssetPurchasingTabProps) {
+export function AssetPurchasingTab({ asset, onUpdate }: AssetPurchasingTabProps) {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteInvoice = async () => {
+        if (!asset.invoice || !window.confirm('Are you sure you want to delete this invoice?')) return;
+        setIsDeleting(true);
+        try {
+            await axios.delete(`/upload/${asset.invoice.filename}`).catch((err) => {
+                console.warn('File might already be deleted on server:', err);
+            });
+            await assetService.update(asset._id, { invoice: null } as any);
+            showSuccessToast('Invoice deleted successfully');
+            if (onUpdate) onUpdate();
+        } catch (error) {
+            console.error('Failed to delete invoice:', error);
+            showErrorToast('Failed to delete invoice');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     if (!asset.vendor && !asset.invoice && !asset.warranty) {
         return (
             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -93,15 +117,27 @@ export function AssetPurchasingTab({ asset }: AssetPurchasingTabProps) {
                                 <p className="text-sm font-medium text-slate-900 dark:text-white">{asset.invoice.filename}</p>
                                 <p className="text-xs text-slate-500">Uploaded on {new Date(asset.invoice.uploadDate).toLocaleDateString()}</p>
                             </div>
-                            <a
-                                href={asset.invoice.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">download</span>
-                                Download
-                            </a>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href={asset.invoice.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">download</span>
+                                    Download
+                                </a>
+                                <button
+                                    onClick={handleDeleteInvoice}
+                                    disabled={isDeleting}
+                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">
+                                        {isDeleting ? 'hourglass_empty' : 'delete'}
+                                    </span>
+                                    Delete
+                                </button>
+                            </div>
                         </div>
 
                         {/* Preview if image */}
