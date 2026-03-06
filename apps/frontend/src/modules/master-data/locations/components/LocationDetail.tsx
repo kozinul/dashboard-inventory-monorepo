@@ -1,22 +1,23 @@
-import { BoxLocation } from '@/services/locationService';
+import { BoxLocation, locationService, CreateLocationDto } from '@/services/locationService';
 import { Asset, assetService } from '@/services/assetService';
 import { useState, useEffect } from 'react';
 import {
     ServerIcon,
     CheckCircleIcon,
-    BoltIcon, // For power/UPS
+    BoltIcon,
     MagnifyingGlassIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     FunnelIcon,
     Squares2X2Icon,
+    PencilIcon,
 } from '@heroicons/react/24/outline';
-import { CubeIcon } from '@heroicons/react/24/solid'; // Using solid for some measures if available or fallback
-// Note: Heroicons doesn't have thermostat/humidity exactly like Material. Using approximations.
-
+import { CubeIcon } from '@heroicons/react/24/solid';
 import { clsx } from 'clsx';
-
 import { LocationGrid } from './LocationGrid';
+import { LocationModal } from './LocationModal';
+import Swal from 'sweetalert2';
+// Note: Heroicons doesn't have thermostat/humidity exactly like Material. Using approximations.
 
 interface LocationDetailProps {
     location: BoxLocation;
@@ -42,12 +43,25 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
         fetchAssets();
     }, [location._id]);
 
-    // Mock stats for the design
-    const stats = {
-        temp: "19.4°C",
-        humidity: "42%",
-        sqFootage: "450 sq ft",
-        dept: "Infrastructure IT"
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const handleSave = async (data: CreateLocationDto) => {
+        try {
+            await locationService.update(location._id, data);
+            window.dispatchEvent(new Event('location-update'));
+            setIsEditModalOpen(false);
+            Swal.fire({
+                title: 'Updated!',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false,
+                background: '#1A1A2E',
+                color: '#ffffff'
+            });
+            // Update the local prop if possible, or wait for parent to re-render
+        } catch (error) {
+            Swal.fire({ title: 'Error', text: 'Failed to save', icon: 'error', background: '#1A1A2E', color: '#ffffff' });
+        }
     };
 
     return (
@@ -61,6 +75,9 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
                                 <ChevronLeftIcon className="size-3" />
                                 Back
                             </button>
+                            <button onClick={() => setIsEditModalOpen(true)} className="text-text-secondary hover:text-white p-1 ml-4 rounded hover:bg-white/5 transition-colors" title="Edit Location">
+                                <PencilIcon className="size-4" />
+                            </button>
                         </div>
                         <h2 className="font-header text-2xl font-bold text-white">{location.name}</h2>
                         <p className="text-xs font-mono text-text-secondary">{location.type.toUpperCase()}-{location._id.slice(-6).toUpperCase()}</p>
@@ -68,8 +85,8 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
                     <div className="h-8 w-px bg-border-dark"></div>
                     <div className="flex gap-6">
                         <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Square Footage</span>
-                            <span className="text-sm font-mono text-white">{stats.sqFootage}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Description</span>
+                            <span className="text-sm text-white truncate max-w-[150px]">{location.description || 'N/A'}</span>
                         </div>
                         {(location.type === 'Rack' || location.type === 'Panel' || location.type === 'Panel Box') && (
                             <div className="flex flex-col">
@@ -79,26 +96,29 @@ export function LocationDetail({ location, onBack, onSelectLocation }: LocationD
                         )}
                         <div className="flex flex-col">
                             <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Dept Owner</span>
-                            <span className="text-sm font-medium text-white">{stats.dept}</span>
+                            <span className="text-sm font-medium text-white">{typeof location.departmentId === 'object' && location.departmentId !== null ? location.departmentId.name : (location.departmentId || 'Unassigned')}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Environment</span>
-                            <div className="flex items-center gap-3 mt-0.5">
-                                <span className="flex items-center gap-1 text-sm font-mono text-emerald-400">
-                                    <span className="text-xs">Temp</span> {stats.temp}
-                                </span>
-                                <span className="flex items-center gap-1 text-sm font-mono text-blue-400">
-                                    <span className="text-xs">Hum</span> {stats.humidity}
-                                </span>
-                            </div>
+                            <span className="text-[10px] uppercase tracking-wider text-text-secondary font-bold">Status</span>
+                            <span className={clsx("text-sm font-bold", location.status === 'Active' ? 'text-emerald-400' : location.status === 'Maintenance' ? 'text-amber-400' : 'text-rose-400')}>
+                                {location.status}
+                            </span>
                         </div>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase rounded border border-emerald-500/20">Secure Access</span>
-                    <span className="px-2 py-1 bg-accent-indigo/10 text-accent-indigo text-[10px] font-bold uppercase rounded border border-accent-indigo/20">Critical Zone</span>
+                    {location.isWarehouse && <span className="px-2 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase rounded border border-amber-500/20">Warehouse</span>}
+                    <span className="px-2 py-1 bg-accent-indigo/10 text-accent-indigo text-[10px] font-bold uppercase rounded border border-accent-indigo/20">{location.type}</span>
                 </div>
             </div>
+
+            <LocationModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onSubmit={handleSave}
+                editingLocation={location}
+                parentLocation={typeof location.parentId === 'object' ? location.parentId as any : null}
+            />
 
             {/* Main Content Area */}
             <div className="flex-1 flex overflow-hidden">

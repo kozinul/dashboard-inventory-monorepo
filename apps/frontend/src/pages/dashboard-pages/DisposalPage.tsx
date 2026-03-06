@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DisposalStats } from '@/features/disposal/components/DisposalStats';
 import { DisposalTable } from '@/features/disposal/components/DisposalTable';
-import { DocumentationPanel } from '@/features/disposal/components/DocumentationPanel';
 import { disposalService, DisposalStats as IDisposalStats } from '@/features/disposal/services/disposalService';
 import { ScheduleDisposalModal } from '@/features/disposal/components/ScheduleDisposalModal';
 import { useAuthStore } from '@/store/authStore';
@@ -52,11 +51,6 @@ export default function DisposalPage() {
             <div className="flex flex-col xl:flex-row gap-6">
                 <div className="flex-1 min-w-0">
                     <DisposalTable />
-                </div>
-
-                {/* Right Sidebar */}
-                <div className="hidden xl:block w-80 shrink-0">
-                    <DocumentationPanel />
                 </div>
             </div>
 

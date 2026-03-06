@@ -8,7 +8,7 @@ export const getTechnicians = async (req: Request, res: Response, next: NextFunc
         const filter: any = {
             role: { $in: ["technician", "dept_admin", "manager", "superuser", "admin"] }
         };
-        if (req.user export const getUsersexport const getUsers req.user.role !== "superuser") {
+        if (req.user && req.user.role !== "superuser") {
             filter.branchId = (req.user as any).branchId;
         }
         const users = await User.find(filter).select("_id name department role branchId email").populate("branchId");
