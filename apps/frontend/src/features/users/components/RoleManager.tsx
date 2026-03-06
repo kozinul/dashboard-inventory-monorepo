@@ -58,11 +58,21 @@ const RESOURCE_GROUPS = [
         group: 'Master Data',
         icon: '⚙️',
         resources: [
+            { id: 'master_data', label: 'Master Data (Menu)', actions: ['view', 'create', 'edit', 'delete'], description: 'Top level access to Master Data dropdown' },
+            { id: 'branches', label: 'Branches', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage branch/office definitions' },
             { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage item categories' },
             { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage physical locations and rooms' },
             { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage vendor and supplier information' },
             { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage templates for asset creation' },
             { id: 'history', label: 'History', actions: ['view'], description: 'View audit logs and activity history' },
+        ]
+    },
+    {
+        group: 'System Settings & Logs',
+        icon: '💻',
+        resources: [
+            { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Bulk Excel Import/Export center' },
+            { id: 'audit_logs', label: 'Activity Logs', actions: ['view'], description: 'View global system activity tracking' },
         ]
     },
 ];

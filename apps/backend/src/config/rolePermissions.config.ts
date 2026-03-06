@@ -45,11 +45,17 @@ export const RESOURCES = [
     'settings',
 
     // Master Data / Configuration
+    'master_data',
     'categories',
     'locations',
+    'branches',
     'vendors',
     'asset_templates',
-    'history'
+    'history',
+
+    // System Settings & Logs
+    'data_management',
+    'audit_logs'
 ] as const;
 
 export type ResourceType = typeof RESOURCES[number];
@@ -103,6 +109,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'history', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
         { resource: 'disposal', actions: viewOnly() },
+        { resource: 'master_data', actions: viewCreateEdit() },
+        { resource: 'branches', actions: viewCreateEdit() },
+        { resource: 'vendors', actions: viewCreateEdit() },
+        { resource: 'data_management', actions: viewOnly() },
+        { resource: 'audit_logs', actions: viewOnly() },
     ],
 
     dept_admin: [
@@ -124,6 +135,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'history', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
         { resource: 'disposal', actions: viewOnly() },
+        { resource: 'master_data', actions: viewCreateEdit() },
+        { resource: 'branches', actions: viewCreateEdit() },
+        { resource: 'vendors', actions: viewCreateEdit() },
+        { resource: 'data_management', actions: viewOnly() },
+        { resource: 'audit_logs', actions: viewOnly() },
     ],
 
     supervisor: [
@@ -138,6 +154,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'history', actions: viewOnly() },
         { resource: 'assignments', actions: viewCreateEdit() },
         { resource: 'users', actions: viewOnly() },
+        { resource: 'master_data', actions: viewOnly() },
+        { resource: 'branches', actions: viewOnly() },
+        { resource: 'vendors', actions: viewCreateEdit() },
     ],
 
     user: [
@@ -145,8 +164,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'inventory', actions: viewOnly() },
         { resource: 'maintenance', actions: viewCreateEdit() },
         { resource: 'my_tickets', actions: viewCreateEdit() },
+        { resource: 'dept_tickets', actions: viewCreateEdit() },
         { resource: 'my_assets', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
+        { resource: 'data_management', actions: fullAccess() }, // Users often upload self-service import/exports
+        { resource: 'master_data', actions: viewOnly() },
     ],
 
     technician: [
@@ -165,6 +187,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'assignments', actions: viewCreateEdit() },
         { resource: 'history', actions: viewOnly() },
         { resource: 'users', actions: viewOnly() },
+        { resource: 'master_data', actions: viewOnly() },
+        { resource: 'master_data', actions: viewOnly() },
+        { resource: 'branches', actions: viewOnly() },
+        { resource: 'vendors', actions: viewCreateEdit() },
+        { resource: 'data_management', actions: viewOnly() },
     ],
 
     auditor: [
@@ -172,6 +199,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'inventory', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
+        { resource: 'reports', actions: viewOnly() },
+        { resource: 'audit_logs', actions: viewOnly() },
+        { resource: 'data_management', actions: viewOnly() },
+        { resource: 'vendors', actions: viewOnly() },
     ]
 };
 

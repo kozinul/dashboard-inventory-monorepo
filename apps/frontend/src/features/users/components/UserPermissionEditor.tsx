@@ -35,10 +35,14 @@ const RESOURCES = [
     { id: 'settings', label: 'Settings', actions: ['view', 'edit'] },
     { id: 'reports', label: 'Laporan', actions: ['view'] },
     { id: 'history', label: 'History', actions: ['view'] },
+    { id: 'master_data', label: 'Master Data (Menu)', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'branches', label: 'Branches', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'audit_logs', label: 'Activity Logs', actions: ['view'] },
 ];
 
 interface UserPermissionEditorProps {
