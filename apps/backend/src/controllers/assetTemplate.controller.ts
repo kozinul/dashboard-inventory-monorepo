@@ -1,6 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import { AssetTemplate } from '../models/assetTemplate.model.js';
 import { Asset } from '../models/asset.model.js';
+import fs from 'fs';
+import path from 'path';
+
+// Helper function to physically copy an uploaded file and return the new URL
+const copyAssetFile = (fileUrl: string | undefined): string | undefined => {
+    if (!fileUrl) return undefined;
+    if (!fileUrl.startsWith('/uploads/')) return fileUrl;
+
+    try {
+        const filename = fileUrl.replace('/uploads/', '');
+        const sourcePath = path.resolve(process.cwd(), 'uploads', filename);
+
+        if (fs.existsSync(sourcePath)) {
+            const ext = path.extname(filename);
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const newFilename = 'file-' + uniqueSuffix + ext;
+            const destPath = path.resolve(process.cwd(), 'uploads', newFilename);
+
+            fs.copyFileSync(sourcePath, destPath);
+            return `/uploads/${newFilename}`;
+        }
+    } catch (error) {
+        console.error('Error copying asset file:', error);
+    }
+    return fileUrl; // Fallback to original if copy fails
+};
 
 export const getAssetTemplates = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -166,6 +192,20 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             throw new Error('An asset with this serial number already exists');
         }
 
+        // Duplicate physical files to ensure isolation
+        const clonedImages = originalAsset.images ? originalAsset.images.map(img => ({
+            url: copyAssetFile(img.url ? img.url : undefined),
+            caption: img.caption,
+            filename: img.filename
+        })) : [];
+
+        const clonedInvoice = originalAsset.invoice ? {
+            number: originalAsset.invoice.number,
+            url: copyAssetFile(originalAsset.invoice.url ? originalAsset.invoice.url : undefined),
+            filename: originalAsset.invoice.filename,
+            uploadDate: originalAsset.invoice.uploadDate
+        } : undefined;
+
         const clonedAsset = await Asset.create({
             name: originalAsset.name,
             model: originalAsset.model,
@@ -173,7 +213,7 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             serial,
             value: originalAsset.value,
             technicalSpecifications: originalAsset.technicalSpecifications,
-            images: originalAsset.images || [],
+            images: clonedImages,
             status: 'active', // Cloned assets are set to active by default
             departmentId: originalAsset.departmentId,
             department: originalAsset.department,
@@ -181,7 +221,7 @@ export const cloneAsset = async (req: Request, res: Response, next: NextFunction
             purchaseDate: originalAsset.purchaseDate || new Date(),
             vendor: originalAsset.vendor,
             warranty: originalAsset.warranty,
-            invoice: originalAsset.invoice,
+            invoice: clonedInvoice,
             rentalRates: originalAsset.rentalRates || [],
             requiresExternalService: originalAsset.requiresExternalService,
             locationId: originalAsset.locationId,
@@ -218,27 +258,43 @@ export const bulkCloneAssets = async (req: Request, res: Response, next: NextFun
             throw new Error(`The following serial numbers already exist: ${existingSerials}`);
         }
 
-        const assetsToCreate = serials.map(serial => ({
-            name: originalAsset.name,
-            model: originalAsset.model,
-            category: originalAsset.category,
-            serial,
-            value: originalAsset.value,
-            technicalSpecifications: originalAsset.technicalSpecifications,
-            images: originalAsset.images || [],
-            status: 'active', // Cloned assets are set to active by default
-            departmentId: originalAsset.departmentId,
-            department: originalAsset.department,
-            branchId: originalAsset.branchId,
-            purchaseDate: originalAsset.purchaseDate || new Date(),
-            vendor: originalAsset.vendor,
-            warranty: originalAsset.warranty,
-            invoice: originalAsset.invoice,
-            rentalRates: originalAsset.rentalRates || [],
-            requiresExternalService: originalAsset.requiresExternalService,
-            locationId: originalAsset.locationId,
-            location: originalAsset.location
-        }));
+        const assetsToCreate = serials.map(serial => {
+            // Duplicate physical files for EVERY individual cloned asset to ensure full isolation
+            const clonedImages = originalAsset.images ? originalAsset.images.map(img => ({
+                url: copyAssetFile(img.url ? img.url : undefined),
+                caption: img.caption,
+                filename: img.filename
+            })) : [];
+
+            const clonedInvoice = originalAsset.invoice ? {
+                number: originalAsset.invoice.number,
+                url: copyAssetFile(originalAsset.invoice.url ? originalAsset.invoice.url : undefined),
+                filename: originalAsset.invoice.filename,
+                uploadDate: originalAsset.invoice.uploadDate
+            } : undefined;
+
+            return {
+                name: originalAsset.name,
+                model: originalAsset.model,
+                category: originalAsset.category,
+                serial,
+                value: originalAsset.value,
+                technicalSpecifications: originalAsset.technicalSpecifications,
+                images: clonedImages,
+                status: 'active', // Cloned assets are set to active by default
+                departmentId: originalAsset.departmentId,
+                department: originalAsset.department,
+                branchId: originalAsset.branchId,
+                purchaseDate: originalAsset.purchaseDate || new Date(),
+                vendor: originalAsset.vendor,
+                warranty: originalAsset.warranty,
+                invoice: clonedInvoice,
+                rentalRates: originalAsset.rentalRates || [],
+                requiresExternalService: originalAsset.requiresExternalService,
+                locationId: originalAsset.locationId,
+                location: originalAsset.location
+            };
+        });
 
         const clonedAssets = await Asset.insertMany(assetsToCreate);
 
