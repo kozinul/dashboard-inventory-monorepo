@@ -94,11 +94,13 @@ import searchRoutes from './routes/search.routes.js';
 import path from 'path';
 
 import rolePermissionRoutes from './routes/rolePermission.routes.js';
+import toolsRoutes from './routes/tools.routes.js';
 
 app.use('/api/v1/upload', uploadRoutes); // Register upload routes
 app.use('/api/v1/data', importExportRoutes); // Register import/export routes
 app.use('/api/v1/search', searchRoutes); // Register search routes
 app.use('/api/v1/role-permissions', rolePermissionRoutes); // Register role permissions routes
+app.use('/api/v1/tools', toolsRoutes); // Register tools routes
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));

@@ -73,6 +73,7 @@ const RESOURCE_GROUPS = [
         resources: [
             { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Bulk Excel Import/Export center' },
             { id: 'audit_logs', label: 'Activity Logs', actions: ['view'], description: 'View global system activity tracking' },
+            { id: 'tools', label: 'Tools (JSON ➜ Excel)', actions: ['view', 'create'], description: 'JSON to Excel Auto-conversion Tool' },
         ]
     },
 ];

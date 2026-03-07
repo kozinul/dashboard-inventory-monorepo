@@ -66,6 +66,7 @@ const masterDataNavigation = [
     { name: 'Branches', href: '/master-data/branches', icon: BuildingOfficeIcon },
     { name: 'Users', href: '/users', icon: UsersIcon },
     { name: 'Database', href: '/master-data/database', icon: CircleStackIcon },
+    { name: 'Tools', href: '/master-data/tools', icon: WrenchScrewdriverIcon },
 ]
 
 type NavigationItem = {
@@ -217,7 +218,8 @@ function DashboardLayout() {
             'Locations': 'locations',
             'Branches': 'branches',
             'Database': 'settings', // Map database to settings
-            'Data Management': 'data_management'
+            'Data Management': 'data_management',
+            'Tools': 'tools'
         };
 
         const resource = resourceMap[item.name];

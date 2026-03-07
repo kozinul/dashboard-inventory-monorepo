@@ -44,6 +44,7 @@ import EventDetailsPage from '../pages/dashboard-pages/EventDetailsPage';
 import UserDetailsPage from '../features/users/pages/UserDetailsPage';
 import DataManagementPage from '../pages/dashboard-pages/DataManagementPage';
 import ErrorPage from '../pages/ErrorPage';
+import ToolsPage from '../pages/master-data/ToolsPage';
 
 // Auth Imports
 import LoginPage from '../pages/LoginPage';
@@ -233,6 +234,10 @@ export const router = createBrowserRouter([
                             {
                                 path: 'data-management',
                                 element: <DataManagementPage />,
+                            },
+                            {
+                                path: 'master-data/tools',
+                                element: <ToolsPage />,
                             },
 
                         ],

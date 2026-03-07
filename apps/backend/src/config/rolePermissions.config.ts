@@ -55,7 +55,10 @@ export const RESOURCES = [
 
     // System Settings & Logs
     'data_management',
-    'audit_logs'
+    'audit_logs',
+
+    // Tools
+    'tools'
 ] as const;
 
 export type ResourceType = typeof RESOURCES[number];
@@ -114,6 +117,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'vendors', actions: viewCreateEdit() },
         { resource: 'data_management', actions: viewOnly() },
         { resource: 'audit_logs', actions: viewOnly() },
+        { resource: 'tools', actions: viewOnly() },
     ],
 
     dept_admin: [
