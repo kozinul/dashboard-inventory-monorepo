@@ -137,10 +137,14 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                 };
             }
 
+            const selectedCategory = categories.find(c => c.name === data.category);
+            const templateSpecs = selectedCategory?.technicalSpecsTemplate || {};
+
             const assetData: any = {
                 name: data.name,
                 model: data.model,
                 category: data.category,
+                technicalSpecifications: templateSpecs,
                 serial: data.serial,
                 departmentId: data.departmentId,
                 department: selectedDept?.name || 'Unknown',

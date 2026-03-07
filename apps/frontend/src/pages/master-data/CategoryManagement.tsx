@@ -4,6 +4,7 @@ import { useAppStore } from '@/store/appStore';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import * as XLSX from 'xlsx';
 
 interface Department {
     _id: string;
@@ -172,20 +173,41 @@ export default function CategoryManagement() {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                const json = JSON.parse(e.target?.result as string);
-                if (typeof json !== 'object' || json === null) {
-                    throw new Error('Invalid JSON format');
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                if (!firstSheetName) throw new Error('No sheets found in workbook');
+                const worksheet = workbook.Sheets[firstSheetName]!;
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+                if (!jsonData || jsonData.length === 0) {
+                    throw new Error('File is empty or invalid format');
                 }
 
-                // Verify keys are valid strings
                 const validTemplate: Record<string, string> = {};
-                for (const key of Object.keys(json)) {
-                    validTemplate[key] = ''; // We only care about keys for the template
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (Array.isArray(row) && row.length > 0) {
+                        const key = String(row[0] || '').trim();
+
+                        // Skip empty keys or typical header names in first row
+                        if (!key || (i === 0 && (key.toLowerCase().includes('field') || key.toLowerCase() === 'key'))) {
+                            continue;
+                        }
+
+                        // we only care about keys for the template, value is empty string
+                        validTemplate[key] = '';
+                    }
+                }
+
+                if (Object.keys(validTemplate).length === 0) {
+                    showErrorToast('No valid keys found in column A. Make sure the file has field names in the first column.');
+                    return;
                 }
 
                 const result = await showConfirmDialog(
                     'Import Template?',
-                    'This will merge/overwrite existing template keys.',
+                    `Found ${Object.keys(validTemplate).length} fields to import. This will merge/overwrite existing template keys.`,
                     'Import',
                     'info'
                 );
@@ -195,16 +217,16 @@ export default function CategoryManagement() {
                         ...prev,
                         technicalSpecsTemplate: { ...prev.technicalSpecsTemplate, ...validTemplate }
                     }));
-                    showSuccessToast(`Imported ${Object.keys(validTemplate).length} fields from JSON.`);
+                    showSuccessToast(`Imported ${Object.keys(validTemplate).length} fields successfully.`);
                 }
             } catch (err) {
-                console.error(err);
-                showErrorToast('Invalid JSON file.');
+                console.error('File parsing error:', err);
+                showErrorToast('Invalid file format. Please upload a valid Excel or CSV file.');
             }
             // Reset input
             event.target.value = '';
         };
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
     };
 
     const handleDownloadTemplate = () => {
@@ -389,7 +411,7 @@ export default function CategoryManagement() {
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-surface-dark border border-border-dark p-6 text-left align-middle shadow-xl transition-all">
                                     <Dialog.Title
                                         as="h3"
                                         className="font-header text-lg font-bold leading-6 text-white mb-4"
@@ -521,11 +543,11 @@ export default function CategoryManagement() {
                                                     )}
                                                     <label className="cursor-pointer text-xs font-bold text-primary hover:text-indigo-400 transition-colors flex items-center gap-1">
                                                         <span className="material-symbols-outlined text-[16px]">upload_file</span>
-                                                        Import JSON
+                                                        Import Excel/CSV
                                                         <input
                                                             type="file"
                                                             className="hidden"
-                                                            accept=".json"
+                                                            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                                                             onChange={handleTemplateFileUpload}
                                                         />
                                                     </label>

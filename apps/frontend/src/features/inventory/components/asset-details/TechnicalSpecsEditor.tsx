@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { Asset, assetService } from '@/services/assetService';
 import { categoryService } from '@/services/categoryService';
-import { PencilSquareIcon, CheckIcon, XMarkIcon, PlusIcon, ArrowUpTrayIcon, TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, CheckIcon, XMarkIcon, PlusIcon, ArrowUpTrayIcon, TrashIcon, ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 interface TechnicalSpecsEditorProps {
     asset: Asset;
@@ -123,24 +124,48 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                const json = JSON.parse(e.target?.result as string);
-                if (typeof json !== 'object' || json === null) {
-                    throw new Error('Invalid JSON format');
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                if (!firstSheetName) throw new Error('No sheets found in workbook');
+                const worksheet = workbook.Sheets[firstSheetName]!;
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+                if (!jsonData || jsonData.length === 0) {
+                    throw new Error('File is empty or invalid format');
                 }
 
-                // Process values: stringify objects/arrays to avoid [object Object]
                 const validSpecs: Record<string, string> = {};
-                for (const [key, value] of Object.entries(json)) {
-                    if (typeof value === 'object' && value !== null) {
-                        validSpecs[key] = JSON.stringify(value, null, 2);
-                    } else {
-                        validSpecs[key] = String(value);
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (Array.isArray(row) && row.length >= 2) {
+                        const key = String(row[0] || '').trim();
+                        let value = row[1];
+
+                        // Handle object values gracefully if any
+                        if (typeof value === 'object' && value !== null) {
+                            value = JSON.stringify(value);
+                        } else {
+                            value = String(value || '').trim();
+                        }
+
+                        // Skip empty keys or typical header names in first row
+                        if (!key || (i === 0 && (key.toLowerCase().includes('field') || key.toLowerCase() === 'key'))) {
+                            continue;
+                        }
+
+                        validSpecs[key] = value;
                     }
                 }
 
+                if (Object.keys(validSpecs).length === 0) {
+                    showErrorToast('No valid data found. Make sure the file has 2 columns: Field and Value.');
+                    return;
+                }
+
                 const result = await Swal.fire({
-                    title: 'Import Template?',
-                    text: 'This will merge/overwrite existing specifications.',
+                    title: 'Import Specifications?',
+                    text: `Found ${Object.keys(validSpecs).length} specs. This will merge/overwrite existing specifications.`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Import'
@@ -151,12 +176,58 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                     saveSpecs(mergedSpecs);
                 }
             } catch (err) {
-                showErrorToast('Invalid JSON file. Please allow simple key-value pairs.');
+                console.error('File parsing error:', err);
+                showErrorToast('Invalid file format. Please upload a valid Excel or CSV file.');
             }
             // Reset input
             if (fileInputRef.current) fileInputRef.current.value = '';
         };
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
+    };
+
+    const handleDownloadTemplate = async () => {
+        try {
+            // First try to get category template if specs are empty
+            let templateKeys: string[] = [];
+
+            if (Object.keys(specs).length === 0 && asset.category) {
+                const categories = await categoryService.getAll();
+                const category = categories.find(c => c.name === asset.category);
+                if (category && category.technicalSpecsTemplate) {
+                    templateKeys = Object.keys(category.technicalSpecsTemplate);
+                }
+            } else {
+                templateKeys = Object.keys(specs);
+            }
+
+            // If still empty, provide a default template
+            if (templateKeys.length === 0) {
+                templateKeys = ['Field', 'Key 1', 'Key 2'];
+            }
+
+            // Create worksheet data (Keys in col 1, empty values in col 2)
+            const wsData = [
+                ['Field Name (Do Not Edit)', 'Value (Fill Here)'], // Header
+                ...templateKeys.map(key => [key, '']) // Data rows
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Auto-size columns slightly
+            ws['!cols'] = [{ wch: 30 }, { wch: 40 }];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Template');
+
+            // Generate Excel file
+            const fileName = `${asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_specs_template.xlsx`;
+            XLSX.writeFile(wb, fileName);
+
+            showSuccessToast('Template downloaded successfully');
+        } catch (error) {
+            console.error('Failed to generate template', error);
+            showErrorToast('Failed to generate template download');
+        }
     };
 
     return (
@@ -173,16 +244,22 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                         <ArrowDownTrayIcon className="w-4 h-4" /> Load Template
                     </button>
                     <button
+                        onClick={handleDownloadTemplate}
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                    >
+                        <DocumentArrowDownIcon className="w-4 h-4" /> Download Template
+                    </button>
+                    <button
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                     >
-                        <ArrowUpTrayIcon className="w-4 h-4" /> Import JSON
+                        <ArrowUpTrayIcon className="w-4 h-4" /> Import Excel/CSV
                     </button>
                     <input
                         type="file"
                         ref={fileInputRef}
                         className="hidden"
-                        accept=".json"
+                        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                         onChange={handleFileUpload}
                     />
                     <button

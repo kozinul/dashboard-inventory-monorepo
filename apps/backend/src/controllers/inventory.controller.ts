@@ -186,7 +186,7 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
     try {
         // RBAC: Non-admin users can only create assets in their department
         // UPDATE: Technicians and Managers can create assets for ANY department in their branch
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
                 return res.status(403).json({ message: 'You can only create assets in your department' });
             }
@@ -272,7 +272,7 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
 
         // RBAC: Check if user can update this asset
         // UPDATE: Technicians and Managers can update assets regardless of department (in their branch)
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
@@ -347,7 +347,7 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
 
         // RBAC: Check if user can delete this asset
         // UPDATE: Technicians and Managers can delete assets regardless of department
-        if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
@@ -398,7 +398,7 @@ export const bulkDeleteAssets = async (req: Request, res: Response, next: NextFu
         for (const asset of assetsToDelete) {
             // RBAC: Check if user can delete this asset
             let canDelete = true;
-            if (req.user && !['superuser', 'admin', 'manager', 'technician'].includes(req.user.role)) {
+            if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
                 const isDeptMatch =
                     (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
                     (asset.department && req.user.department && asset.department === req.user.department);
