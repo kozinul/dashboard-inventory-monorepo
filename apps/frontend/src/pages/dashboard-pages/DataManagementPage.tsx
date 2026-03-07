@@ -9,13 +9,16 @@ import {
     ExclamationTriangleIcon,
     CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import ImportPreviewModal from '@/features/inventory/components/ImportPreviewModal';
 
 export default function DataManagementPage() {
-    const [isImportingAsset, setIsImportingAsset] = useState(false);
-    const [isImportingSupply, setIsImportingSupply] = useState(false);
     const [assetFile, setAssetFile] = useState<File | null>(null);
     const [supplyFile, setSupplyFile] = useState<File | null>(null);
     const [importResults, setImportResults] = useState<{ asset?: ImportResult, supply?: ImportResult }>({});
+
+    // Preview Modal states
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [previewType, setPreviewType] = useState<'asset' | 'supply'>('asset');
 
     // Column selection state
     const assetColumns = [
@@ -79,24 +82,28 @@ export default function DataManagementPage() {
         }
     };
 
-    const handleImport = async (type: 'asset' | 'supply') => {
+    const handleOpenPreview = (type: 'asset' | 'supply') => {
         const file = type === 'asset' ? assetFile : supplyFile;
-        if (!file) return;
+        if (!file) {
+            showErrorToast('Please choose a file first.');
+            return;
+        }
+        setPreviewType(type);
+        setIsPreviewOpen(true);
+    };
 
-        if (type === 'asset') setIsImportingAsset(true);
-        else setIsImportingSupply(true);
-
+    const handleConfirmBulkImport = async (data: any[]) => {
         try {
-            const result = await importExportService.importData(type, file);
-            setImportResults(prev => ({ ...prev, [type]: result }));
+            const result = await importExportService.bulkImportData(previewType, data);
+            setImportResults(prev => ({ ...prev, [previewType]: result }));
             showSuccessToast(`Import completed: ${result.results.success} successes, ${result.results.failed} failures.`);
-            if (type === 'asset') setAssetFile(null);
+
+            // Clear selections upon success
+            if (previewType === 'asset') setAssetFile(null);
             else setSupplyFile(null);
         } catch (error: any) {
-            showErrorToast(error.response?.data?.message || 'Import failed.');
-        } finally {
-            if (type === 'asset') setIsImportingAsset(false);
-            else setIsImportingSupply(false);
+            showErrorToast(error.response?.data?.message || 'Bulk import failed.');
+            throw error; // Passing error up to modal so loading state stops
         }
     };
 
@@ -214,16 +221,12 @@ export default function DataManagementPage() {
                                     className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
                                 />
                                 <button
-                                    onClick={() => handleImport('asset')}
-                                    disabled={!assetFile || isImportingAsset}
+                                    onClick={() => handleOpenPreview('asset')}
+                                    disabled={!assetFile}
                                     className="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    {isImportingAsset ? (
-                                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <CloudArrowUpIcon className="h-4 w-4" />
-                                    )}
-                                    Start Import
+                                    <CloudArrowUpIcon className="h-4 w-4" />
+                                    Review & Import
                                 </button>
                             </div>
                         </div>
@@ -276,16 +279,12 @@ export default function DataManagementPage() {
                                     className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
                                 />
                                 <button
-                                    onClick={() => handleImport('supply')}
-                                    disabled={!supplyFile || isImportingSupply}
+                                    onClick={() => handleOpenPreview('supply')}
+                                    disabled={!supplyFile}
                                     className="w-full py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    {isImportingSupply ? (
-                                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <CloudArrowUpIcon className="h-4 w-4" />
-                                    )}
-                                    Start Import
+                                    <CloudArrowUpIcon className="h-4 w-4" />
+                                    Review & Import
                                 </button>
                             </div>
                         </div>
@@ -311,6 +310,14 @@ export default function DataManagementPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Render Preview Modal Here */}
+            <ImportPreviewModal
+                isOpen={isPreviewOpen}
+                onClose={() => setIsPreviewOpen(false)}
+                file={previewType === 'asset' ? assetFile : supplyFile}
+                onConfirm={handleConfirmBulkImport}
+            />
         </div>
     );
 }

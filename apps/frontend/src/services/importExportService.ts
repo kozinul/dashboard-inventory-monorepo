@@ -99,5 +99,11 @@ export const importExportService = {
         });
 
         return response.data;
+    },
+
+    bulkImportData: async (type: 'asset' | 'supply', data: any[]): Promise<ImportResult> => {
+        // Send actual JSON payload to backend instead of file
+        const response = await axios.post<ImportResult>(`/data/bulk-import?type=${type}`, { data });
+        return response.data;
     }
 };

@@ -1129,3 +1129,159 @@ export const importData = async (req: Request, res: Response, next: NextFunction
         next(error);
     }
 };
+
+export const bulkImportData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { type } = req.query;
+        const rows = req.body.data;
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            return res.status(400).json({ message: 'No data provided for bulk import' });
+        }
+
+        const results = {
+            success: 0,
+            failed: 0,
+            errors: [] as string[]
+        };
+
+        // Cache for resolving names to IDs
+        const cache = {
+            departments: new Map<string, string>(),
+            branches: new Map<string, string>(),
+            locations: new Map<string, string>(),
+            categories: new Map<string, string>(),
+            units: new Map<string, string>()
+        };
+
+        const branchId = (req.user as any).branchId;
+        const userDeptId = req.user.departmentId;
+
+        if (type === 'asset') {
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                try {
+                    // Resolve Relations
+                    let deptId = userDeptId;
+                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
+                        const name = row['Departemen'].trim();
+                        if (!cache.departments.has(name)) {
+                            const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (d) cache.departments.set(name, d._id.toString());
+                        }
+                        if (cache.departments.has(name)) deptId = cache.departments.get(name);
+                    }
+
+                    let bId = branchId;
+                    if (req.user.role === 'superuser' && row['Cabang']) {
+                        const name = row['Cabang'].trim();
+                        if (!cache.branches.has(name)) {
+                            const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (b) cache.branches.set(name, b._id.toString());
+                        }
+                        if (cache.branches.has(name)) bId = cache.branches.get(name);
+                    }
+
+                    let locId = undefined;
+                    if (row['Lokasi']) {
+                        const name = row['Lokasi'].trim();
+                        if (!cache.locations.has(name)) {
+                            const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (l) cache.locations.set(name, l._id.toString());
+                        }
+                        if (cache.locations.has(name)) locId = cache.locations.get(name);
+                    }
+
+                    const assetData = {
+                        name: row['Nama'],
+                        model: row['Model'],
+                        category: row['Kategori'],
+                        serial: row['Serial'],
+                        departmentId: deptId,
+                        branchId: bId,
+                        locationId: locId,
+                        location: row['Lokasi'],
+                        status: row['Status']?.toLowerCase() || 'active',
+                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai']) || 0,
+                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Beli']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Beli']) : undefined,
+                        warranty: {
+                            expirationDate: (row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) ? new Date(row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) : undefined
+                        }
+                    };
+
+                    const asset = new Asset(assetData);
+                    await asset.save();
+                    results.success++;
+                } catch (err: any) {
+                    results.failed++;
+                    results.errors.push(`Row ${i + 2}: ${err.message}`);
+                }
+            }
+        } else if (type === 'supply') {
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                try {
+                    let locId = undefined;
+                    if (row['Lokasi']) {
+                        const name = row['Lokasi'].trim();
+                        if (!cache.locations.has(name)) {
+                            const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (l) cache.locations.set(name, l._id.toString());
+                        }
+                        if (cache.locations.has(name)) locId = cache.locations.get(name);
+                    }
+
+                    let unitId = undefined;
+                    if (row['Satuan (Unit)'] || row['Satuan']) {
+                        const name = (row['Satuan (Unit)'] || row['Satuan']).trim();
+                        if (!cache.units.has(name)) {
+                            const u = await Unit.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (u) cache.units.set(name, u._id.toString());
+                        }
+                        if (cache.units.has(name)) unitId = cache.units.get(name);
+                    }
+
+                    const supplyData = {
+                        name: row['Nama'],
+                        partNumber: row['Part Number'],
+                        category: row['Kategori'],
+                        unit: row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
+                        unitId: unitId,
+                        quantity: Number(row['Jumlah']) || 0,
+                        minimumStock: Number(row['Stok Minimum'] || row['Stok Min']) || 1,
+                        locationId: locId,
+                        location: row['Lokasi'],
+                        cost: Number(row['Biaya']) || 0,
+                        compatibleModels: (row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
+                        branchId: branchId,
+                        departmentId: userDeptId
+                    };
+
+                    const supply = new Supply(supplyData);
+                    await supply.save();
+
+                    // Create initial history
+                    await SupplyHistory.create({
+                        supplyId: supply._id,
+                        action: 'IMPORT',
+                        quantityChange: supply.quantity,
+                        newStock: supply.quantity,
+                        notes: 'Imported from Excel UI'
+                    });
+
+                    results.success++;
+                } catch (err: any) {
+                    results.failed++;
+                    results.errors.push(`Row ${i + 2}: ${err.message}`);
+                }
+            }
+        }
+
+        res.json({
+            message: `Bulk import completed: ${results.success} succeeded, ${results.failed} failed.`,
+            results
+        });
+    } catch (error) {
+        next(error);
+    }
+};

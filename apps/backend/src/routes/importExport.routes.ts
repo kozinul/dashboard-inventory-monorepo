@@ -3,7 +3,8 @@ import multer from 'multer';
 import {
     downloadTemplate,
     exportData,
-    importData
+    importData,
+    bulkImportData
 } from '../controllers/importExport.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -21,5 +22,6 @@ router.use(protect);
 router.get('/template', downloadTemplate);
 router.get('/export', exportData);
 router.post('/import', upload.single('file'), importData);
+router.post('/bulk-import', bulkImportData);
 
 export default router;

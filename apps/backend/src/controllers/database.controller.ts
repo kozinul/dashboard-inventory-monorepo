@@ -20,6 +20,7 @@ import { Supply } from '../models/supply.model.js';
 import { Unit } from '../models/unit.model.js';
 import { User } from '../models/user.model.js';
 import { Vendor } from '../models/vendor.model.js';
+import { RolePermission } from '../models/rolePermission.model.js';
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 
@@ -79,6 +80,7 @@ export const createBackup = async (req: Request, res: Response, next: NextFuncti
             rentals: await Rental.find({}),
             events: await Event.find({}),
             supplyHistory: await SupplyHistory.find({}),
+            rolePermissions: await RolePermission.find({}),
             // notifications: await Notification.find({})
         };
 
@@ -128,6 +130,7 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
             Rental.deleteMany({}),
             Event.deleteMany({}),
             SupplyHistory.deleteMany({}),
+            RolePermission.deleteMany({}),
             // Notification.deleteMany({})
         ]);
 
@@ -151,6 +154,7 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
         if (data.rentals?.length) await Rental.insertMany(data.rentals);
         if (data.events?.length) await Event.insertMany(data.events);
         if (data.supplyHistory?.length) await SupplyHistory.insertMany(data.supplyHistory);
+        if (data.rolePermissions?.length) await RolePermission.insertMany(data.rolePermissions);
 
         res.json({
             success: true,
