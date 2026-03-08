@@ -136,3 +136,27 @@ export const exportAuditLogs = async (req: Request, res: Response, next: NextFun
         next(error);
     }
 };
+
+export const clearAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await AuditLog.deleteMany({});
+
+        // Log the reset action if possible, though we just cleared everything!
+        // It's better to log it after deletion so it's the first log.
+        const firstLog = new AuditLog({
+            userId: req.user._id,
+            action: 'RESET_LOGS',
+            resourceType: 'audit_logs',
+            details: 'All audit logs were cleared by administrative reset.',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            branchId: req.user.branchId,
+            departmentId: req.user.departmentId
+        });
+        await firstLog.save();
+
+        res.json({ message: 'Audit logs cleared successfully' });
+    } catch (error) {
+        next(error);
+    }
+};

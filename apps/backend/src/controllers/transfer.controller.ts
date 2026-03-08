@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { Transfer } from '../models/transfer.model.js';
 import { Asset } from '../models/asset.model.js';
 
-import { Branch } from '../models/branch.model.js'; // Import Branch model
+import { Branch } from '../models/branch.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 export const updateTransfer = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -91,6 +92,18 @@ export const createTransfer = async (req: Request, res: Response, next: NextFunc
 
         await transfer.save();
 
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'create_transfer',
+            resourceType: 'Transfer',
+            resourceId: transfer._id.toString(),
+            resourceName: (asset as any).name,
+            details: `Transfer request created for asset ${asset.name} from branch ${originBranchId} to ${targetBranchId}`,
+            branchId: originBranchId.toString(),
+            departmentId: asset.departmentId?.toString()
+        });
+
         res.status(201).json(transfer);
     } catch (error) {
         next(error);
@@ -174,6 +187,9 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
         // Update the asset
         const asset = await Asset.findById(transfer.assetId);
         if (asset) {
+            const oldBranchId = asset.branchId?.toString();
+            const oldDeptId = asset.departmentId?.toString();
+
             asset.departmentId = transfer.toDepartmentId;
             asset.branchId = transfer.toBranchId; // Update Branch Location
 
@@ -183,7 +199,22 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
                 asset.department = (TransferWithDept.toDepartmentId as any).name;
             }
 
+            // Sync Asset status if it was 'transferring' or similar (though not explicitly set yet)
+            // asset.status = 'active'; 
+
             await asset.save();
+
+            // Record Audit Log
+            await recordAuditLog({
+                userId: req.user._id.toString(),
+                action: 'approve_transfer',
+                resourceType: 'Transfer',
+                resourceId: transfer._id.toString(),
+                resourceName: asset.name,
+                details: `Transfer completed. Asset ${asset.name} moved from Branch ${oldBranchId} to ${transfer.toBranchId}`,
+                branchId: transfer.toBranchId.toString(),
+                departmentId: transfer.toDepartmentId.toString()
+            });
         }
 
         res.json(transfer);
@@ -213,6 +244,17 @@ export const sendTransfer = async (req: Request, res: Response, next: NextFuncti
 
         transfer.status = 'WaitingApproval';
         await transfer.save();
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'submit_transfer',
+            resourceType: 'Transfer',
+            resourceId: transfer._id.toString(),
+            details: 'Transfer request submitted for manager approval',
+            branchId: transfer.fromBranchId.toString(),
+            departmentId: transfer.fromDepartmentId.toString()
+        });
 
         res.json(transfer);
     } catch (error) {
@@ -252,6 +294,17 @@ export const approveTransferByManager = async (req: Request, res: Response, next
         transfer.managerApprovedAt = new Date();
         await transfer.save();
 
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'manager_approve_transfer',
+            resourceType: 'Transfer',
+            resourceId: transfer._id.toString(),
+            details: 'Transfer request approved by manager, now in transit',
+            branchId: transfer.fromBranchId.toString(),
+            departmentId: transfer.fromDepartmentId.toString()
+        });
+
         res.json(transfer);
     } catch (error) {
         next(error);
@@ -283,6 +336,17 @@ export const rejectTransfer = async (req: Request, res: Response, next: NextFunc
         transfer.approvedBy = req.user?._id;
         transfer.completedAt = new Date();
         await transfer.save();
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'reject_transfer',
+            resourceType: 'Transfer',
+            resourceId: transfer._id.toString(),
+            details: 'Transfer request rejected',
+            branchId: transfer.toBranchId.toString(),
+            departmentId: transfer.toDepartmentId.toString()
+        });
 
         res.json(transfer);
     } catch (error) {

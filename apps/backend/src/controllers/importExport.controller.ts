@@ -1164,7 +1164,7 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     // Resolve Relations
                     let deptId = userDeptId;
                     if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
-                        const name = row['Departemen'].trim();
+                        const name = String(row['Departemen']).trim();
                         if (!cache.departments.has(name)) {
                             const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (d) cache.departments.set(name, d._id.toString());
@@ -1174,7 +1174,7 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
 
                     let bId = branchId;
                     if (req.user.role === 'superuser' && row['Cabang']) {
-                        const name = row['Cabang'].trim();
+                        const name = String(row['Cabang']).trim();
                         if (!cache.branches.has(name)) {
                             const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (b) cache.branches.set(name, b._id.toString());
@@ -1184,7 +1184,7 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
 
                     let locId = undefined;
                     if (row['Lokasi']) {
-                        const name = row['Lokasi'].trim();
+                        const name = String(row['Lokasi']).trim();
                         if (!cache.locations.has(name)) {
                             const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (l) cache.locations.set(name, l._id.toString());
@@ -1233,7 +1233,7 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
 
                     let unitId = undefined;
                     if (row['Satuan (Unit)'] || row['Satuan']) {
-                        const name = (row['Satuan (Unit)'] || row['Satuan']).trim();
+                        const name = String(row['Satuan (Unit)'] || row['Satuan']).trim();
                         if (!cache.units.has(name)) {
                             const u = await Unit.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (u) cache.units.set(name, u._id.toString());

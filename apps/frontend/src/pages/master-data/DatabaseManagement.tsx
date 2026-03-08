@@ -89,13 +89,33 @@ export default function DatabaseManagement() {
 
         if (!result.isConfirmed) return;
 
+        // Show loading overlay
+        Swal.fire({
+            title: 'Restoring Data...',
+            text: 'Please wait, this may take a moment.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         setRestoring(filename);
         try {
             await axios.post(`${API_URL}/${filename}/restore`);
-            Swal.fire({ title: 'Restored!', text: 'Database restored successfully.', icon: 'success' });
+            Swal.fire({
+                title: 'Restored!',
+                text: 'Database and Images restored successfully.',
+                icon: 'success'
+            });
         } catch (error) {
             console.error('Failed to restore backup', error);
-            Swal.fire({ title: 'Error', text: 'Failed to restore backup', icon: 'error' });
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to restore backup. Please check your connection or file.',
+                icon: 'error'
+            });
         } finally {
             setRestoring(null);
         }
@@ -223,7 +243,7 @@ export default function DatabaseManagement() {
                             type="file"
                             id="upload-backup"
                             className="hidden"
-                            accept=".json"
+                            accept=".json,.zip"
                             onChange={handleUpload}
                         />
                         <label

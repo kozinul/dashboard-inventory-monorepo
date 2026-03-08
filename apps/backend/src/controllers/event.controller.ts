@@ -3,6 +3,7 @@ import Event from '../models/event.model.js';
 import { Supply } from '../models/supply.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Asset } from '../models/asset.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 export const createEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -16,6 +17,26 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
             createdBy: req.user._id
         });
         await event.save();
+
+        // Update Asset Status to 'event' if assets are assigned
+        if (event.rentedAssets && event.rentedAssets.length > 0) {
+            for (const item of event.rentedAssets) {
+                await Asset.findByIdAndUpdate(item.assetId, { status: 'event' });
+            }
+        }
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'create_event',
+            resourceType: 'Event',
+            resourceId: event._id.toString(),
+            resourceName: event.name,
+            details: `Event ${event.name} created with ${event.rentedAssets?.length || 0} assets assigned`,
+            branchId: event.branchId.toString(),
+            departmentId: event.departmentId.toString()
+        });
+
         res.status(201).json(event);
     } catch (error) {
         res.status(500).json({ message: 'Error creating event', error });
@@ -161,6 +182,18 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             .populate('planningSupplies.supplyId')
             .populate('departmentId', 'name');
 
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'update_event',
+            resourceType: 'Event',
+            resourceId: id,
+            resourceName: (event as any)?.name || 'Event',
+            details: `Event updated by ${req.user.name}. Status: ${event?.status}`,
+            branchId: (event as any)?.branchId?.toString(),
+            departmentId: (event as any)?.departmentId?.toString()
+        });
+
         res.status(200).json(event);
     } catch (error) {
         res.status(500).json({ message: 'Error updating event', error });
@@ -207,6 +240,25 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
 
         // Also check supplies? The requirement specifically mentioned assets ("tidak ada asset disana").
         // But logical to check supplies too or just let them go. I'll stick to assets as requested.
+
+        // Reset Asset Status if event is deleted
+        if (eventToCheck.rentedAssets && eventToCheck.rentedAssets.length > 0) {
+            for (const item of eventToCheck.rentedAssets) {
+                await Asset.findByIdAndUpdate(item.assetId, { status: 'active' });
+            }
+        }
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'delete_event',
+            resourceType: 'Event',
+            resourceId: id,
+            resourceName: eventToCheck.name,
+            details: `Event ${eventToCheck.name} deleted, assets reset to active`,
+            branchId: eventToCheck.branchId?.toString(),
+            departmentId: eventToCheck.departmentId?.toString()
+        });
 
         await Event.findByIdAndDelete(id);
         res.status(200).json({ message: 'Event deleted successfully' });

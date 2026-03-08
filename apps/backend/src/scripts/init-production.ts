@@ -52,7 +52,7 @@ const initProduction = async () => {
             {
                 username: 'superuser',
                 email: 'superuser@company.com',
-                name: 'System Superuser',
+                name: 'Superuser',
                 role: 'superuser',
                 password: 'password123', // User must change this on first login
                 branchId: headOffice._id,

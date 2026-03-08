@@ -1131,10 +1131,20 @@ export const updateMaintenanceNote = async (req: Request, res: Response, next: N
 export const getNavCounts = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user._id;
-        const user = await User.findById(userId);
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
+        const user = await User.findById(userId).lean();
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            // This can happen during database restore when collections are cleared
+            console.log(`[Maintenance] NavCounts requested for non-existent user: ${userId}`);
+            return res.json({
+                myTickets: { total: 0, breakdown: {}, actionable: 0 },
+                deptTickets: { total: 0, breakdown: {}, actionable: 0 },
+                assignedTickets: { total: 0, breakdown: {}, actionable: 0 }
+            });
         }
 
         const myTickets: any = {};

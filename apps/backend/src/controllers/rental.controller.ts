@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
 import Rental from '../models/rental.model.js';
 import { Asset } from '../models/asset.model.js';
+import { recordAuditLog } from '../utils/logger.js';
 
 export const createRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -25,6 +25,26 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
                 : (req.user as any).branchId
         });
         await rental.save();
+
+        // Update Asset Status
+        const rentedAsset = await Asset.findById(req.body.assetId);
+        if (rentedAsset) {
+            rentedAsset.status = 'rented';
+            await rentedAsset.save();
+        }
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'create_rental',
+            resourceType: 'Rental',
+            resourceId: rental._id.toString(),
+            resourceName: (rentedAsset as any)?.name || 'Asset',
+            details: `Asset ${rentedAsset?.name || req.body.assetId} rented to ${(rental as any).customerName || 'customer'}`,
+            branchId: rental.branchId.toString(),
+            departmentId: (rentedAsset as any)?.departmentId?.toString()
+        });
+
         // Populate references for the response
         await rental.populate(['assetId', 'userId', 'eventId']);
         res.status(201).json(rental);
@@ -122,10 +142,30 @@ export const updateRental = async (req: Request, res: Response, next: NextFuncti
 export const deleteRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const rental = await Rental.findByIdAndDelete(id);
+        const rental = await Rental.findById(id);
         if (!rental) {
             return res.status(404).json({ message: 'Rental not found' });
         }
+
+        // Reset Asset Status
+        const rentedAsset = await Asset.findById(rental.assetId);
+        if (rentedAsset) {
+            rentedAsset.status = 'active';
+            await rentedAsset.save();
+        }
+
+        // Record Audit Log
+        await recordAuditLog({
+            userId: req.user._id.toString(),
+            action: 'delete_rental',
+            resourceType: 'Rental',
+            resourceId: rental._id.toString(),
+            details: `Rental record deleted. Asset ${rentedAsset?.name || rental.assetId} status reset to active.`,
+            branchId: rental.branchId.toString(),
+            departmentId: (rentedAsset as any)?.departmentId?.toString()
+        });
+
+        await Rental.findByIdAndDelete(id);
         res.status(200).json({ message: 'Rental deleted successfully' });
     } catch (error) {
         next(error);

@@ -34,16 +34,22 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/json' || file.originalname.endsWith('.json')) {
+        if (
+            file.mimetype === 'application/json' ||
+            file.mimetype === 'application/zip' ||
+            file.mimetype === 'application/x-zip-compressed' ||
+            file.originalname.endsWith('.json') ||
+            file.originalname.endsWith('.zip')
+        ) {
             cb(null, true);
         } else {
-            cb(null, false); // Fail silently or handle error?
+            cb(null, false);
         }
     }
 });
 
-// All database routes require superuser/system_admin auth
-router.use(protect, authorize('superuser', 'system_admin'));
+// All database routes require superuser/system_admin/admin auth
+router.use(protect, authorize('superuser', 'system_admin', 'admin'));
 
 router.route('/')
     .get(getBackups)

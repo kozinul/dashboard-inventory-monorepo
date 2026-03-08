@@ -60,8 +60,8 @@ export function AssetMetaCell({ title, subtitle }: { title: string, subtitle: st
     );
 }
 
-export function AssetStatusBadge({ status }: { status: Asset['status'] }) {
-    const styles = {
+export function AssetStatusBadge({ status }: { status: string }) {
+    const styles: Record<string, string> = {
         active: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
         maintenance: "bg-amber-500/10 text-amber-500 border-amber-500/20",
         storage: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -69,13 +69,17 @@ export function AssetStatusBadge({ status }: { status: Asset['status'] }) {
         assigned: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
         "request maintenance": "bg-rose-500/10 text-rose-500 border-rose-500/20",
         disposed: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-        in_use: "bg-orange-500/10 text-orange-500 border-orange-500/20"
+        in_use: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+        rented: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+        event: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20"
     };
+
+    const currentStyle = styles[status] || "bg-slate-500/10 text-slate-500 border-slate-500/20";
 
     return (
         <span className={cn(
             "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border",
-            styles[status]
+            currentStyle
         )}>
             {status}
         </span>

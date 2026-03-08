@@ -12,6 +12,18 @@ interface AssetHeroProps {
 }
 
 export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
+    const statusColors: Record<string, string> = {
+        active: 'bg-green-500',
+        maintenance: 'bg-amber-500',
+        retired: 'bg-slate-500',
+        rented: 'bg-purple-500',
+        event: 'bg-cyan-500',
+        storage: 'bg-blue-500',
+        assigned: 'bg-indigo-500',
+        disposed: 'bg-gray-500'
+    };
+    const statusClass = statusColors[asset.status] || 'bg-blue-500';
+
     // Determine main image
     const mainImageRaw = (asset.images && asset.images.length > 0) ? asset.images[0] : null;
     const mainImage = typeof mainImageRaw === 'string' ? mainImageRaw : mainImageRaw?.url;
@@ -60,10 +72,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
             {/* Left: Main Photo */}
             <div className="lg:col-span-1 h-72 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group relative">
                 <div className="absolute top-4 left-4 z-10">
-                    <span className={`px-3 py-1 text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5 ${asset.status === 'active' ? 'bg-green-500' :
-                        asset.status === 'maintenance' ? 'bg-amber-500' :
-                            asset.status === 'retired' ? 'bg-slate-500' : 'bg-blue-500'
-                        }`}>
+                    <span className={`px-3 py-1 text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5 ${statusClass}`}>
                         <span className={`w-1.5 h-1.5 bg-white rounded-full ${asset.status === 'active' ? 'animate-pulse' : ''}`}></span>
                         {asset.status}
                     </span>

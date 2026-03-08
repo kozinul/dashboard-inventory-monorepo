@@ -56,5 +56,10 @@ export const auditLogService = {
         document.body.appendChild(link);
         link.click();
         link.remove();
+    },
+
+    clearAll: async () => {
+        const response = await axios.delete<{ message: string }>(API_URL);
+        return response.data;
     }
 };

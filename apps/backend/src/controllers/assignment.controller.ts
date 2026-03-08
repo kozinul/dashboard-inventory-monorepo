@@ -87,10 +87,10 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
             action: 'assign',
             resourceType: 'Asset',
             resourceId: assetId.toString(),
-            resourceName: (assignment.assetId as any).name,
+            resourceName: (assignment.assetId as any)?.name || 'Unknown Asset',
             details: `Assigned asset to ${assignedTo || (assignment.userId as any)?.name || 'Recipient'}`,
             branchId: (req.user as any).branchId?.toString(),
-            departmentId: (assignment.assetId as any).departmentId?.toString()
+            departmentId: (assignment.assetId as any)?.departmentId?.toString()
         });
 
         res.status(201).json(assignment);

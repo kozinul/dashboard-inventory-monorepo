@@ -1,0 +1,126 @@
+{
+  "users": [
+    {
+      "_id": "69ac3a32ef2b88a97f616324",
+      "username": "superuser",
+      "email": "superuser@company.com",
+      "name": "Superuser",
+      "departmentId": "69ac3a32ef2b88a97f616317",
+      "managedDepartments": [],
+      "branchId": "69ac3a32ef2b88a97f616314",
+      "password": "$2a$10$lvXe1HLh/l./8mgMPhfJGeE4mslqpn1iMNBv5bStohrvzNhzwXNHe",
+      "status": "Active",
+      "role": "superuser",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "isActive": true,
+      "createdAt": "2026-03-07T14:46:10.850Z",
+      "updatedAt": "2026-03-07T14:46:10.850Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ac3a32ef2b88a97f616327",
+      "username": "administrator",
+      "email": "admin@company.com",
+      "name": "Master Admin",
+      "departmentId": "69ac3a32ef2b88a97f616317",
+      "managedDepartments": [],
+      "branchId": "69ac3a32ef2b88a97f616314",
+      "password": "$2a$10$kT7kuvn3mfmUX2/15nGpgO7Hj2jBvJ2MSSNvxIJJ/YZrt3rnmFXdm",
+      "status": "Active",
+      "role": "admin",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "isActive": true,
+      "createdAt": "2026-03-07T14:46:10.967Z",
+      "updatedAt": "2026-03-07T14:46:10.967Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ac3a33ef2b88a97f61632a",
+      "username": "sysadmin",
+      "email": "sysadmin@company.com",
+      "name": "System Admin",
+      "departmentId": "69ac3a32ef2b88a97f616317",
+      "managedDepartments": [],
+      "branchId": "69ac3a32ef2b88a97f616314",
+      "password": "$2a$10$WiJHcxs9BtfGAENQ7McTS.kLXUA2klVbe/bUMJApeEh.2UBTL6pmq",
+      "status": "Active",
+      "role": "system_admin",
+      "useCustomPermissions": false,
+      "customPermissions": [],
+      "isActive": true,
+      "createdAt": "2026-03-07T14:46:11.053Z",
+      "updatedAt": "2026-03-07T14:46:11.053Z",
+      "__v": 0
+    }
+  ],
+  "assets": [],
+  "assetTemplates": [],
+  "branches": [
+    {
+      "_id": "69ac3a32ef2b88a97f616314",
+      "name": "Head Office",
+      "code": "HO",
+      "address": "Main Headquarters",
+      "isHeadOffice": true,
+      "status": "Active",
+      "createdAt": "2026-03-07T14:46:10.827Z",
+      "updatedAt": "2026-03-07T14:46:10.827Z",
+      "__v": 0
+    }
+  ],
+  "categories": [],
+  "departments": [
+    {
+      "_id": "69ac3a32ef2b88a97f616317",
+      "name": "IT Infrastructure",
+      "code": "IT",
+      "status": "Active",
+      "createdAt": "2026-03-07T14:46:10.835Z",
+      "updatedAt": "2026-03-07T14:46:10.835Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ac3a32ef2b88a97f61631a",
+      "name": "Finance & Accounting",
+      "code": "FIN",
+      "status": "Active",
+      "createdAt": "2026-03-07T14:46:10.838Z",
+      "updatedAt": "2026-03-07T14:46:10.838Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ac3a32ef2b88a97f61631d",
+      "name": "General Operations",
+      "code": "OPS",
+      "status": "Active",
+      "createdAt": "2026-03-07T14:46:10.842Z",
+      "updatedAt": "2026-03-07T14:46:10.842Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ac3a32ef2b88a97f616320",
+      "name": "Procurement",
+      "code": "PROC",
+      "status": "Active",
+      "createdAt": "2026-03-07T14:46:10.844Z",
+      "updatedAt": "2026-03-07T14:46:10.844Z",
+      "__v": 0
+    }
+  ],
+  "jobTitles": [],
+  "locations": [],
+  "locationTypes": [],
+  "supplies": [],
+  "units": [],
+  "vendors": [],
+  "maintenanceRecords": [],
+  "transfers": [],
+  "disposals": [],
+  "assignments": [],
+  "rentals": [],
+  "events": [],
+  "supplyHistory": [],
+  "rolePermissions": []
+}

@@ -57,44 +57,35 @@ export function MaintenanceTypeBadge({ type }: { type: any }) {
     );
 }
 
-export function MaintenanceStatusBadge({ status }: { status: any }) {
-    if (status === 'In Progress') {
-        return (
-            <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                <span className="text-sm font-semibold text-primary">In Progress</span>
-            </div>
-        );
-    }
-    if (status === 'Service') {
-        return (
-            <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                <span className="text-sm font-semibold text-indigo-500">Service</span>
-            </div>
-        );
-    }
-    if (status === 'Done') {
-        return (
-            <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span className="text-sm font-semibold text-emerald-500">Done</span>
-            </div>
-        );
-    }
-    if (status === 'Closed') {
-        return (
-            <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span className="text-sm font-semibold text-emerald-500">Close</span>
-            </div>
-        );
-    }
-    // Pending
+export function MaintenanceStatusBadge({ status }: { status: string }) {
+    const statusConfig: Record<string, { color: string, pulse?: boolean }> = {
+        'Draft': { color: 'bg-slate-400' },
+        'Sent': { color: 'bg-blue-400' },
+        'Pending': { color: 'bg-amber-500' },
+        'Accepted': { color: 'bg-cyan-500' },
+        'Escalated': { color: 'bg-orange-600' },
+        'In Progress': { color: 'bg-primary', pulse: true },
+        'Service': { color: 'bg-indigo-500', pulse: true },
+        'Done': { color: 'bg-emerald-500' },
+        'Closed': { color: 'bg-emerald-600' },
+        'Cancelled': { color: 'bg-rose-500' }
+    };
+
+    const config = statusConfig[status] || { color: 'bg-slate-400' };
+
     return (
         <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span className="text-sm font-semibold text-amber-500">Pending</span>
+            <span className={cn(
+                "w-2 h-2 rounded-full",
+                config.color,
+                config.pulse && "animate-pulse"
+            )}></span>
+            <span className={cn(
+                "text-sm font-semibold",
+                config.color.replace('bg-', 'text-')
+            )}>
+                {status || 'Unknown'}
+            </span>
         </div>
     );
 }

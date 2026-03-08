@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auditLogService, AuditLog } from '@/services/auditLogService';
 import { userService, User } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
 import { format } from 'date-fns';
 import {
     ClockIcon,
@@ -10,12 +11,15 @@ import {
     MagnifyingGlassIcon,
     FunnelIcon,
     ArrowDownTrayIcon,
-    CalendarIcon
+    CalendarIcon,
+    TrashIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { UAParser } from 'ua-parser-js';
+import Swal from 'sweetalert2';
 
 export default function ActivityLogPage() {
+    const { user: currentUser } = useAuthStore();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<any>(null);
@@ -103,6 +107,39 @@ export default function ActivityLogPage() {
         }
     };
 
+    const handleResetLogs = async () => {
+        const result = await Swal.fire({
+            title: 'Hapus Semua Log?',
+            text: "Tindakan ini akan menghapus permanen seluruh riwayat aktivitas sistem!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus Semua',
+            cancelButtonText: 'Batal'
+        });
+
+        if (result.isConfirmed) {
+            setLoading(true);
+            try {
+                await auditLogService.clearAll();
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Seluruh log aktivitas telah dibersihkan.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                fetchLogs();
+            } catch (error) {
+                console.error('Reset failed:', error);
+                Swal.fire('Error', 'Gagal menghapus log', 'error');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -111,6 +148,15 @@ export default function ActivityLogPage() {
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Trace system activities and user actions</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {['superuser', 'system_admin'].includes(currentUser?.role || '') && (
+                        <button
+                            onClick={handleResetLogs}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors shadow-lg shadow-red-500/20"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                            Reset Logs
+                        </button>
+                    )}
                     <button
                         onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors shadow-lg shadow-primary/20"
@@ -255,10 +301,10 @@ export default function ActivityLogPage() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                                    {typeof log.userId === 'object' ? log.userId.name.charAt(0) : '?'}
+                                                    {(log.userId && typeof log.userId === 'object') ? (log.userId as any).name.charAt(0) : '?'}
                                                 </div>
                                                 <span className="text-sm font-medium dark:text-slate-200">
-                                                    {typeof log.userId === 'object' ? log.userId.name : 'System'}
+                                                    {(log.userId && typeof log.userId === 'object') ? (log.userId as any).name : 'Deleted User'}
                                                 </span>
                                             </div>
                                         </td>

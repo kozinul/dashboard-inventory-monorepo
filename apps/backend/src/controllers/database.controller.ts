@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import path from 'path';
+import archiver from 'archiver';
+import unzipper from 'unzipper';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import { Transfer } from '../models/transfer.model.js';
 import { DisposalRecord as Disposal } from '../models/disposal.model.js';
@@ -35,7 +37,7 @@ const getTimestamp = () => {
 
 export const getBackups = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const files = fs.readdirSync(BACKUP_DIR).filter(file => file.endsWith('.json'));
+        const files = fs.readdirSync(BACKUP_DIR).filter(file => file.endsWith('.json') || file.endsWith('.zip'));
         const backups = files.map(file => {
             const stats = fs.statSync(path.join(BACKUP_DIR, file));
             return {
@@ -57,40 +59,61 @@ export const getBackups = async (req: Request, res: Response, next: NextFunction
 export const createBackup = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const timestamp = getTimestamp();
-        const filename = `backup-${timestamp}.json`;
+        const filename = `backup-${timestamp}.zip`;
         const filepath = path.join(BACKUP_DIR, filename);
 
         const data = {
-            users: await User.find({}),
-            assets: await Asset.find({}),
-            assetTemplates: await AssetTemplate.find({}),
-            branches: await Branch.find({}),
-            categories: await Category.find({}),
-            departments: await Department.find({}),
-            jobTitles: await JobTitle.find({}),
-            locations: await Location.find({}),
-            locationTypes: await LocationType.find({}),
-            supplies: await Supply.find({}),
-            units: await Unit.find({}),
-            vendors: await Vendor.find({}),
-            maintenanceRecords: await MaintenanceRecord.find({}),
-            transfers: await Transfer.find({}),
-            disposals: await Disposal.find({}),
-            assignments: await Assignment.find({}),
-            rentals: await Rental.find({}),
-            events: await Event.find({}),
-            supplyHistory: await SupplyHistory.find({}),
-            rolePermissions: await RolePermission.find({}),
-            // notifications: await Notification.find({})
+            users: await User.find({}).lean(),
+            assets: await Asset.find({}).lean(),
+            assetTemplates: await AssetTemplate.find({}).lean(),
+            branches: await Branch.find({}).lean(),
+            categories: await Category.find({}).lean(),
+            departments: await Department.find({}).lean(),
+            jobTitles: await JobTitle.find({}).lean(),
+            locations: await Location.find({}).lean(),
+            locationTypes: await LocationType.find({}).lean(),
+            supplies: await Supply.find({}).lean(),
+            units: await Unit.find({}).lean(),
+            vendors: await Vendor.find({}).lean(),
+            maintenanceRecords: await MaintenanceRecord.find({}).lean(),
+            transfers: await Transfer.find({}).lean(),
+            disposals: await Disposal.find({}).lean(),
+            assignments: await Assignment.find({}).lean(),
+            rentals: await Rental.find({}).lean(),
+            events: await Event.find({}).lean(),
+            supplyHistory: await SupplyHistory.find({}).lean(),
+            rolePermissions: await RolePermission.find({}).lean(),
         };
 
-        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-
-        res.json({
-            success: true,
-            message: 'Backup created successfully',
-            filename
+        const output = fs.createWriteStream(filepath);
+        const archive = archiver('zip', {
+            zlib: { level: 9 }
         });
+
+        output.on('close', () => {
+            res.json({
+                success: true,
+                message: 'Full backup (Data + Images) created successfully',
+                filename
+            });
+        });
+
+        archive.on('error', (err) => {
+            throw err;
+        });
+
+        archive.pipe(output);
+
+        // Append database JSON
+        archive.append(JSON.stringify(data, null, 2), { name: 'data.json' });
+
+        // Append uploads directory if it exists
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        if (fs.existsSync(uploadDir)) {
+            archive.directory(uploadDir, 'uploads');
+        }
+
+        await archive.finalize();
     } catch (error) {
         next(error);
     }
@@ -106,8 +129,36 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
             throw new Error('Backup file not found');
         }
 
-        const fileContent = fs.readFileSync(filepath, 'utf-8');
-        const data = JSON.parse(fileContent);
+        let data: any;
+
+        if (filename.endsWith('.zip')) {
+            // Handle ZIP backup
+            const directory = await unzipper.Open.file(filepath);
+
+            // Restore database from data.json in ZIP
+            const dbFile = directory.files.find(d => d.path === 'data.json');
+            if (!dbFile) throw new Error('data.json not found in backup zip');
+
+            const dbContent = await dbFile.buffer();
+            data = JSON.parse(dbContent.toString());
+
+            // Restore uploads folder
+            const uploadDir = path.join(process.cwd(), 'uploads');
+
+            // Filter files that belong to uploads/
+            const uploadFiles = directory.files.filter(f => f.path.startsWith('uploads/'));
+
+            if (uploadFiles.length > 0) {
+                // We don't delete everything in uploads, just overwrite/add from backup
+                // or we can clear if preferred. User usually expects full restore.
+                // For safety in this context, we will just extract them.
+                await directory.extract({ path: process.cwd() });
+            }
+        } else {
+            // Handle legacy JSON backup
+            const fileContent = fs.readFileSync(filepath, 'utf-8');
+            data = JSON.parse(fileContent);
+        }
 
         // Clear existing data
         await Promise.all([
@@ -131,11 +182,20 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
             Event.deleteMany({}),
             SupplyHistory.deleteMany({}),
             RolePermission.deleteMany({}),
-            // Notification.deleteMany({})
         ]);
 
         // Restore data
-        if (data.users?.length) await User.insertMany(data.users);
+        if (data.users?.length) {
+            await User.insertMany(data.users);
+
+            // Validation: Ensure superuser exists after restore
+            const superuser = await User.findOne({ role: 'superuser' });
+            if (!superuser) {
+                console.warn('RESTORE WARNING: No superuser found in restored data. System might be locked out.');
+                // Optional: If we want to be ultra safe, we could re-create a default one here 
+                // but usually user should know their backup content.
+            }
+        }
         if (data.assets?.length) await Asset.insertMany(data.assets);
         if (data.assetTemplates?.length) await AssetTemplate.insertMany(data.assetTemplates);
         if (data.branches?.length) await Branch.insertMany(data.branches);
@@ -158,7 +218,7 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
 
         res.json({
             success: true,
-            message: 'Database restored successfully'
+            message: 'Database and Images restored successfully'
         });
     } catch (error) {
         next(error);

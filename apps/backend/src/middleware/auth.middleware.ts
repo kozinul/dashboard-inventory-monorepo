@@ -31,6 +31,11 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
             req.user = await User.findById(decoded.id).select('-password');
 
+            if (!req.user) {
+                res.status(401);
+                return next(new Error('User no longer exists'));
+            }
+
             return next();
         } catch (error) {
             console.error(error);
