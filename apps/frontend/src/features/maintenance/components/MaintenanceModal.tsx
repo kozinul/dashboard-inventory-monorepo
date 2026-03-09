@@ -37,8 +37,8 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
     const [selectedLocation, setSelectedLocation] = useState<any>(null);
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
-    // Determine if user can create panel tickets
-    const canCreatePanelTicket = ['superuser', 'admin', 'system_admin', 'manager', 'dept_admin', 'technician'].includes((user?.role || '').toLowerCase());
+    // Determine if user can create panel tickets - Enabled for all users as requested
+    const canCreatePanelTicket = true;
 
     useEffect(() => {
         if (initialData) {
