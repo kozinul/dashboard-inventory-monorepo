@@ -1,6 +1,7 @@
 import Rental from '../models/rental.model.js';
 import { Asset } from '../models/asset.model.js';
 import { recordAuditLog } from '../utils/logger.js';
+import { Request, Response, NextFunction } from 'express';
 
 export const createRental = async (req: Request, res: Response, next: NextFunction) => {
     try {

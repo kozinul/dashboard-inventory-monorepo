@@ -3,11 +3,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IRental extends Document {
     assetId: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
+    branchId: mongoose.Types.ObjectId;
     eventId?: mongoose.Types.ObjectId;
     rentalDate: Date;
     expectedReturnDate: Date;
     returnedDate?: Date;
     status: 'active' | 'returned' | 'overdue';
+    customerName?: string;
     notes?: string;
     createdAt: Date;
     updatedAt: Date;
@@ -26,6 +28,7 @@ const RentalSchema: Schema = new Schema({
         default: 'active'
     },
     notes: { type: String },
+    customerName: { type: String },
     branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: false }
 }, {
     timestamps: true

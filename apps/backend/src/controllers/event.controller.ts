@@ -33,8 +33,8 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
             resourceId: event._id.toString(),
             resourceName: event.name,
             details: `Event ${event.name} created with ${event.rentedAssets?.length || 0} assets assigned`,
-            branchId: event.branchId.toString(),
-            departmentId: event.departmentId.toString()
+            branchId: event.branchId?.toString(),
+            departmentId: event.departmentId?.toString()
         });
 
         res.status(201).json(event);

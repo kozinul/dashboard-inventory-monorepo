@@ -96,6 +96,9 @@ importers:
       '@types/node':
         specifier: ^20.12.7
         version: 20.19.30
+      '@types/unzipper':
+        specifier: ^0.10.11
+        version: 0.10.11
       tsx:
         specifier: ^4.7.2
         version: 4.21.0
@@ -996,6 +999,9 @@ packages:
 
   '@types/ua-parser-js@0.7.39':
     resolution: {integrity: sha512-P/oDfpofrdtF5xw433SPALpdSchtJmY7nsJItf8h3KXqOslkbySh8zq4dSWXH2oTjRvJ5PczVEoCZPow6GicLg==}
+
+  '@types/unzipper@0.10.11':
+    resolution: {integrity: sha512-D25im2zjyMCcgL9ag6N46+wbtJBnXIr7SI4zHf9eJD2Dw2tEB5e+p5MYkrxKIVRscs5QV0EhtU9rgXSPx90oJg==}
 
   '@types/warning@3.0.3':
     resolution: {integrity: sha512-D1XC7WK8K+zZEveUPY+cf4+kgauk8N4eHr/XIHXGlGYkHLud6hK9lYfZk1ry1TNh798cZUCgb6MqGEG8DkJt6Q==}
@@ -3566,6 +3572,10 @@ snapshots:
       '@types/send': 0.17.6
 
   '@types/ua-parser-js@0.7.39': {}
+
+  '@types/unzipper@0.10.11':
+    dependencies:
+      '@types/node': 20.19.30
 
   '@types/warning@3.0.3': {}
 

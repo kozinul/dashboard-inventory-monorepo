@@ -136,7 +136,7 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
             const directory = await unzipper.Open.file(filepath);
 
             // Restore database from data.json in ZIP
-            const dbFile = directory.files.find(d => d.path === 'data.json');
+            const dbFile = directory.files.find((d: any) => d.path === 'data.json');
             if (!dbFile) throw new Error('data.json not found in backup zip');
 
             const dbContent = await dbFile.buffer();
@@ -146,7 +146,7 @@ export const restoreBackup = async (req: Request, res: Response, next: NextFunct
             const uploadDir = path.join(process.cwd(), 'uploads');
 
             // Filter files that belong to uploads/
-            const uploadFiles = directory.files.filter(f => f.path.startsWith('uploads/'));
+            const uploadFiles = directory.files.filter((f: any) => f.path.startsWith('uploads/'));
 
             if (uploadFiles.length > 0) {
                 // We don't delete everything in uploads, just overwrite/add from backup
