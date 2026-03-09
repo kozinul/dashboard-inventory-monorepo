@@ -38,7 +38,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     // Determine if user can create panel tickets
-    const canCreatePanelTicket = ['superuser', 'admin', 'manager', 'dept_admin', 'technician'].includes(user?.role || '');
+    const canCreatePanelTicket = ['superuser', 'admin', 'system_admin', 'manager', 'dept_admin', 'technician'].includes((user?.role || '').toLowerCase());
 
     useEffect(() => {
         if (initialData) {
@@ -198,7 +198,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, initialData, mode
 
             <div className={cn(
                 "bg-[#0f172a] w-full rounded-xl border border-slate-700 shadow-2xl z-10 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]",
-                showAssetSelector ? "max-w-5xl" : "max-w-2xl"
+                showAssetSelector ? "max-w-5xl" : "max-w-4xl"
             )}>
                 <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center shrink-0">
                     <h3 className="text-lg font-bold tracking-tight text-white">

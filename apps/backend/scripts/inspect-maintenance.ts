@@ -57,8 +57,8 @@ const inspectMaintenance = async (userId, deptId, branchId) => {
     }
 };
 
-const userId = '6982e8aeca416ffe4236ae42';
-const deptId = '697a11c82c41e792c8a7d81a';
-const branchId = '698c821fac43896bb8d635ba';
+const userId = '69ac3a32ef2b88a97f616324'; // superuser
+const deptId = '69ac3a32ef2b88a97f616317'; // IT Infrastructure
+const branchId = '69ac3a32ef2b88a97f616314'; // Head Office
 
 inspectMaintenance(userId, deptId, branchId);

@@ -19,8 +19,8 @@ const inspectAVAssets = async () => {
         await mongoose.connect(uri);
         console.log('Connected to MongoDB');
 
-        const deptId = '697a11c82c41e792c8a7d81a'; // Audio Visual
-        const branchId = '698c821fac43896bb8d635ba'; // Bali Convention Center
+        const deptId = '69ac3a32ef2b88a97f616317'; // IT Infrastructure
+        const branchId = '69ac3a32ef2b88a97f616314'; // Head Office
 
         console.log(`\nInspecting Assets for Dept: ${deptId} in Branch: ${branchId}`);
         const assets = await Asset.find({ departmentId: deptId, branchId: branchId });

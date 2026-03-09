@@ -20,7 +20,7 @@ const inspectTickets = async () => {
         await mongoose.connect(uri);
         console.log('Connected to MongoDB');
 
-        const branchId = '698c821fac43896bb8d635ba';
+        const branchId = '69ac3a32ef2b88a97f616314'; // Head Office (from data.json)
 
         console.log(`\nInspecting Tickets for Branch: ${branchId}`);
         const branchTickets = await MaintenanceRecord.find({ branchId: branchId })
