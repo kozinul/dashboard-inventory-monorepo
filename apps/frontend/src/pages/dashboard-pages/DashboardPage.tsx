@@ -23,12 +23,10 @@ export default function DashboardPage() {
             <DashboardMetrics />
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-12">
-                    <VisualActivityFeed />
-                    <LowStockSuppliesCard />
-                </div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <VisualActivityFeed />
                 <HighPriorityGearPanel />
+                <LowStockSuppliesCard />
             </div>
         </div>
     );

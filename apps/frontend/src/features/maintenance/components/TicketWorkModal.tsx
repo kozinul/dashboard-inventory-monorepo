@@ -268,7 +268,7 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
             onClose();
 
             if (newStatus === 'External Service') {
-                navigate('/service');
+                navigate('/services');
             }
         } catch (error: any) {
             showErrorToast(error.response?.data?.message || 'Failed to update work');

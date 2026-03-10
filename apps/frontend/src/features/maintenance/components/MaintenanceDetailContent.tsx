@@ -203,7 +203,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
             try {
                 await maintenanceService.updateStatus(ticket._id!, 'External Service', 'Marked for External Service');
                 showSuccessToast('Marked for External Service');
-                if (!isModal) navigate('/service');
+                if (!isModal) navigate('/services');
                 else fetchTicket(ticket._id!);
             } catch (error) {
                 showErrorToast('Failed to update status');
@@ -611,9 +611,25 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                             {ticket.history?.map((h, i) => (
                                 <div key={i} className="relative">
                                     <div className="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-white dark:border-card-dark shadow-sm"></div>
-                                    <p className="text-xs font-bold dark:text-white">{h.status}</p>
-                                    <p className="text-[10px] text-slate-500">{new Date(h.changedAt).toLocaleString()}</p>
-                                    {h.notes && <p className="text-[10px] text-slate-400 mt-1 italic">"{h.notes}"</p>}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="text-xs font-bold dark:text-white">{h.status}</p>
+                                        {h.changedBy && (
+                                            <span className="text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                                by {(h.changedBy as any)?.name || 'System'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-0.5">{new Date(h.changedAt).toLocaleString()}</p>
+
+                                    {/* Tampilkan rincian Vendor jika Ext Service */}
+                                    {h.status === 'External Service' && ticket.vendor && (
+                                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 w-max px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800/30">
+                                            <span className="material-symbols-outlined text-[12px]">handyman</span>
+                                            Sent to Vendor: <span className="font-bold">{(ticket.vendor as any).name}</span>
+                                        </div>
+                                    )}
+
+                                    {h.notes && <p className="text-[10px] text-slate-400 mt-1 italic border-l-2 border-slate-200 dark:border-slate-700 pl-2">"{h.notes}"</p>}
                                 </div>
                             ))}
                         </div>

@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface ServiceTableProps {
     records: any[];
@@ -78,28 +79,43 @@ export function ServiceTable({ records, loading, onEdit, onDelete, onStatusChang
                                 {(onEdit || onDelete || onStatusChange) && (
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            {record.status !== 'Done' && onStatusChange && (
-                                                <button
-                                                    onClick={() => onStatusChange(record._id, 'Done')}
-                                                    className="p-1 hover:bg-emerald-50 text-emerald-500 rounded tooltip"
-                                                    title="Mark as Done"
-                                                >
-                                                    <span className="material-symbols-outlined text-sm">check</span>
-                                                </button>
+                                            {/* Always show View button */}
+                                            <Link
+                                                to={`/maintenance/${record._id}`}
+                                                className="p-1 hover:bg-slate-100 text-slate-400 hover:text-primary rounded tooltip flex items-center justify-center pointer-events-auto"
+                                                title="View Detail"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">visibility</span>
+                                            </Link>
+
+                                            {/* Only show actions if ticket is not finalized */}
+                                            {!['Done', 'Closed', 'Cancelled', 'Rejected'].includes(record.status) && (
+                                                <>
+                                                    {onStatusChange && (
+                                                        <button
+                                                            onClick={() => onStatusChange(record._id, 'Done')}
+                                                            className="p-1 hover:bg-emerald-50 text-emerald-500 rounded tooltip flex items-center justify-center pointer-events-auto"
+                                                            title="Mark as Done"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm">check</span>
+                                                        </button>
+                                                    )}
+                                                    {onEdit && (
+                                                        <button
+                                                            onClick={() => onEdit(record)}
+                                                            className="p-1 hover:bg-slate-100 text-slate-400 hover:text-primary rounded flex items-center justify-center pointer-events-auto"
+                                                            title="Edit"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm">edit</span>
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
-                                            {onEdit && (
-                                                <button
-                                                    onClick={() => onEdit(record)}
-                                                    className="p-1 hover:bg-slate-100 text-slate-400 hover:text-primary rounded"
-                                                    title="Edit"
-                                                >
-                                                    <span className="material-symbols-outlined text-sm">edit</span>
-                                                </button>
-                                            )}
+                                            {/* Admin might still want to delete a record even if it's done/closed, depending on logic, but usually we leave Delete if provided. */}
                                             {onDelete && (
                                                 <button
                                                     onClick={() => onDelete(record._id)}
-                                                    className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded"
+                                                    className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded flex items-center justify-center pointer-events-auto"
                                                     title="Delete"
                                                 >
                                                     <span className="material-symbols-outlined text-sm">delete</span>

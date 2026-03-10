@@ -186,7 +186,7 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
     try {
         // RBAC: Non-admin users can only create assets in their department
         // UPDATE: Technicians and Managers can create assets for ANY department in their branch
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
                 return res.status(403).json({ message: 'You can only create assets in your department' });
             }
@@ -197,6 +197,19 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
                     req.body.department = req.user.department;
                 }
             }
+        }
+
+        if (req.body.technicalSpecifications && typeof req.body.technicalSpecifications === 'object') {
+            const sanitizeKeys = (obj: any): any => {
+                if (!obj || typeof obj !== 'object') return obj;
+                if (Array.isArray(obj)) return obj.map(sanitizeKeys);
+                const result: any = {};
+                for (const [k, v] of Object.entries(obj)) {
+                    result[k.replace(/\./g, '_').replace(/^\$/, '_')] = typeof v === 'object' ? sanitizeKeys(v) : v;
+                }
+                return result;
+            };
+            req.body.technicalSpecifications = sanitizeKeys(req.body.technicalSpecifications);
         }
 
         const asset = new Asset({
@@ -236,10 +249,13 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
         if (asset.locationId) {
             const { Location } = await import('../models/location.model.js');
             const targetLocation = await Location.findById(asset.locationId);
-            if (targetLocation && !targetLocation.isWarehouse) {
-                asset.status = 'in_use';
-            } else if (targetLocation && targetLocation.isWarehouse) {
-                asset.status = 'active';
+            if (targetLocation) {
+                asset.location = targetLocation.name;
+                if (!targetLocation.isWarehouse) {
+                    asset.status = 'in_use';
+                } else {
+                    asset.status = 'storage';
+                }
             }
         }
 
@@ -271,8 +287,8 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC: Check if user can update this asset
-        // UPDATE: Technicians and Managers can update assets regardless of department (in their branch)
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+        // UPDATE: Technicians, Managers, Supervisors can update assets regardless of department (in their branch)
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
@@ -300,19 +316,88 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
             delete updateData.branchId;
         }
 
+        // Sanitize technicalSpecifications keys to prevent Mongoose map dot errors
+        if (updateData.technicalSpecifications && typeof updateData.technicalSpecifications === 'object') {
+            const sanitizeKeys = (obj: any): any => {
+                if (!obj || typeof obj !== 'object') return obj;
+                if (Array.isArray(obj)) return obj.map(sanitizeKeys);
+                const result: any = {};
+                for (const [k, v] of Object.entries(obj)) {
+                    result[k.replace(/\./g, '_').replace(/^\$/, '_')] = typeof v === 'object' ? sanitizeKeys(v) : v;
+                }
+                return result;
+            };
+            updateData.technicalSpecifications = sanitizeKeys(updateData.technicalSpecifications);
+        }
+
         // Auto-update status if location is present and status is not protected
         // We PROTECT 'assigned' and 'maintenance' statuses from being overwritten by location changes
         const currentStatus = updateData.status || existingAsset.status;
         const statusProtected = ['assigned', 'maintenance', 'retired', 'disposed', 'request maintenance'].includes(currentStatus);
 
-        const resolvedLocationId = updateData.locationId ?? existingAsset.locationId?.toString();
-        if (!statusProtected && resolvedLocationId) {
+        let resolvedLocationId: string | null = existingAsset.locationId?.toString() || null;
+
+        if (updateData.locationId !== undefined) {
+            if (updateData.locationId === null || updateData.locationId === "null" || updateData.locationId === "") {
+                // User explicitly selected Auto (Warehouse) — find best matching warehouse
+                const { Location } = await import('../models/location.model.js');
+                let warehouse = null;
+
+                // Try 1: Match department + branch
+                if (existingAsset.departmentId) {
+                    warehouse = await Location.findOne({
+                        departmentId: existingAsset.departmentId,
+                        isWarehouse: true,
+                        branchId: existingAsset.branchId
+                    });
+                }
+
+                // Try 2: Match branch only
+                if (!warehouse && existingAsset.branchId) {
+                    warehouse = await Location.findOne({
+                        branchId: existingAsset.branchId,
+                        isWarehouse: true
+                    });
+                }
+
+                // Try 3: Any warehouse
+                if (!warehouse) {
+                    warehouse = await Location.findOne({ isWarehouse: true });
+                }
+
+                // Try 4: Match by type/name containing 'warehouse' or 'gudang'
+                if (!warehouse) {
+                    warehouse = await Location.findOne({
+                        $or: [
+                            { type: { $regex: /warehouse|gudang/i } },
+                            { name: { $regex: /warehouse|gudang/i } }
+                        ]
+                    });
+                }
+
+                if (warehouse) {
+                    resolvedLocationId = warehouse._id.toString();
+                } else {
+                    resolvedLocationId = null;
+                }
+                updateData.locationId = resolvedLocationId;
+            } else {
+                resolvedLocationId = updateData.locationId;
+            }
+        }
+
+        if (resolvedLocationId) {
             const { Location } = await import('../models/location.model.js');
             const targetLocation = await Location.findById(resolvedLocationId);
-            if (targetLocation && !targetLocation.isWarehouse) {
-                updateData.status = 'in_use';
-            } else if (targetLocation && targetLocation.isWarehouse) {
-                updateData.status = 'active';
+            if (targetLocation) {
+                updateData.location = targetLocation.name;
+                if (!statusProtected) {
+                    if (!targetLocation.isWarehouse) {
+                        updateData.status = 'in_use';
+                    } else {
+                        updateData.status = 'storage';
+                    }
+                }
             }
         }
 
@@ -347,7 +432,7 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
 
         // RBAC: Check if user can delete this asset
         // UPDATE: Technicians and Managers can delete assets regardless of department
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
@@ -398,7 +483,7 @@ export const bulkDeleteAssets = async (req: Request, res: Response, next: NextFu
         for (const asset of assetsToDelete) {
             // RBAC: Check if user can delete this asset
             let canDelete = true;
-            if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician'].includes(req.user.role)) {
+            if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
                 const isDeptMatch =
                     (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
                     (asset.department && req.user.department && asset.department === req.user.department);
@@ -465,7 +550,7 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
 
         // RBAC: Filter stats by department for non-admin users
         // Aligned with getAssets logic: admin/manager/technician see entire branch
-        if (req.user && !['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
+        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'supervisor'].includes(req.user.role)) {
             if (req.user.departmentId) {
                 const deptIds = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -679,7 +764,7 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         // Update Asset
         asset.parentAssetId = null; // Mongoose compliant for ObjectId
         asset.slotNumber = null;    // Mongoose compliant for Number
-        asset.status = 'active'; // Auto-update status to Active/Spare
+        asset.status = 'storage'; // Auto-update status to Storage / Warehouse
 
         // Find Department Warehouse to move asset back to
         if (asset.departmentId) {

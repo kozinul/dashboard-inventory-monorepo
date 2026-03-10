@@ -43,6 +43,10 @@ export interface MaintenanceTicket {
         _id: string;
         name: string;
     };
+    vendor?: {
+        _id: string;
+        name: string;
+    };
     cost?: number;
     expectedCompletionDate?: string;
     createdAt: string;

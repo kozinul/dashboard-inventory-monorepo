@@ -43,7 +43,7 @@ export function ActivityItem({ ticket }: ActivityItemProps) {
     const timeAgo = formatDistanceToNow(new Date(ticket.updatedAt), { addSuffix: true });
 
     return (
-        <Link to={`/maintenance/my-tickets`} className="block">
+        <Link to={`/maintenance/${ticket._id}`} className="block">
             <div className="p-6 flex gap-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group">
                 <div className="flex-shrink-0">
                     <div className="flex-shrink-0 flex items-center justify-center size-16 rounded-lg bg-primary/10 text-primary border border-transparent">

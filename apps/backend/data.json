@@ -1,126 +1,2124 @@
 {
   "users": [
     {
-      "_id": "69ac3a32ef2b88a97f616324",
+      "_id": "69a27eb7f6ee0e6a0a8de666",
       "username": "superuser",
-      "email": "superuser@company.com",
-      "name": "Superuser",
-      "departmentId": "69ac3a32ef2b88a97f616317",
-      "managedDepartments": [],
-      "branchId": "69ac3a32ef2b88a97f616314",
-      "password": "$2a$10$lvXe1HLh/l./8mgMPhfJGeE4mslqpn1iMNBv5bStohrvzNhzwXNHe",
-      "status": "Active",
+      "email": "superuser@local.com",
+      "name": "Super User",
+      "password": "$2a$10$hDQWuxx3Egj7gfbJHB.foOPez/CLtciPFI/BXlA9QqKkl.Rcuhkhm",
       "role": "superuser",
-      "useCustomPermissions": false,
-      "customPermissions": [],
+      "status": "Active",
       "isActive": true,
-      "createdAt": "2026-03-07T14:46:10.850Z",
-      "updatedAt": "2026-03-07T14:46:10.850Z",
-      "__v": 0
+      "createdAt": "2026-02-28T05:35:51.764Z",
+      "updatedAt": "2026-02-28T05:35:51.764Z"
     },
     {
-      "_id": "69ac3a32ef2b88a97f616327",
+      "_id": "69a45010c62dc66c6958704e",
       "username": "administrator",
       "email": "admin@company.com",
       "name": "Master Admin",
-      "departmentId": "69ac3a32ef2b88a97f616317",
+      "departmentId": "69a45010c62dc66c69587040",
       "managedDepartments": [],
-      "branchId": "69ac3a32ef2b88a97f616314",
-      "password": "$2a$10$kT7kuvn3mfmUX2/15nGpgO7Hj2jBvJ2MSSNvxIJJ/YZrt3rnmFXdm",
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$DZ6Tzr4rTd.AZ.9RxiL/p.Waq0ByMFjCjvUrjcnJdHLH6V1bLQgOu",
       "status": "Active",
       "role": "admin",
       "useCustomPermissions": false,
-      "customPermissions": [],
       "isActive": true,
-      "createdAt": "2026-03-07T14:46:10.967Z",
-      "updatedAt": "2026-03-07T14:46:10.967Z",
+      "customPermissions": [],
+      "createdAt": "2026-03-01T14:41:20.106Z",
+      "updatedAt": "2026-03-06T08:04:30.302Z",
       "__v": 0
     },
     {
-      "_id": "69ac3a33ef2b88a97f61632a",
+      "_id": "69a45010c62dc66c69587051",
       "username": "sysadmin",
       "email": "sysadmin@company.com",
       "name": "System Admin",
-      "departmentId": "69ac3a32ef2b88a97f616317",
+      "departmentId": "69a45010c62dc66c69587040",
       "managedDepartments": [],
-      "branchId": "69ac3a32ef2b88a97f616314",
-      "password": "$2a$10$WiJHcxs9BtfGAENQ7McTS.kLXUA2klVbe/bUMJApeEh.2UBTL6pmq",
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$hcxCmRr1ZhTx6HUb3e4YN.ISheLbAHg2OQvFNDIcHfyf3ycagwnLa",
       "status": "Active",
       "role": "system_admin",
       "useCustomPermissions": false,
-      "customPermissions": [],
       "isActive": true,
-      "createdAt": "2026-03-07T14:46:11.053Z",
-      "updatedAt": "2026-03-07T14:46:11.053Z",
+      "customPermissions": [],
+      "createdAt": "2026-03-01T14:41:20.271Z",
+      "updatedAt": "2026-03-07T01:44:58.574Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51504e832d700df2706b5",
+      "username": "tony",
+      "email": "tony@gmail.com",
+      "name": "Tony Kusuma",
+      "avatarUrl": "",
+      "department": "Audio Visual",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "managedDepartments": [],
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$eYe3YBKNV/i.wHOes10C1.5LQXp0TGRciK5rvGFlM3h6Acm7nORv.",
+      "designation": "AV Tech",
+      "status": "Active",
+      "role": "technician",
+      "useCustomPermissions": false,
+      "isActive": true,
+      "customPermissions": [
+        {
+          "resource": "dashboard",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8837"
+        },
+        {
+          "resource": "inventory",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8838"
+        },
+        {
+          "resource": "panels",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8839"
+        },
+        {
+          "resource": "incoming",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883a"
+        },
+        {
+          "resource": "transfer",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883b"
+        },
+        {
+          "resource": "disposal",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883c"
+        },
+        {
+          "resource": "assignments",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883d"
+        },
+        {
+          "resource": "maintenance",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883e"
+        },
+        {
+          "resource": "my_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d883f"
+        },
+        {
+          "resource": "dept_tickets",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8840"
+        },
+        {
+          "resource": "assigned_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8841"
+        },
+        {
+          "resource": "services",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8842"
+        },
+        {
+          "resource": "rental",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a52f2ce1caea8c275d8843"
+        },
+        {
+          "resource": "events",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a52f2ce1caea8c275d8844"
+        },
+        {
+          "resource": "my_assets",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8845"
+        },
+        {
+          "resource": "users",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8846"
+        },
+        {
+          "resource": "settings",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8847"
+        },
+        {
+          "resource": "reports",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8848"
+        },
+        {
+          "resource": "history",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d8849"
+        },
+        {
+          "resource": "asset_templates",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d884a"
+        },
+        {
+          "resource": "categories",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d884b"
+        },
+        {
+          "resource": "locations",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d884c"
+        },
+        {
+          "resource": "vendors",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a52f2ce1caea8c275d884d"
+        }
+      ],
+      "createdAt": "2026-03-02T04:41:40.378Z",
+      "updatedAt": "2026-03-02T08:12:47.938Z",
+      "__v": 3
+    },
+    {
+      "_id": "69a5421c5d8de0e8f6e50032",
+      "username": "it officer",
+      "email": "it@gmail.com",
+      "name": "IT Officer",
+      "avatarUrl": "",
+      "department": "Information Technology",
+      "departmentId": "69a45010c62dc66c69587040",
+      "managedDepartments": [],
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$vjB4iDw7A4JoUGovI6ppGu8.xTo9YMXdd34Ne5mDEICSO3aJqKPRC",
+      "designation": "IT Officer",
+      "status": "Active",
+      "role": "technician",
+      "useCustomPermissions": false,
+      "isActive": true,
+      "customPermissions": [],
+      "createdAt": "2026-03-02T07:54:04.895Z",
+      "updatedAt": "2026-03-02T07:54:04.895Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a6808575d484a1c2896077",
+      "username": "agung",
+      "email": "agung@gmailcom.com",
+      "name": "Agung",
+      "avatarUrl": "",
+      "department": "Information Technology",
+      "departmentId": "69a45010c62dc66c69587040",
+      "managedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$9/n9WzTYX1AV.AMwu0j99OMH2myNCHjSxBxMtTT03GQU1WNQi77Nu",
+      "designation": "IT SPV",
+      "status": "Active",
+      "role": "supervisor",
+      "useCustomPermissions": false,
+      "isActive": true,
+      "customPermissions": [],
+      "createdAt": "2026-03-03T06:32:37.580Z",
+      "updatedAt": "2026-03-04T02:31:31.887Z",
+      "__v": 1
+    },
+    {
+      "_id": "69a799ba2a4488d2a3f994fd",
+      "username": "muaris",
+      "email": "av@baliconventioncenter.com",
+      "name": "Muaris",
+      "avatarUrl": "",
+      "department": "Audio Visual",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "managedDepartments": [],
+      "branchId": "69a4500fc62dc66c69587038",
+      "password": "$2a$10$ZZB7DCZOZ9kmNJzAQu.5o.z6rC6lm2dQZylK3CfY.HSBleNO7NzQe",
+      "designation": "AV Team Leader",
+      "status": "Active",
+      "role": "supervisor",
+      "useCustomPermissions": false,
+      "isActive": true,
+      "customPermissions": [],
+      "createdAt": "2026-03-04T02:32:26.935Z",
+      "updatedAt": "2026-03-06T08:03:57.923Z",
       "__v": 0
     }
   ],
-  "assets": [],
+  "assets": [
+    {
+      "_id": "69ae6e227c0f1e062e4d28b3",
+      "name": "mic wireless",
+      "model": "Beta 58A",
+      "category": "Microphone Wireless",
+      "serial": "687677",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Audio Visual",
+      "locationId": "69ab81d582920630f2e37a7b",
+      "parentAssetId": null,
+      "location": "Rak AV",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "http://10.10.5.192/uploads/file-1772610871538-413675973.jpg",
+          "caption": "",
+          "filename": "file-1772610871538-413675973.jpg",
+          "_id": "69ae6e227c0f1e062e4d28b4"
+        }
+      ],
+      "purchaseDate": "2011-01-01T00:00:00.000Z",
+      "value": 12000000,
+      "technicalSpecifications": {},
+      "rentalRates": [
+        {
+          "name": "daily",
+          "rate": 300000,
+          "unit": "day",
+          "_id": "69a7e99f0e2654562fa4e9b3"
+        }
+      ],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [
+        {
+          "action": "installed",
+          "details": "Installed in Rak AV at Slot 1",
+          "performedBy": "69a51504e832d700df2706b5",
+          "date": "2026-03-09T06:52:32.651Z",
+          "_id": "69ae6e307c0f1e062e4d2a6e"
+        },
+        {
+          "action": "dismantled",
+          "details": "Dismantled from Panel and returned to warehouse",
+          "performedBy": "69a51504e832d700df2706b5",
+          "date": "2026-03-09T08:39:15.472Z",
+          "_id": "69ae87339ac9a83ca5adf514"
+        }
+      ],
+      "createdAt": "2026-03-09T06:52:18.356Z",
+      "updatedAt": "2026-03-09T08:39:15.481Z",
+      "__v": 2
+    }
+  ],
   "assetTemplates": [],
   "branches": [
     {
-      "_id": "69ac3a32ef2b88a97f616314",
-      "name": "Head Office",
+      "_id": "69a4500fc62dc66c69587038",
+      "name": "Bali Nusa Dua Convention Center",
       "code": "HO",
       "address": "Main Headquarters",
       "isHeadOffice": true,
       "status": "Active",
-      "createdAt": "2026-03-07T14:46:10.827Z",
-      "updatedAt": "2026-03-07T14:46:10.827Z",
+      "createdAt": "2026-03-01T14:41:19.957Z",
+      "updatedAt": "2026-03-02T01:11:32.104Z",
       "__v": 0
     }
   ],
-  "categories": [],
-  "departments": [
+  "categories": [
     {
-      "_id": "69ac3a32ef2b88a97f616317",
-      "name": "IT Infrastructure",
-      "code": "IT",
-      "status": "Active",
-      "createdAt": "2026-03-07T14:46:10.835Z",
-      "updatedAt": "2026-03-07T14:46:10.835Z",
+      "_id": "69a4f9a1e832d700df270027",
+      "name": "Mixer Digital",
+      "code": "DIGITAL",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "settings_input_component",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:44:49.616Z",
+      "updatedAt": "2026-03-02T02:58:56.424Z",
       "__v": 0
     },
     {
-      "_id": "69ac3a32ef2b88a97f61631a",
+      "_id": "69a4fa5fe832d700df270056",
+      "name": "Mixer Analog",
+      "code": "ANALOG",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "settings_input_component",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:47:59.651Z",
+      "updatedAt": "2026-03-02T02:47:59.651Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fadee832d700df270078",
+      "name": "Microphone Kabel",
+      "code": "MIC K",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "mic",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:50:06.081Z",
+      "updatedAt": "2026-03-02T02:58:34.090Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4faf8e832d700df270085",
+      "name": "Microphone Wireless",
+      "code": "MIC W",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "mic",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:50:32.870Z",
+      "updatedAt": "2026-03-02T02:58:24.121Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fb38e832d700df270097",
+      "name": "Projector",
+      "code": "PROJ",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "monitor",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:51:36.880Z",
+      "updatedAt": "2026-03-02T02:51:36.880Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fb61e832d700df2700a9",
+      "name": "Screen",
+      "code": "SCR",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "monitor",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:52:17.909Z",
+      "updatedAt": "2026-03-02T02:58:13.152Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fb9be832d700df2700bb",
+      "name": "Amplifier",
+      "code": "AMP",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "settings_input_component",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:53:15.008Z",
+      "updatedAt": "2026-03-02T02:59:23.938Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fbd2e832d700df2700cd",
+      "name": "Kabel XLR",
+      "code": "XLR",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "cable",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:54:10.802Z",
+      "updatedAt": "2026-03-02T02:54:10.802Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fbefe832d700df2700d5",
+      "name": "Kabel Akai",
+      "code": "AKAI",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "cable",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:54:39.083Z",
+      "updatedAt": "2026-03-02T02:54:39.083Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fc15e832d700df2700e7",
+      "name": "Jack Audio",
+      "code": "JACK",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "cable",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:55:17.474Z",
+      "updatedAt": "2026-03-02T02:55:17.474Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fc92e832d700df270103",
+      "name": "Speaker Portable",
+      "code": "PORTABLE",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "speaker",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T02:57:22.700Z",
+      "updatedAt": "2026-03-02T02:57:32.831Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fd87e832d700df270156",
+      "name": "Kabel HDMI",
+      "code": "HDMI",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "cable",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T03:01:27.485Z",
+      "updatedAt": "2026-03-02T03:01:27.485Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4fd98e832d700df27015e",
+      "name": "Kabel VGA",
+      "code": "VGA",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "cable",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T03:01:44.593Z",
+      "updatedAt": "2026-03-02T03:01:44.593Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a511b6e832d700df2704e4",
+      "name": "Laptop",
+      "code": "LP",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "laptop_mac",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:27:34.160Z",
+      "updatedAt": "2026-03-02T04:27:34.160Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a511d4e832d700df2704f6",
+      "name": "Monitor",
+      "code": "MNT",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "monitor",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:28:04.742Z",
+      "updatedAt": "2026-03-02T04:29:03.188Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51202e832d700df270503",
+      "name": "PC",
+      "code": "PC",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "desktop_windows",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:28:50.920Z",
+      "updatedAt": "2026-03-02T04:29:38.774Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a5124ae832d700df27052f",
+      "name": "Printer",
+      "code": "PRINT",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "print",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:30:02.129Z",
+      "updatedAt": "2026-03-02T04:30:02.129Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a5126de832d700df27053c",
+      "name": "TV Signage",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "tv",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": true,
+      "createdAt": "2026-03-02T04:30:37.324Z",
+      "updatedAt": "2026-03-02T04:31:12.864Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51285e832d700df27054e",
+      "name": "Digital Signage",
+      "code": "DZ",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": true,
+      "createdAt": "2026-03-02T04:31:01.503Z",
+      "updatedAt": "2026-03-02T04:31:01.503Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a512b0e832d700df270561",
+      "name": "TABLET",
+      "code": "TAB",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "tablet",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:31:44.897Z",
+      "updatedAt": "2026-03-02T04:31:44.897Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a512d2e832d700df270573",
+      "name": "CCTV",
+      "code": "CCTV",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": true,
+      "createdAt": "2026-03-02T04:32:18.648Z",
+      "updatedAt": "2026-03-02T04:32:18.648Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a512efe832d700df270580",
+      "name": "DVR",
+      "code": "DVR",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:32:47.486Z",
+      "updatedAt": "2026-03-02T04:32:47.486Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a512f9e832d700df27058d",
+      "name": "NVR",
+      "code": "NVR",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:32:57.295Z",
+      "updatedAt": "2026-03-02T04:33:23.697Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a5134ce832d700df2705ae",
+      "name": "UPS",
+      "code": "UPS",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:34:20.961Z",
+      "updatedAt": "2026-03-02T04:34:20.961Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51362e832d700df2705bb",
+      "name": "SERVER",
+      "code": "SVR",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "dns",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:34:42.636Z",
+      "updatedAt": "2026-03-02T04:35:03.304Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a5138de832d700df2705d7",
+      "name": "NAS",
+      "code": "NAS",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "storage",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:35:25.374Z",
+      "updatedAt": "2026-03-02T04:35:25.374Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a513a3e832d700df2705df",
+      "name": "Scanner",
+      "code": "SCANNER",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:35:47.785Z",
+      "updatedAt": "2026-03-02T04:38:50.930Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a513cbe832d700df2705f6",
+      "name": "HT",
+      "code": "HT",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040",
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:36:27.462Z",
+      "updatedAt": "2026-03-02T04:36:27.462Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a5140be832d700df27060d",
+      "name": "Switch",
+      "code": "SW",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "dns",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:37:31.076Z",
+      "updatedAt": "2026-03-02T04:37:31.076Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51421e832d700df270615",
+      "name": "FO Converter",
+      "code": "FO CONVERTER",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "category",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:37:53.835Z",
+      "updatedAt": "2026-03-02T04:37:53.835Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51436e832d700df270627",
+      "name": "Core Switch",
+      "code": "CORE SW",
+      "authorizedDepartments": [
+        "69a45010c62dc66c69587040"
+      ],
+      "icon": "storage",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:38:14.647Z",
+      "updatedAt": "2026-03-02T04:38:14.647Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51800e832d700df2708a9",
+      "name": "Marant",
+      "code": "MARANT",
+      "authorizedDepartments": [
+        "69a4dbece832d700df26fbb3"
+      ],
+      "icon": "mic",
+      "technicalSpecsTemplate": {},
+      "isInfrastructure": false,
+      "createdAt": "2026-03-02T04:54:24.494Z",
+      "updatedAt": "2026-03-02T04:54:24.494Z",
+      "__v": 0
+    }
+  ],
+  "departments": [
+    {
+      "_id": "69a45010c62dc66c69587040",
+      "name": "Information Technology",
+      "code": "IT",
+      "status": "Active",
+      "createdAt": "2026-03-01T14:41:20.002Z",
+      "updatedAt": "2026-03-02T01:07:18.720Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a45010c62dc66c69587043",
       "name": "Finance & Accounting",
       "code": "FIN",
       "status": "Active",
-      "createdAt": "2026-03-07T14:46:10.838Z",
-      "updatedAt": "2026-03-07T14:46:10.838Z",
+      "createdAt": "2026-03-01T14:41:20.061Z",
+      "updatedAt": "2026-03-01T14:41:20.061Z",
       "__v": 0
     },
     {
-      "_id": "69ac3a32ef2b88a97f61631d",
+      "_id": "69a45010c62dc66c69587046",
       "name": "General Operations",
       "code": "OPS",
       "status": "Active",
-      "createdAt": "2026-03-07T14:46:10.842Z",
-      "updatedAt": "2026-03-07T14:46:10.842Z",
+      "createdAt": "2026-03-01T14:41:20.068Z",
+      "updatedAt": "2026-03-01T14:41:20.068Z",
       "__v": 0
     },
     {
-      "_id": "69ac3a32ef2b88a97f616320",
+      "_id": "69a45010c62dc66c69587049",
       "name": "Procurement",
       "code": "PROC",
       "status": "Active",
-      "createdAt": "2026-03-07T14:46:10.844Z",
-      "updatedAt": "2026-03-07T14:46:10.844Z",
+      "createdAt": "2026-03-01T14:41:20.075Z",
+      "updatedAt": "2026-03-01T14:41:20.075Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4dbece832d700df26fbb3",
+      "name": "Audio Visual",
+      "code": "AV",
+      "status": "Active",
+      "createdAt": "2026-03-02T00:38:04.040Z",
+      "updatedAt": "2026-03-02T00:38:04.040Z",
       "__v": 0
     }
   ],
-  "jobTitles": [],
-  "locations": [],
-  "locationTypes": [],
-  "supplies": [],
-  "units": [],
-  "vendors": [],
-  "maintenanceRecords": [],
+  "jobTitles": [
+    {
+      "_id": "69a4e312e832d700df26fc8e",
+      "title": "IT Officer",
+      "departmentId": "69a45010c62dc66c69587040",
+      "status": "Active",
+      "createdAt": "2026-03-02T01:08:34.865Z",
+      "updatedAt": "2026-03-02T01:08:34.865Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4e357e832d700df26fc99",
+      "title": "AV Tech",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "status": "Active",
+      "createdAt": "2026-03-02T01:09:43.081Z",
+      "updatedAt": "2026-03-02T01:09:43.081Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4e360e832d700df26fc9f",
+      "title": "IT SPV",
+      "departmentId": "69a45010c62dc66c69587040",
+      "status": "Active",
+      "createdAt": "2026-03-02T01:09:52.211Z",
+      "updatedAt": "2026-03-02T01:09:52.211Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4e370e832d700df26fca5",
+      "title": "AV Team Leader",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "status": "Active",
+      "createdAt": "2026-03-02T01:10:08.828Z",
+      "updatedAt": "2026-03-02T01:10:08.828Z",
+      "__v": 0
+    }
+  ],
+  "locations": [
+    {
+      "_id": "69a51d6ae832d700df270a4f",
+      "name": "BNDCC 1",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "Gedung BNDCC 1",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T05:17:30.047Z",
+      "updatedAt": "2026-03-02T05:17:30.047Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d7ce832d700df270a5f",
+      "name": "BNDCC 2",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "Gedung BNDCC 2",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T05:17:48.072Z",
+      "updatedAt": "2026-03-02T05:17:48.072Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d94e832d700df270a74",
+      "name": "GF",
+      "type": "Floor",
+      "parentId": "69a51d6ae832d700df270a4f",
+      "capacity": 0,
+      "description": "Ground Floor",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T05:18:12.470Z",
+      "updatedAt": "2026-03-02T05:18:12.470Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a52e4ce1caea8c275d8786",
+      "name": "MZ",
+      "type": "Floor",
+      "parentId": "69a51d6ae832d700df270a4f",
+      "capacity": 0,
+      "description": "Mezanine",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:29:32.245Z",
+      "updatedAt": "2026-03-02T06:29:32.245Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a52ec4e1caea8c275d87af",
+      "name": "1st Floor",
+      "type": "Floor",
+      "parentId": "69a51d6ae832d700df270a4f",
+      "capacity": 0,
+      "description": "Lantai 1",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:31:32.033Z",
+      "updatedAt": "2026-03-02T06:31:32.033Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a52ed5e1caea8c275d87c2",
+      "name": "GF",
+      "type": "Floor",
+      "parentId": "69a51d7ce832d700df270a5f",
+      "capacity": 0,
+      "description": "Ground Floor",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:31:49.183Z",
+      "updatedAt": "2026-03-02T06:31:49.183Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a52ee2e1caea8c275d87d5",
+      "name": "MZ",
+      "type": "Floor",
+      "parentId": "69a51d7ce832d700df270a5f",
+      "capacity": 0,
+      "description": "Mezzanine",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:32:02.915Z",
+      "updatedAt": "2026-03-02T06:32:02.915Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a52f13e1caea8c275d87f4",
+      "name": "1st Floor",
+      "type": "Floor",
+      "parentId": "69a51d7ce832d700df270a5f",
+      "capacity": 0,
+      "description": "First Floor",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:32:51.082Z",
+      "updatedAt": "2026-03-02T06:32:51.082Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a53059e1caea8c275d8c39",
+      "name": "AV ROOM",
+      "type": "Warehouse",
+      "parentId": "69a51d94e832d700df270a74",
+      "capacity": 0,
+      "description": "tempat penyimpanan barang Audio Visual",
+      "status": "Active",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "isWarehouse": true,
+      "createdAt": "2026-03-02T06:38:17.018Z",
+      "updatedAt": "2026-03-02T06:38:17.018Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a533975d8de0e8f6e4f8d5",
+      "name": "Server Room",
+      "type": "Warehouse",
+      "parentId": "69a51d94e832d700df270a74",
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "departmentId": "69a45010c62dc66c69587040",
+      "isWarehouse": true,
+      "createdAt": "2026-03-02T06:52:07.631Z",
+      "updatedAt": "2026-03-02T06:52:07.631Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a533b85d8de0e8f6e4f8f5",
+      "name": "Kairos ND 5",
+      "type": "Panel Room",
+      "parentId": "69a51d94e832d700df270a74",
+      "capacity": 0,
+      "description": "Ruangan Panel",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:52:40.502Z",
+      "updatedAt": "2026-03-02T06:52:40.502Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a533c95d8de0e8f6e4f911",
+      "name": "Rak IT",
+      "type": "Rack",
+      "parentId": "69a53059e1caea8c275d8c39",
+      "capacity": 10,
+      "description": "",
+      "status": "Active",
+      "departmentId": "69a45010c62dc66c69587040",
+      "isWarehouse": false,
+      "createdAt": "2026-03-02T06:52:57.700Z",
+      "updatedAt": "2026-03-02T06:53:39.937Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a65283adc5e9de1f2845f6",
+      "name": "CCTV Room",
+      "type": "Room",
+      "parentId": "69a51d94e832d700df270a74",
+      "capacity": 0,
+      "description": "Ruang CCTV",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-03-03T03:16:19.556Z",
+      "updatedAt": "2026-03-03T03:16:19.556Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ab81d582920630f2e37a7b",
+      "name": "Rak AV",
+      "type": "Rack",
+      "parentId": "69a53059e1caea8c275d8c39",
+      "capacity": 8,
+      "description": "",
+      "status": "Active",
+      "branchId": "69a4500fc62dc66c69587038",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "isWarehouse": false,
+      "createdAt": "2026-03-07T01:39:33.577Z",
+      "updatedAt": "2026-03-07T01:39:33.577Z",
+      "__v": 0
+    }
+  ],
+  "locationTypes": [
+    {
+      "_id": "69a51cc0e832d700df270a10",
+      "name": "Building",
+      "description": "Gedung",
+      "level": 1,
+      "createdAt": "2026-03-02T05:14:40.936Z",
+      "updatedAt": "2026-03-02T05:14:40.936Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51ccde832d700df270a18",
+      "name": "Floor",
+      "description": "Lantai",
+      "level": 2,
+      "createdAt": "2026-03-02T05:14:53.575Z",
+      "updatedAt": "2026-03-02T05:14:53.575Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51cdde832d700df270a1b",
+      "name": "Room",
+      "description": "Ruangan",
+      "level": 3,
+      "createdAt": "2026-03-02T05:15:09.895Z",
+      "updatedAt": "2026-03-02T05:15:09.895Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51cf8e832d700df270a23",
+      "name": "Office",
+      "description": "Ruangan Kantor",
+      "level": 4,
+      "createdAt": "2026-03-02T05:15:36.488Z",
+      "updatedAt": "2026-03-02T05:15:36.488Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d07e832d700df270a2b",
+      "name": "Warehouse",
+      "description": "Gudang",
+      "level": 5,
+      "createdAt": "2026-03-02T05:15:51.778Z",
+      "updatedAt": "2026-03-02T05:15:51.778Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d23e832d700df270a2e",
+      "name": "Panel Room",
+      "description": "Ruangan Panel",
+      "level": 6,
+      "createdAt": "2026-03-02T05:16:19.486Z",
+      "updatedAt": "2026-03-02T05:16:19.486Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d3fe832d700df270a36",
+      "name": "Rack",
+      "description": "Rak Panel",
+      "level": 7,
+      "createdAt": "2026-03-02T05:16:47.611Z",
+      "updatedAt": "2026-03-02T05:16:47.611Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a51d55e832d700df270a3e",
+      "name": "Panel Box",
+      "description": "Panel BOX",
+      "level": 8,
+      "createdAt": "2026-03-02T05:17:09.901Z",
+      "updatedAt": "2026-03-02T05:17:09.901Z",
+      "__v": 0
+    }
+  ],
+  "supplies": [
+    {
+      "_id": "69aa887682920630f2e350cf",
+      "name": "Enegizer AAA",
+      "partNumber": "123412",
+      "category": "Batteries",
+      "unit": "Pcs",
+      "unitId": "69aa87c082920630f2e34ff4",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "description": "1 Paks berisi 2 + 1 Batterai",
+      "quantity": 10,
+      "minimumStock": 1,
+      "locationId": "69a53059e1caea8c275d8c39",
+      "vendorId": "69aa881082920630f2e3504a",
+      "compatibleModels": [],
+      "cost": 20000,
+      "images": [],
+      "createdAt": "2026-03-06T07:55:34.462Z",
+      "updatedAt": "2026-03-06T07:55:34.462Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ae6ecd7c0f1e062e4d2c9a",
+      "name": "Enegizer AAA",
+      "partNumber": "12345778",
+      "category": "Batteries",
+      "unit": "Pcs",
+      "unitId": "69aa87c082920630f2e34ff4",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "branchId": "69a4500fc62dc66c69587038",
+      "description": "1 Pack ISi 2 + 1",
+      "quantity": 10,
+      "minimumStock": 1,
+      "locationId": "69a53059e1caea8c275d8c39",
+      "vendorId": "69aa881082920630f2e3504a",
+      "compatibleModels": [],
+      "cost": 20000,
+      "images": [],
+      "createdAt": "2026-03-09T06:55:09.311Z",
+      "updatedAt": "2026-03-09T06:55:09.311Z",
+      "__v": 0
+    }
+  ],
+  "units": [
+    {
+      "_id": "69a2804ca3cd3ce97f6ed1d2",
+      "name": "PCS",
+      "symbol": "PCS",
+      "description": "",
+      "status": "Active",
+      "createdAt": "2026-02-28T05:42:36.338Z",
+      "updatedAt": "2026-02-28T05:42:36.338Z",
+      "__v": 0
+    },
+    {
+      "_id": "69a4e7c9e832d700df26fd50",
+      "name": "Unit",
+      "symbol": "UNIT",
+      "description": "",
+      "status": "Active",
+      "createdAt": "2026-03-02T01:28:41.621Z",
+      "updatedAt": "2026-03-02T01:28:41.621Z",
+      "__v": 0
+    },
+    {
+      "_id": "69aa87c082920630f2e34ff4",
+      "name": "PACK",
+      "symbol": "PACK",
+      "description": "",
+      "status": "Active",
+      "createdAt": "2026-03-06T07:52:32.702Z",
+      "updatedAt": "2026-03-06T07:52:39.266Z",
+      "__v": 0
+    }
+  ],
+  "vendors": [
+    {
+      "_id": "69aa881082920630f2e3504a",
+      "name": "General Store BNDCC",
+      "contactName": "Yopi",
+      "email": "store@baliconventioncenter.com",
+      "phone": "",
+      "address": "Kawasan ITDC Nusa Dua",
+      "website": "",
+      "tags": [],
+      "status": "active",
+      "createdAt": "2026-03-06T07:53:52.201Z",
+      "updatedAt": "2026-03-06T07:53:52.201Z",
+      "__v": 0
+    }
+  ],
+  "maintenanceRecords": [
+    {
+      "_id": "69a6804775d484a1c289600b",
+      "asset": "69a632babd89368467e2ae2d",
+      "isInternalDepartment": false,
+      "title": "Upgrade Ram",
+      "description": "Pc lemot",
+      "requestedBy": "69a5421c5d8de0e8f6e50032",
+      "requestedAt": "2026-03-03T06:31:35.924Z",
+      "serviceProviderType": "Internal",
+      "type": "Maintenance",
+      "status": "Closed",
+      "branchId": "69a4500fc62dc66c69587038",
+      "beforePhotos": [],
+      "afterPhotos": [],
+      "visualProof": [],
+      "history": [
+        {
+          "status": "Draft",
+          "changedBy": "69a5421c5d8de0e8f6e50032",
+          "changedAt": "2026-03-03T06:31:35.924Z",
+          "notes": "Ticket created in draft",
+          "_id": "69a6804775d484a1c289600c"
+        },
+        {
+          "status": "Sent",
+          "changedBy": "69a5421c5d8de0e8f6e50032",
+          "changedAt": "2026-03-03T06:31:43.035Z",
+          "notes": "Ticket submitted for review",
+          "_id": "69a6804f75d484a1c2896023"
+        },
+        {
+          "status": "Accepted",
+          "changedBy": "69a27eb7f6ee0e6a0a8de666",
+          "changedAt": "2026-03-03T06:34:26.091Z",
+          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
+          "_id": "69a680f275d484a1c28962dc"
+        },
+        {
+          "status": "In Progress",
+          "changedBy": "69a5421c5d8de0e8f6e50032",
+          "changedAt": "2026-03-03T07:32:19.498Z",
+          "notes": "Technician started work",
+          "_id": "69a68e8375d484a1c28968a8"
+        },
+        {
+          "status": "Done",
+          "changedBy": "69a5421c5d8de0e8f6e50032",
+          "changedAt": "2026-03-03T07:32:22.284Z",
+          "notes": "Maintenance Completed",
+          "_id": "69a68e8675d484a1c28968d6"
+        },
+        {
+          "status": "Closed",
+          "changedBy": "69a6808575d484a1c2896077",
+          "changedAt": "2026-03-03T07:32:44.870Z",
+          "notes": "Ticket closed by department manager.",
+          "_id": "69a68e9c75d484a1c289696d"
+        }
+      ],
+      "suppliesUsed": [],
+      "notes": [],
+      "createdAt": "2026-03-03T06:31:35.954Z",
+      "updatedAt": "2026-03-03T07:32:44.875Z",
+      "ticketNumber": "MT-20260303-001",
+      "__v": 5,
+      "processedAt": "2026-03-03T06:34:26.091Z",
+      "processedBy": "69a27eb7f6ee0e6a0a8de666",
+      "technician": "69a5421c5d8de0e8f6e50032",
+      "pendingNote": "Ticket closed by department manager."
+    }
+  ],
   "transfers": [],
   "disposals": [],
-  "assignments": [],
+  "assignments": [
+    {
+      "_id": "69a652c1adc5e9de1f28466c",
+      "assetId": "69a632babd89368467e2ae2d",
+      "assignedTo": "Suta Erawan",
+      "assignedToTitle": "Chief Security",
+      "locationId": "69a65283adc5e9de1f2845f6",
+      "assignedDate": "2026-03-03T00:00:00.000Z",
+      "status": "returned",
+      "notes": "",
+      "isDeleted": true,
+      "branchId": "69a4500fc62dc66c69587038",
+      "createdAt": "2026-03-03T03:17:21.691Z",
+      "updatedAt": "2026-03-04T02:30:37.922Z",
+      "__v": 0,
+      "returnedDate": "2026-03-03T07:32:45.737Z"
+    },
+    {
+      "_id": "69a68eba75d484a1c28969c7",
+      "assetId": "69a632babd89368467e2ae2d",
+      "assignedTo": "Suta Erawan",
+      "assignedToTitle": "Chief Security",
+      "locationId": "69a65283adc5e9de1f2845f6",
+      "assignedDate": "2026-03-03T07:32:51.187Z",
+      "status": "returned",
+      "isDeleted": true,
+      "branchId": "69a4500fc62dc66c69587038",
+      "createdAt": "2026-03-03T07:33:14.831Z",
+      "updatedAt": "2026-03-04T02:30:37.936Z",
+      "__v": 0,
+      "returnedDate": "2026-03-04T02:30:37.935Z"
+    }
+  ],
   "rentals": [],
-  "events": [],
-  "supplyHistory": [],
-  "rolePermissions": []
+  "events": [
+    {
+      "_id": "69ae6f247c0f1e062e4d2ce2",
+      "name": "Meeting Dengan Bea Cukai",
+      "room": "Taman sari 1",
+      "startTime": "2026-03-09T06:00:00.000Z",
+      "endTime": "2026-03-09T07:00:00.000Z",
+      "description": "",
+      "status": "completed",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "branchId": "69a4500fc62dc66c69587038",
+      "createdBy": "69a799ba2a4488d2a3f994fd",
+      "rentedAssets": [
+        {
+          "assetId": "69a7e522d87cf6f6c6604040",
+          "rentalRate": 300000,
+          "rentalRateUnit": "day",
+          "_id": "69ae6f327c0f1e062e4d2e36"
+        },
+        {
+          "assetId": "69ae4ed57c0f1e062e4d1f78",
+          "rentalRate": 300000,
+          "rentalRateUnit": "day",
+          "_id": "69ae6f3d7c0f1e062e4d2f55"
+        }
+      ],
+      "planningSupplies": [
+        {
+          "supplyId": "69ae6ecd7c0f1e062e4d2c9a",
+          "quantity": 2,
+          "cost": 40000,
+          "_id": "69ae6f397c0f1e062e4d2eb1"
+        }
+      ],
+      "createdAt": "2026-03-09T06:56:36.069Z",
+      "updatedAt": "2026-03-09T06:59:46.942Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ae6f6f7c0f1e062e4d300b",
+      "name": "technical meeting",
+      "room": "Uluwatu 6",
+      "startTime": "2026-03-09T07:00:00.000Z",
+      "endTime": "2026-03-09T08:00:00.000Z",
+      "description": "",
+      "status": "completed",
+      "departmentId": "69a4dbece832d700df26fbb3",
+      "branchId": "69a4500fc62dc66c69587038",
+      "createdBy": "69a799ba2a4488d2a3f994fd",
+      "rentedAssets": [
+        {
+          "assetId": "69a7e522d87cf6f6c6604040",
+          "rentalRate": 300000,
+          "rentalRateUnit": "day",
+          "_id": "69ae6fa07c0f1e062e4d306b"
+        },
+        {
+          "assetId": "69ae4ed57c0f1e062e4d1f78",
+          "rentalRate": 300000,
+          "rentalRateUnit": "day",
+          "_id": "69ae6fa07c0f1e062e4d306c"
+        }
+      ],
+      "planningSupplies": [
+        {
+          "supplyId": "69ae6ecd7c0f1e062e4d2c9a",
+          "quantity": 2,
+          "cost": 40000,
+          "_id": "69ae6fa97c0f1e062e4d3095"
+        }
+      ],
+      "createdAt": "2026-03-09T06:57:51.027Z",
+      "updatedAt": "2026-03-09T07:00:58.480Z",
+      "__v": 0
+    }
+  ],
+  "supplyHistory": [
+    {
+      "_id": "69aa887682920630f2e350d1",
+      "supplyId": "69aa887682920630f2e350cf",
+      "action": "CREATE",
+      "quantityChange": 10,
+      "previousStock": 0,
+      "newStock": 10,
+      "notes": "Initial stock",
+      "createdAt": "2026-03-06T07:55:34.484Z",
+      "updatedAt": "2026-03-06T07:55:34.484Z",
+      "__v": 0
+    },
+    {
+      "_id": "69ae6ecd7c0f1e062e4d2c9c",
+      "supplyId": "69ae6ecd7c0f1e062e4d2c9a",
+      "action": "CREATE",
+      "quantityChange": 10,
+      "previousStock": 0,
+      "newStock": 10,
+      "notes": "Initial stock",
+      "createdAt": "2026-03-09T06:55:09.333Z",
+      "updatedAt": "2026-03-09T06:55:09.333Z",
+      "__v": 0
+    }
+  ],
+  "rolePermissions": [
+    {
+      "_id": "69a5162b9e12767daeac9ac7",
+      "roleSlug": "technician",
+      "__v": 0,
+      "createdAt": "2026-03-02T04:46:35.412Z",
+      "permissions": [
+        {
+          "resource": "dashboard",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27074e"
+        },
+        {
+          "resource": "reports",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27074f"
+        },
+        {
+          "resource": "inventory",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270750"
+        },
+        {
+          "resource": "panels",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270751"
+        },
+        {
+          "resource": "incoming",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270752"
+        },
+        {
+          "resource": "transfer",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270753"
+        },
+        {
+          "resource": "disposal",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270754"
+        },
+        {
+          "resource": "assignments",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270755"
+        },
+        {
+          "resource": "maintenance",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270756"
+        },
+        {
+          "resource": "my_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270757"
+        },
+        {
+          "resource": "dept_tickets",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270758"
+        },
+        {
+          "resource": "assigned_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270759"
+        },
+        {
+          "resource": "services",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27075a"
+        },
+        {
+          "resource": "rental",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a5162be832d700df27075b"
+        },
+        {
+          "resource": "events",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a5162be832d700df27075c"
+        },
+        {
+          "resource": "my_assets",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27075d"
+        },
+        {
+          "resource": "users",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27075e"
+        },
+        {
+          "resource": "settings",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df27075f"
+        },
+        {
+          "resource": "master_data",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69aa86b182920630f2e34c73"
+        },
+        {
+          "resource": "branches",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69aa86b182920630f2e34c74"
+        },
+        {
+          "resource": "categories",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270760"
+        },
+        {
+          "resource": "locations",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270761"
+        },
+        {
+          "resource": "vendors",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270762"
+        },
+        {
+          "resource": "asset_templates",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270763"
+        },
+        {
+          "resource": "history",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a5162be832d700df270764"
+        },
+        {
+          "resource": "data_management",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69aa86b182920630f2e34c7a"
+        },
+        {
+          "resource": "audit_logs",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69aa86b182920630f2e34c7b"
+        }
+      ],
+      "updatedAt": "2026-03-06T07:48:01.186Z"
+    },
+    {
+      "_id": "69a541b6e265489e67332056",
+      "roleSlug": "supervisor",
+      "__v": 0,
+      "createdAt": "2026-03-02T07:52:22.113Z",
+      "permissions": [
+        {
+          "resource": "dashboard",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff91"
+        },
+        {
+          "resource": "reports",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff92"
+        },
+        {
+          "resource": "inventory",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff93"
+        },
+        {
+          "resource": "panels",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff94"
+        },
+        {
+          "resource": "incoming",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff95"
+        },
+        {
+          "resource": "transfer",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff96"
+        },
+        {
+          "resource": "disposal",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff97"
+        },
+        {
+          "resource": "assignments",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff98"
+        },
+        {
+          "resource": "maintenance",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff99"
+        },
+        {
+          "resource": "my_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9a"
+        },
+        {
+          "resource": "dept_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9b"
+        },
+        {
+          "resource": "assigned_tickets",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9c"
+        },
+        {
+          "resource": "services",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9d"
+        },
+        {
+          "resource": "rental",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9e"
+        },
+        {
+          "resource": "events",
+          "actions": {
+            "view": true,
+            "create": true,
+            "edit": true,
+            "delete": true
+          },
+          "_id": "69a541b65d8de0e8f6e4ff9f"
+        },
+        {
+          "resource": "my_assets",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa0"
+        },
+        {
+          "resource": "users",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa1"
+        },
+        {
+          "resource": "settings",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa2"
+        },
+        {
+          "resource": "master_data",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69ae81a29ac9a83ca5adee8a"
+        },
+        {
+          "resource": "branches",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69ae81a29ac9a83ca5adee8b"
+        },
+        {
+          "resource": "categories",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa3"
+        },
+        {
+          "resource": "locations",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa4"
+        },
+        {
+          "resource": "vendors",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa5"
+        },
+        {
+          "resource": "asset_templates",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa6"
+        },
+        {
+          "resource": "history",
+          "actions": {
+            "view": true,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69a541b65d8de0e8f6e4ffa7"
+        },
+        {
+          "resource": "data_management",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69ae81a29ac9a83ca5adee91"
+        },
+        {
+          "resource": "audit_logs",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69ae81a29ac9a83ca5adee92"
+        },
+        {
+          "resource": "tools",
+          "actions": {
+            "view": false,
+            "create": false,
+            "edit": false,
+            "delete": false
+          },
+          "_id": "69ae81a29ac9a83ca5adee93"
+        }
+      ],
+      "updatedAt": "2026-03-09T08:15:30.557Z"
+    }
+  ]
 }

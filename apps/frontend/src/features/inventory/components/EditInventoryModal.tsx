@@ -166,15 +166,33 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 };
             }
 
-            onUpdate(asset.id || asset._id, {
+            const locationId = data.locationId || null;
+            // If user picked a specific location, send its name; otherwise omit so backend resolves it
+            const locationName = selectedLoc ? selectedLoc.name : undefined;
+
+            const payload: any = {
                 ...data,
                 departmentId: (data.departmentId || null) as any, // Convert empty string to null for Mongoose
-                locationId: (data.locationId || null) as any,
+                locationId: locationId as any,
                 locationDetail: data.locationDetail,
-                location: selectedLoc?.name || asset.location,
                 parentAssetId: (data.parentAssetId || null) as any, // Convert empty string to null for Mongoose
                 department: selectedDept?.name || asset.department,
                 value: isNaN(Number(data.value)) ? asset.value : Number(data.value),
+            };
+
+            // Only send location string if user explicitly picked a location (not Auto)
+            if (locationName) {
+                payload.location = locationName;
+            } else {
+                // Remove location so backend can set it from warehouse lookup
+                delete payload.location;
+            }
+
+            // Remove status so backend auto-detects based on location (warehouse = storage, else = in_use)
+            delete payload.status;
+
+            onUpdate(asset.id || asset._id, {
+                ...payload,
                 vendor: {
                     name: data.vendorName,
                     contact: data.vendorContact,

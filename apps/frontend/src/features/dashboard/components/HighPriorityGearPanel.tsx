@@ -74,58 +74,56 @@ export function HighPriorityGearPanel() {
     };
 
     return (
-        <div className="space-y-8">
-            <div>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold dark:text-white tracking-tight">Upcoming Events</h2>
-                    <Link to="/rental" className="text-xs font-medium text-primary hover:underline">View All</Link>
-                </div>
+        <div className="flex flex-col h-full space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold dark:text-white tracking-tight">Upcoming Events</h2>
+                <Link to="/rental" className="text-sm font-semibold text-primary hover:underline">View All</Link>
+            </div>
 
-                <div className="space-y-4">
-                    {loading ? (
-                        <div className="text-center py-8 text-slate-500">Loading events...</div>
-                    ) : events.length === 0 ? (
-                        <div className="text-center py-8 text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
-                            No upcoming events found
-                        </div>
-                    ) : (
-                        events.map((event) => (
-                            <Link key={event._id} to={`/events/${event._id}`} className="block">
-                                <Card padding="sm" className="group hover:border-primary/50 transition-colors cursor-pointer">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-                                                {event.name}
-                                            </h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                                {format(new Date(event.startTime), 'MMM d, HH:mm')} • {event.room}
-                                            </p>
-                                        </div>
+            <div className="flex-1 space-y-4 flex flex-col">
+                {loading ? (
+                    <div className="flex-1 flex flex-col items-center justify-center py-8 text-slate-500">Loading events...</div>
+                ) : events.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center py-8 text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-lg border border-dashed border-slate-200 dark:border-slate-700">
+                        No upcoming events found
+                    </div>
+                ) : (
+                    events.map((event) => (
+                        <Link key={event._id} to={`/events/${event._id}`} className="block">
+                            <Card padding="sm" className="group hover:border-primary/50 transition-colors cursor-pointer">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                            {event.name}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                            {format(new Date(event.startTime), 'MMM d, HH:mm')} • {event.room}
+                                        </p>
                                     </div>
+                                </div>
 
-                                    {(() => {
-                                        const styles = getStatusStyles(event);
-                                        return (
-                                            <div className={cn(
-                                                "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors",
-                                                styles.classes
-                                            )}>
-                                                <span className="text-xs font-semibold capitalize">
-                                                    {styles.label}
-                                                </span>
-                                                <span className="material-symbols-outlined text-[18px]">
-                                                    {event.status === 'scheduled' ? 'event' :
-                                                        event.status === 'planning' ? 'edit_calendar' :
-                                                            event.status === 'ongoing' ? 'play_circle' : 'check_circle'}
-                                                </span>
-                                            </div>
-                                        );
-                                    })()}
-                                </Card>
-                            </Link>
-                        ))
-                    )}
-                </div>
+                                {(() => {
+                                    const styles = getStatusStyles(event);
+                                    return (
+                                        <div className={cn(
+                                            "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors",
+                                            styles.classes
+                                        )}>
+                                            <span className="text-xs font-semibold capitalize">
+                                                {styles.label}
+                                            </span>
+                                            <span className="material-symbols-outlined text-[18px]">
+                                                {event.status === 'scheduled' ? 'event' :
+                                                    event.status === 'planning' ? 'edit_calendar' :
+                                                        event.status === 'ongoing' ? 'play_circle' : 'check_circle'}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+                            </Card>
+                        </Link>
+                    ))
+                )}
             </div>
         </div>
     );

@@ -241,7 +241,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
 
                 if (categoryDoc?.isInfrastructure) {
                     // Bypass assignment check, but verify department match (unless manager/admin)
-                    const isManager = ['manager', 'dept_admin'].includes(userRole);
+                    const isManager = ['manager', 'dept_admin', 'supervisor'].includes(userRole);
                     const isDeptMatch = targetAsset.departmentId?.toString() === req.user.departmentId?.toString();
                     const isManagedMatch = req.user.managedDepartments?.includes(targetAsset.departmentId?.toString() || '');
 
@@ -260,7 +260,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
                     // Standard validation: Check if asset is assigned to this user
                     // UPDATE: Technicians and Managers can request maintenance for any asset in their branch/department 
                     // (especially useful for manually assigned assets that lack a userId)
-                    const isStaffRole = ['manager', 'dept_admin', 'technician'].includes(userRole);
+                    const isStaffRole = ['manager', 'dept_admin', 'supervisor', 'technician'].includes(userRole);
                     const isDeptMatch = targetAsset.departmentId?.toString() === req.user.departmentId?.toString();
                     const isManagedMatch = req.user.managedDepartments?.includes(targetAsset.departmentId?.toString() || '');
 
@@ -378,7 +378,7 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
 
         if (req.body.asset) {
             await Asset.findByIdAndUpdate(req.body.asset, { status: 'request maintenance' });
-            await Assignment.findOneAndUpdate({ assetId: req.body.asset, status: 'assigned' }, { status: 'maintenance' });
+            await Assignment.updateMany({ assetId: req.body.asset, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
         } else if (req.body.locationTarget) {
             const Location = (await import('../models/location.model.js')).Location;
             await Location.findByIdAndUpdate(req.body.locationTarget, { status: 'Maintenance' });
@@ -436,7 +436,7 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
 
         // Update asset status
         await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+        await Assignment.updateMany({ assetId: record.asset, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial')
@@ -474,7 +474,7 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
 
         // FIX: Ensure asset status is 'maintenance' when work starts
         await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+        await Assignment.updateMany({ assetId: record.asset, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
 
         record.history.push({
             status: 'In Progress',
@@ -508,7 +508,7 @@ export const escalateTicket = async (req: Request, res: Response, next: NextFunc
 
         // FIX: Ensure asset status is 'maintenance' or 'request maintenance'
         await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
-        await Assignment.findOneAndUpdate({ assetId: record.asset, status: 'assigned' }, { status: 'maintenance' });
+        await Assignment.updateMany({ assetId: record.asset, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
 
         // Optional: clear technician if escalating moves it out of their queue, 
         // but user might want to keep track. Let's keep it or clear it depending on logic.
@@ -570,11 +570,11 @@ export const updateTicketStatus = async (req: Request, res: Response, next: Next
             const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
             const finalStatus = hasAssignment ? 'assigned' : 'active';
             await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
-        } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(status)) {
+        } else if (['In Progress', 'Accepted', 'Sent', 'Pending', 'External Service'].includes(status)) {
             await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
-            await Assignment.findOneAndUpdate(
-                { assetId, status: 'assigned', isDeleted: { $ne: true } },
-                { status: 'maintenance' }
+            await Assignment.updateMany(
+                { assetId, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } },
+                { status: 'returned', returnedDate: new Date() }
             );
         }
 
@@ -862,8 +862,8 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
         // Update asset status now that ticket is officially submitted
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
         await Asset.findByIdAndUpdate(assetId, { status: 'request maintenance' });
-        // Sync Assignment: assigned -> maintenance
-        await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+        // Sync Assignment: assigned -> returned
+        await Assignment.updateMany({ assetId, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
 
         // Record Audit Log
         if (record && record.asset) {
@@ -914,10 +914,10 @@ export const updateMaintenanceRecord = async (req: Request, res: Response, next:
                 const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
                 const finalStatus = hasAssignment ? 'assigned' : 'active';
                 await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
-            } else if (['In Progress', 'Accepted', 'Sent', 'Pending'].includes(req.body.status)) {
+            } else if (['In Progress', 'Accepted', 'Sent', 'Pending', 'External Service'].includes(req.body.status)) {
                 console.log(`[Maintenance] Maintenance active (${req.body.status}), setting asset ${assetId} to maintenance`);
                 await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
-                await Assignment.findOneAndUpdate({ assetId, status: 'assigned' }, { status: 'maintenance' });
+                await Assignment.updateMany({ assetId, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
             }
         }
 
@@ -1342,6 +1342,24 @@ export const updateTicketWork = async (req: Request, res: Response, next: NextFu
             }
 
             record.history.push(historyEntry);
+
+            // Sync Asset Status
+            const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+            if (['Done', 'Closed', 'Cancelled', 'Rejected'].includes(status)) {
+                const assignment = await Assignment.findOneAndUpdate(
+                    { assetId, status: 'maintenance', isDeleted: { $ne: true } },
+                    { status: 'assigned' }
+                );
+                const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
+                const finalStatus = hasAssignment ? 'assigned' : 'active';
+                await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
+            } else if (['In Progress', 'Accepted', 'Sent', 'Pending', 'External Service'].includes(status)) {
+                await Asset.findByIdAndUpdate(assetId, { status: 'maintenance' });
+                await Assignment.updateMany(
+                    { assetId, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } },
+                    { status: 'returned', returnedDate: new Date() }
+                );
+            }
         }
 
         await record.save();
@@ -1371,6 +1389,7 @@ export const getMaintenanceTicket = async (req: Request, res: Response, next: Ne
                 path: 'history.changedBy',
                 select: 'name avatar'
             })
+            .populate('vendor', 'name')
             .populate('notes.addedBy', 'name avatar');
 
         if (!record) {

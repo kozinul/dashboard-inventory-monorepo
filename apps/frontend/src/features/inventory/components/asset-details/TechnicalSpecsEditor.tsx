@@ -5,6 +5,7 @@ import { PencilSquareIcon, CheckIcon, XMarkIcon, PlusIcon, ArrowUpTrayIcon, Tras
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
+import TechnicalSpecsImportModal from './TechnicalSpecsImportModal';
 
 interface TechnicalSpecsEditorProps {
     asset: Asset;
@@ -19,6 +20,9 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
     const [newKey, setNewKey] = useState('');
     const [newValue, setNewValue] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<Record<string, string>>({});
 
     const handleSaveSpec = async (key: string, value: string) => {
         const updatedSpecs = { ...specs, [key]: value };
@@ -163,18 +167,9 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                     return;
                 }
 
-                const result = await Swal.fire({
-                    title: 'Import Specifications?',
-                    text: `Found ${Object.keys(validSpecs).length} specs. This will merge/overwrite existing specifications.`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Import'
-                });
+                setPreviewData(validSpecs);
+                setIsPreviewModalOpen(true);
 
-                if (result.isConfirmed) {
-                    const mergedSpecs = { ...specs, ...validSpecs };
-                    saveSpecs(mergedSpecs);
-                }
             } catch (err) {
                 console.error('File parsing error:', err);
                 showErrorToast('Invalid file format. Please upload a valid Excel or CSV file.');
@@ -183,6 +178,12 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
             if (fileInputRef.current) fileInputRef.current.value = '';
         };
         reader.readAsArrayBuffer(file);
+    };
+
+    const handleConfirmImport = (finalSpecs: Record<string, string>) => {
+        const mergedSpecs = { ...specs, ...finalSpecs };
+        saveSpecs(mergedSpecs);
+        setIsPreviewModalOpen(false);
     };
 
     const handleDownloadTemplate = async () => {
@@ -372,6 +373,13 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
                     </div>
                 )}
             </div>
+
+            <TechnicalSpecsImportModal
+                isOpen={isPreviewModalOpen}
+                onClose={() => setIsPreviewModalOpen(false)}
+                onConfirm={handleConfirmImport}
+                initialData={previewData}
+            />
         </div>
     );
 }

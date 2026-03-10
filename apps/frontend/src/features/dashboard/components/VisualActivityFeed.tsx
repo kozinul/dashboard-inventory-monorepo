@@ -27,29 +27,29 @@ export function VisualActivityFeed() {
     }, []);
 
     return (
-        <div className="lg:col-span-2 space-y-6">
+        <div className="flex flex-col h-full space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold dark:text-white tracking-tight">Recent Visual Activity</h2>
+                <h2 className="text-xl font-bold dark:text-white tracking-tight">Ticket Activity</h2>
                 <Link to="/maintenance/my-tickets" className="text-sm font-semibold text-primary hover:underline">
                     View all tickets
                 </Link>
             </div>
 
-            <div className="bg-white dark:bg-slate-card border border-slate-200 dark:border-slate-border rounded-xl divide-y divide-slate-100 dark:divide-slate-700/50 overflow-hidden">
+            <div className="flex-1 bg-white dark:bg-slate-card border border-slate-200 dark:border-slate-border rounded-xl divide-y divide-slate-100 dark:divide-slate-700/50 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-slate-500">
                         <span className="material-symbols-outlined animate-spin !text-[32px]">progress_activity</span>
                         <p className="mt-2">Loading tickets...</p>
                     </div>
                 ) : error ? (
-                    <div className="p-8 text-center text-rose-500">
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-rose-500">
                         <span className="material-symbols-outlined !text-[32px]">error</span>
                         <p className="mt-2">{error}</p>
                     </div>
                 ) : tickets.length === 0 ? (
-                    <div className="p-8 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center text-slate-500">
                         <span className="material-symbols-outlined !text-[32px]">inbox</span>
-                        <p className="mt-2">No recent tickets</p>
+                        <p className="mt-2 text-sm font-semibold">No recent tickets</p>
                     </div>
                 ) : (
                     tickets.map((ticket) => (
