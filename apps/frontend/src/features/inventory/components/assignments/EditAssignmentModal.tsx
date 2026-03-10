@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { assignmentService, Assignment } from '@/services/assignmentService';
 import { userService, User } from '@/services/userService';
 import Swal from 'sweetalert2';
+import { useAuthStore } from '@/store/authStore';
 
 interface EditAssignmentModalProps {
     isOpen: boolean;
@@ -16,6 +17,7 @@ export function EditAssignmentModal({
     onSuccess,
     assignment
 }: EditAssignmentModalProps) {
+    const { user: currentUser } = useAuthStore();
     const [recipientName, setRecipientName] = useState('');
     const [recipientTitle, setRecipientTitle] = useState('');
     const [notes, setNotes] = useState('');
@@ -33,7 +35,8 @@ export function EditAssignmentModal({
     const loadUsers = async () => {
         try {
             const data = await userService.getAll();
-            setUsers(data);
+            const filteredUsers = data.filter(u => u._id !== currentUser?._id);
+            setUsers(filteredUsers);
         } catch (error) {
             console.error("Failed to load users", error);
         }

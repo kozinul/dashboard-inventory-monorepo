@@ -4,6 +4,7 @@ import { userService, User } from '@/services/userService';
 import { assignmentService } from '@/services/assignmentService';
 import { locationService, BoxLocation } from '@/services/locationService';
 import Swal from 'sweetalert2';
+import { useAuthStore } from '@/store/authStore';
 import { AssetSelectionModal } from './AssetSelectionModal';
 
 interface AssignmentModalProps {
@@ -20,6 +21,7 @@ export function AssignmentModal({
     onSuccess,
     preSelectedAssetId
 }: AssignmentModalProps) {
+    const { user: currentUser } = useAuthStore();
     // Manual Recipient Fields
     const [recipientName, setRecipientName] = useState('');
     const [recipientTitle, setRecipientTitle] = useState('');
@@ -70,7 +72,9 @@ export function AssignmentModal({
     const loadUsers = async () => {
         try {
             const data = await userService.getAll();
-            setUsers(data);
+            // Filter out self
+            const filteredUsers = data.filter(u => u._id !== currentUser?._id);
+            setUsers(filteredUsers);
         } catch (error) {
             console.error("Failed to load users", error);
         }

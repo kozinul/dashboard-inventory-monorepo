@@ -4,6 +4,7 @@ import { assetService, Asset } from '@/services/assetService';
 import { userService } from '@/services/userService';
 import { locationService, BoxLocation as Location } from '@/services/locationService';
 import { rentalService } from '@/services/rentalService';
+import { useAuthStore } from '@/store/authStore';
 
 interface User {
     _id?: string;
@@ -17,6 +18,7 @@ interface User {
 
 export function AssignAssetForm() {
     const navigate = useNavigate();
+    const { user: currentUser } = useAuthStore();
     const [assets, setAssets] = useState<Asset[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [locations, setLocations] = useState<Location[]>([]);
@@ -40,7 +42,8 @@ export function AssignAssetForm() {
                     locationService.getAll()
                 ]);
                 setAssets(assetsResponse.data || []);
-                setUsers(usersData);
+                const filteredUsers = usersData.filter((u: any) => u._id !== currentUser?._id);
+                setUsers(filteredUsers);
                 setLocations(locationsData);
             } catch (error) {
                 console.error('Failed to fetch data:', error);

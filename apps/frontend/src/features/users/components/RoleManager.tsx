@@ -11,16 +11,16 @@ const RESOURCE_GROUPS = [
         icon: '📊',
         resources: [
             { id: 'dashboard', label: 'Dashboard', actions: ['view'], description: 'Overview of system status and key metrics' },
-            { id: 'reports', label: 'Laporan', actions: ['view'], description: 'Access system reports and analytics' },
+            { id: 'reports', label: 'Reports', actions: ['view'], description: 'Access system reports and analytics' },
         ]
     },
     {
         group: 'Inventory Management',
         icon: '📦',
         resources: [
-            { id: 'inventory', label: 'Master Barang', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory items' },
-            { id: 'panels', label: 'Panels', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage racks, panels, and server locations' },
-            { id: 'incoming', label: 'Barang Masuk', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
+            { id: 'inventory', label: 'Master Inventory', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory items' },
+            { id: 'panels', label: 'Panels & Racks', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage racks, panels, and server locations' },
+            { id: 'incoming', label: 'Incoming Items', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
             { id: 'transfer', label: 'Transfer', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
             { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },
             { id: 'assignments', label: 'Assignments', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset assignments to users' },
@@ -34,7 +34,7 @@ const RESOURCE_GROUPS = [
             { id: 'my_tickets', label: 'My Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Tickets created by the user' },
             { id: 'dept_tickets', label: 'Dept. Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Department ticket queue for approval' },
             { id: 'assigned_tickets', label: 'Assigned Tickets', actions: ['view', 'create', 'edit'], description: 'Tickets assigned to the current user (technician)' },
-            { id: 'services', label: 'Services', actions: ['view', 'create', 'edit', 'delete'], description: 'External service and vendor management' },
+            { id: 'services', label: 'External Services', actions: ['view', 'create', 'edit', 'delete'], description: 'External service and vendor management' },
         ]
     },
     {

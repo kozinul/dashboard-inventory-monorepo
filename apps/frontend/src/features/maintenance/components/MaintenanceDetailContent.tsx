@@ -139,7 +139,8 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                 }
             }
 
-            setTechnicians(validTechs);
+            const filteredTechs = validTechs.filter(t => t._id !== user?._id);
+            setTechnicians(filteredTechs);
         } catch (error) {
             console.error('Failed to fetch technicians:', error);
         }

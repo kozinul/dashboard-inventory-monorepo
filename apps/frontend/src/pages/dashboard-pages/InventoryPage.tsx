@@ -19,6 +19,7 @@ export default function InventoryPage() {
 
     // Filter State
     const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
+    const [selectedStatus, setSelectedStatus] = useState<string>('All Statuses');
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -57,7 +58,7 @@ export default function InventoryPage() {
     // Reset pagination when filters change
     useEffect(() => {
         setPage(1);
-    }, [selectedCategory, activeBranchId, limit]);
+    }, [selectedCategory, selectedStatus, activeBranchId, limit]);
 
     // Derive categories
     // const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
@@ -68,10 +69,13 @@ export default function InventoryPage() {
         : assets.filter(a => a.branchId === activeBranchId || (typeof a.branchId === 'object' && (a.branchId as any)._id === activeBranchId));
 
     const categories = ['All Categories', ...Array.from(new Set(branchAssets.map(a => a.category))).filter(Boolean).sort()];
+    const statuses = ['All Statuses', ...Array.from(new Set(branchAssets.map(a => a.status))).filter(Boolean).sort()];
 
-    const filteredAssets = selectedCategory === 'All Categories'
-        ? branchAssets
-        : branchAssets.filter(a => a.category === selectedCategory);
+    const filteredAssets = branchAssets.filter(a => {
+        const matchCategory = selectedCategory === 'All Categories' || a.category === selectedCategory;
+        const matchStatus = selectedStatus === 'All Statuses' || a.status === selectedStatus;
+        return matchCategory && matchStatus;
+    });
 
     // Local Pagination Logic
     const totalFiltered = filteredAssets.length;
@@ -196,6 +200,19 @@ export default function InventoryPage() {
                         >
                             {categories.map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">info</span>
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg pl-9 pr-8 py-2 text-sm font-medium focus:ring-primary focus:border-primary appearance-none cursor-pointer capitalize"
+                        >
+                            {statuses.map((s) => (
+                                <option key={s} value={s}>{s}</option>
                             ))}
                         </select>
                     </div>

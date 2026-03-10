@@ -330,6 +330,9 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
             updateData.technicalSpecifications = sanitizeKeys(updateData.technicalSpecifications);
         }
 
+        // Check if status was explicitly changed in the request
+        const statusExplicitlyChanged = req.body.status !== undefined && req.body.status !== existingAsset.status;
+
         // Auto-update status if location is present and status is not protected
         // We PROTECT 'assigned' and 'maintenance' statuses from being overwritten by location changes
         const currentStatus = updateData.status || existingAsset.status;
@@ -391,11 +394,12 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
             const targetLocation = await Location.findById(resolvedLocationId);
             if (targetLocation) {
                 updateData.location = targetLocation.name;
-                if (!statusProtected) {
+                // Only auto-update status if it wasn't explicitly changed by user AND isn't protected
+                if (!statusProtected && !statusExplicitlyChanged) {
                     if (!targetLocation.isWarehouse) {
                         updateData.status = 'in_use';
                     } else {
-                        updateData.status = 'storage';
+                        updateData.status = 'active';
                     }
                 }
             }

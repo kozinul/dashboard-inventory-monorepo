@@ -188,8 +188,11 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 delete payload.location;
             }
 
-            // Remove status so backend auto-detects based on location (warehouse = storage, else = in_use)
-            delete payload.status;
+            // Only remove status for "Auto (Gudang/Warehouse)" to allow backend auto-assignment.
+            // If user picked a specific location OR explicitly changed status, we want to keep it.
+            if (!locationId) {
+                delete payload.status;
+            }
 
             onUpdate(asset.id || asset._id, {
                 ...payload,
