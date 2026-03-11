@@ -5,8 +5,54 @@ import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Asset } from '../models/asset.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 
+const checkAssetAvailability = async (assetIds: string[], startTime: Date, endTime: Date, excludeEventId?: string) => {
+    const query: any = {
+        'rentedAssets.assetId': { $in: assetIds },
+        status: { $in: ['scheduled', 'ongoing'] },
+        $or: [
+            {
+                startTime: { $lt: endTime },
+                endTime: { $gt: startTime }
+            }
+        ]
+    };
+
+    if (excludeEventId) {
+        query._id = { $ne: excludeEventId };
+    }
+
+    const conflictingEvents = await Event.find(query).populate('rentedAssets.assetId');
+    const conflictingAssetIds = new Set<string>();
+
+    for (const event of conflictingEvents) {
+        for (const item of event.rentedAssets) {
+            const id = (item.assetId as any)._id?.toString() || item.assetId.toString();
+            if (assetIds.includes(id)) {
+                conflictingAssetIds.add(id);
+            }
+        }
+    }
+
+    return Array.from(conflictingAssetIds);
+};
+
 export const createEvent = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { rentedAssets, startTime, endTime } = req.body;
+
+        // Check for asset double-booking
+        if (rentedAssets && rentedAssets.length > 0) {
+            const assetIds = rentedAssets.map((a: any) => a.assetId);
+            const conflicts = await checkAssetAvailability(assetIds, new Date(startTime), new Date(endTime));
+            if (conflicts.length > 0) {
+                const conflictAssets = await Asset.find({ _id: { $in: conflicts } }).select('name serial');
+                const assetNames = conflictAssets.map(a => `${a.name} (${a.serial})`).join(', ');
+                return res.status(400).json({
+                    message: `Booking conflict: The following assets are already booked for another event during this time: ${assetNames}`
+                });
+            }
+        }
+
         const event = new Event({
             ...req.body,
             // Set branchId based on user role
@@ -125,6 +171,24 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
 
         const newStatus = req.body.status;
         const oldStatus = currentEvent.status;
+        const startTime = req.body.startTime || currentEvent.startTime;
+        const endTime = req.body.endTime || currentEvent.endTime;
+
+        // Check for asset double-booking if assets or times are changing
+        if (req.body.rentedAssets || req.body.startTime || req.body.endTime) {
+            const assetsToBook = req.body.rentedAssets || currentEvent.rentedAssets || [];
+            if (assetsToBook.length > 0) {
+                const assetIds = assetsToBook.map((a: any) => typeof a.assetId === 'object' ? a.assetId._id?.toString() || a.assetId.toString() : a.assetId.toString());
+                const conflicts = await checkAssetAvailability(assetIds, new Date(startTime), new Date(endTime), id);
+                if (conflicts.length > 0) {
+                    const conflictAssets = await Asset.find({ _id: { $in: conflicts } }).select('name serial');
+                    const assetNames = conflictAssets.map(a => `${a.name} (${a.serial})`).join(', ');
+                    return res.status(400).json({
+                        message: `Booking conflict: The following assets are already booked for another event during this time: ${assetNames}`
+                    });
+                }
+            }
+        }
 
         // Handle Dynamic Supply Updates for Booked/Ongoing events
         const isLive = ['scheduled', 'ongoing'].includes(newStatus || oldStatus);
