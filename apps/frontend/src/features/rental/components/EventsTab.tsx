@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { eventService, Event } from '@/services/eventService';
 import { format } from 'date-fns';
+import { useAuthStore } from '@/store/authStore';
+import { showConfirmDialog, showSuccess, showErrorToast, showAlert } from '@/utils/swal';
 
 interface EventsTabProps {
     refreshTrigger?: number;
@@ -10,6 +12,7 @@ interface EventsTabProps {
 export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuthStore();
 
     const fetchEvents = async () => {
         setLoading(true);
@@ -26,6 +29,56 @@ export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
     useEffect(() => {
         fetchEvents();
     }, [refreshTrigger]);
+
+    const isSuperuser = user?.role && ['superuser', 'system_admin', 'admin'].includes(user.role);
+
+    const canDelete = (event: Event) => {
+        if (user?.role === 'technician') return false;
+
+        if (event.status === 'completed') {
+            return isSuperuser;
+        } else {
+            const hasAssets = event.rentedAssets && event.rentedAssets.length > 0;
+            const hasSupplies = event.planningSupplies && event.planningSupplies.length > 0;
+
+            if (!isSuperuser && (event.status !== 'planning' || hasAssets || hasSupplies)) {
+                return false;
+            }
+            return true;
+        }
+    };
+
+    const handleDelete = async (event: Event) => {
+        const hasItems = (event.rentedAssets && event.rentedAssets.length > 0) ||
+            (event.planningSupplies && event.planningSupplies.length > 0);
+
+        if (!isSuperuser && hasItems) {
+            showAlert({
+                title: 'Cannot Delete',
+                text: 'Please remove all rented assets and planned supplies before deleting the event.',
+                icon: 'warning'
+            });
+            return;
+        }
+
+        const result = await showConfirmDialog(
+            'Delete Event?',
+            `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
+            'Yes, delete it!',
+            'delete'
+        );
+
+        if (result.isConfirmed) {
+            try {
+                await eventService.delete(event._id!);
+                showSuccess('Deleted!', 'The event has been deleted.');
+                fetchEvents();
+            } catch (error: any) {
+                console.error('Failed to delete event:', error);
+                showErrorToast(error.response?.data?.message || 'Failed to delete event');
+            }
+        }
+    };
 
     const getStatusStyles = (event: Event) => {
         const now = new Date();
@@ -97,12 +150,15 @@ export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
                             <th scope="col" className="px-3 py-4 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-[#64748B] dark:text-slate-400">
                                 Status
                             </th>
+                            <th scope="col" className="px-3 py-4 text-right text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-[#64748B] dark:text-slate-400">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-transparent">
                         {loading ? (
                             <tr>
-                                <td colSpan={6} className="py-12 text-center text-sm text-gray-500">
+                                <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
                                     <div className="flex justify-center">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                     </div>
@@ -111,7 +167,7 @@ export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
                             </tr>
                         ) : events.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="py-12 text-center text-sm text-gray-500">
+                                <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
                                     <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">event_busy</span>
                                     <p>No events found.</p>
                                 </td>
@@ -143,6 +199,24 @@ export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
                                                 <span className={`size-1.5 rounded-full ${styles.dot}`}></span>
                                                 {styles.label}
                                             </span>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-right">
+                                            {canDelete(event) && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleDelete(event);
+                                                    }}
+                                                    className={`p-1.5 rounded-lg transition-colors ${!isSuperuser && ((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0))
+                                                            ? 'text-slate-300 cursor-not-allowed'
+                                                            : 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10'
+                                                        }`}
+                                                    title={!isSuperuser && ((event.rentedAssets && event.rentedAssets.length > 0) || (event.planningSupplies && event.planningSupplies.length > 0)) ? "Remove all assets and supplies first" : "Delete Event"}
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">delete</span>
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 );
