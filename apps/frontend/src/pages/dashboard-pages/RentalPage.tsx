@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import EventsTab from '@/features/rental/components/EventsTab';
 import EventCalendar from '@/features/rental/components/EventCalendar';
 import CreateEventModal from '@/features/rental/components/CreateEventModal';
@@ -10,7 +9,6 @@ export default function RentalPage() {
     const [activeTab, setActiveTab] = useState<'events' | 'calendar'>('events');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const navigate = useNavigate();
 
     const canCreateEvent = user?.role && ['superuser', 'system_admin', 'admin', 'manager', 'dept_admin', 'supervisor'].includes(user.role);
 
@@ -40,7 +38,7 @@ export default function RentalPage() {
                         </select>
                     </div>
 
-                    {activeTab === 'events' ? (
+                    {(activeTab === 'events' || activeTab === 'calendar') && (
                         canCreateEvent && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
@@ -50,14 +48,6 @@ export default function RentalPage() {
                                 Create Event
                             </button>
                         )
-                    ) : (
-                        <button
-                            onClick={() => navigate('/rental/assign')}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-background-dark rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-                        >
-                            <span className="material-symbols-outlined text-sm">add</span>
-                            Check-out Asset
-                        </button>
                     )}
                 </div>
             </div>
