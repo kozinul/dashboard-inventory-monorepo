@@ -43,16 +43,14 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
                 departmentId: event.departmentId
             } as any);
 
-            // Filter assets that have rental rates
-            let rentalAssets = response.filter(asset => asset.rentalRates && asset.rentalRates.length > 0);
-
             // Filter out assets that are already in this event
+            let filteredResponse = response;
             if (event.rentedAssets) {
                 const existingAssetIds = new Set(event.rentedAssets.map(ra => (ra.assetId as any)._id || ra.assetId));
-                rentalAssets = rentalAssets.filter(asset => !existingAssetIds.has(asset._id || asset.id));
+                filteredResponse = filteredResponse.filter(asset => !existingAssetIds.has(asset._id || asset.id));
             }
 
-            setAssets(rentalAssets);
+            setAssets(filteredResponse);
         } catch (error) {
             console.error('Failed to fetch available assets:', error);
         } finally {
