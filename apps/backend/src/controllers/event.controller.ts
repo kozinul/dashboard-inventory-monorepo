@@ -192,12 +192,45 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
         }
 
         if (req.body.rentedAssets) {
-            const oldAssets = currentEvent.rentedAssets?.length || 0;
-            const newAssets = req.body.rentedAssets.length;
-            if (newAssets > oldAssets) {
-                activityLogs.push({ action: 'assets_added', details: `Added ${newAssets - oldAssets} asset(s)`, performedBy: req.user._id, date: new Date() });
-            } else if (newAssets < oldAssets) {
-                activityLogs.push({ action: 'assets_removed', details: `Removed ${oldAssets - newAssets} asset(s)`, performedBy: req.user._id, date: new Date() });
+            const oldAssetsCount = currentEvent.rentedAssets?.length || 0;
+            const newAssetsCount = req.body.rentedAssets.length;
+            if (newAssetsCount > oldAssetsCount) {
+                activityLogs.push({ action: 'assets_added', details: `Added ${newAssetsCount - oldAssetsCount} asset(s)`, performedBy: req.user._id, date: new Date() });
+            } else if (newAssetsCount < oldAssetsCount) {
+                activityLogs.push({ action: 'assets_removed', details: `Removed ${oldAssetsCount - newAssetsCount} asset(s)`, performedBy: req.user._id, date: new Date() });
+            }
+        }
+
+        // Handle Asset Status Updates
+        const isNowCompletedOrCancelled = (newStatus && (newStatus === 'completed' || newStatus === 'cancelled'));
+        const wasCompletedOrCancelled = (oldStatus === 'completed' || oldStatus === 'cancelled');
+
+        if (isNowCompletedOrCancelled && !wasCompletedOrCancelled) {
+            // Event is finishing or cancelled, release all assets
+            const assetsToRelease = currentEvent.rentedAssets || [];
+            for (const item of assetsToRelease) {
+                await Asset.findByIdAndUpdate(item.assetId, { status: 'active' });
+            }
+        } else if (!isNowCompletedOrCancelled && wasCompletedOrCancelled && newStatus) {
+            // Event is moving from completed/cancelled back to planning/ongoing/scheduled
+            const assetsToBook = req.body.rentedAssets || currentEvent.rentedAssets || [];
+            for (const item of assetsToBook) {
+                const id = typeof item.assetId === 'object' ? item.assetId._id?.toString() || item.assetId.toString() : item.assetId.toString();
+                await Asset.findByIdAndUpdate(id, { status: 'event' });
+            }
+        } else if (!isNowCompletedOrCancelled && req.body.rentedAssets) {
+            // Event is active and we are modifying assets
+            const oldAssetIds = (currentEvent.rentedAssets || []).map((a: any) => a.assetId.toString());
+            const newAssetIds = req.body.rentedAssets.map((a: any) => typeof a.assetId === 'object' ? a.assetId._id?.toString() || a.assetId.toString() : a.assetId.toString());
+
+            const addedAssets = newAssetIds.filter((id: string) => !oldAssetIds.includes(id));
+            const removedAssets = oldAssetIds.filter((id: string) => !newAssetIds.includes(id));
+
+            if (addedAssets.length > 0) {
+                await Asset.updateMany({ _id: { $in: addedAssets } }, { $set: { status: 'event' } });
+            }
+            if (removedAssets.length > 0) {
+                await Asset.updateMany({ _id: { $in: removedAssets } }, { $set: { status: 'active' } });
             }
         }
 

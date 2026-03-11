@@ -644,7 +644,8 @@ export const getAvailableAssetsForEvent = async (req: Request, res: Response, ne
         // Find assets not in booked list
         const query: any = {
             _id: { $nin: bookedAssetIds },
-            status: 'active' // Only show active assets as requested
+            status: 'active', // Only show active assets as requested
+            'rentalRates.0': { $exists: true }
         };
 
         // Enforce branch and department filtering
