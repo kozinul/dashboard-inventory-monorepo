@@ -194,6 +194,12 @@ export default function EventDetailsPage() {
                             {(event.departmentId as any).name || 'Unknown Department'}
                         </p>
                     )}
+                    {event.createdBy && (
+                        <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">person</span>
+                            Created by: {event.createdBy.name || event.createdBy.username || 'Unknown'}
+                        </p>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${statusStyles.bg}`}>
@@ -506,6 +512,39 @@ export default function EventDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Activity Log Section */}
+            {event.activityLog && event.activityLog.length > 0 && (
+                <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">history</span>
+                        Activity Log
+                    </h3>
+                    <div className="space-y-4">
+                        {[...event.activityLog].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((log) => (
+                            <div key={log._id} className="flex gap-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <div className="mt-0.5">
+                                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-primary text-sm">assignment_ind</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                                        {log.details}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                        <span>
+                                            {typeof log.performedBy === 'object' ? log.performedBy?.name || log.performedBy?.username : 'Unknown User'}
+                                        </span>
+                                        <span className="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                        <span>{format(new Date(log.date), 'MMM dd, yyyy HH:mm')}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Modals */}
             {id && (

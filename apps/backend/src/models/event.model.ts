@@ -20,6 +20,12 @@ export interface IEvent extends Document {
     departmentId?: string;
     branchId?: string;
     createdBy?: string;
+    activityLog: {
+        action: string;
+        details: string;
+        performedBy: string; // ObjectId
+        date: Date;
+    }[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -47,7 +53,13 @@ const EventSchema: Schema = new Schema({
     }],
     departmentId: { type: Schema.Types.ObjectId, ref: 'Department', required: false },
     branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: false },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: false }
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: false },
+    activityLog: [{
+        action: { type: String, required: true },
+        details: { type: String, required: true },
+        performedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        date: { type: Date, default: Date.now }
+    }]
 }, {
     timestamps: true
 });

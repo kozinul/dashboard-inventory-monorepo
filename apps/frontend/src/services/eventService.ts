@@ -38,6 +38,22 @@ export interface Event {
         quantity: number;
         cost: number;
     }[];
+    createdBy?: {
+        _id: string;
+        name: string;
+        username: string;
+    };
+    activityLog?: {
+        _id: string;
+        action: string;
+        details: string;
+        performedBy: {
+            _id: string;
+            name: string;
+            username: string;
+        } | string;
+        date: string;
+    }[];
 }
 
 export const eventService = {

@@ -14,7 +14,13 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId,
             departmentId: req.user.departmentId,
-            createdBy: req.user._id
+            createdBy: req.user._id,
+            activityLog: [{
+                action: 'created_event',
+                details: 'Event created',
+                performedBy: req.user._id,
+                date: new Date()
+            }]
         });
         await event.save();
 
@@ -55,6 +61,7 @@ export const getEvents = async (req: Request, res: Response, next: NextFunction)
 
         let events = await Event.find(filter)
             .populate('departmentId', 'name')
+            .populate('createdBy', 'name username')
             .sort({ startTime: -1 });
 
         // RBAC: Previously filtered by department for non-admin users.
@@ -73,7 +80,9 @@ export const getEventById = async (req: Request, res: Response, next: NextFuncti
         const event = await Event.findById(id)
             .populate('rentedAssets.assetId')
             .populate('planningSupplies.supplyId')
-            .populate('departmentId', 'name');
+            .populate('departmentId', 'name')
+            .populate('createdBy', 'name username')
+            .populate('activityLog.performedBy', 'name username');
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
@@ -177,10 +186,43 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
-        const event = await Event.findByIdAndUpdate(id, req.body, { new: true })
+        const activityLogs = [];
+        if (newStatus && newStatus !== oldStatus) {
+            activityLogs.push({ action: 'status_changed', details: `Status changed to ${newStatus}`, performedBy: req.user._id, date: new Date() });
+        }
+
+        if (req.body.rentedAssets) {
+            const oldAssets = currentEvent.rentedAssets?.length || 0;
+            const newAssets = req.body.rentedAssets.length;
+            if (newAssets > oldAssets) {
+                activityLogs.push({ action: 'assets_added', details: `Added ${newAssets - oldAssets} asset(s)`, performedBy: req.user._id, date: new Date() });
+            } else if (newAssets < oldAssets) {
+                activityLogs.push({ action: 'assets_removed', details: `Removed ${oldAssets - newAssets} asset(s)`, performedBy: req.user._id, date: new Date() });
+            }
+        }
+
+        if (req.body.planningSupplies) {
+            const oldSupplies = currentEvent.planningSupplies?.length || 0;
+            const newSupplies = req.body.planningSupplies.length;
+            if (newSupplies > oldSupplies) {
+                activityLogs.push({ action: 'supplies_added', details: `Added ${newSupplies - oldSupplies} supply item(s)`, performedBy: req.user._id, date: new Date() });
+            } else if (newSupplies < oldSupplies) {
+                activityLogs.push({ action: 'supplies_removed', details: `Removed ${oldSupplies - newSupplies} supply item(s)`, performedBy: req.user._id, date: new Date() });
+            }
+        }
+
+        const updateData = { ...req.body };
+        if (activityLogs.length > 0) {
+            updateData.$push = { activityLog: { $each: activityLogs } };
+            delete updateData.activityLog; // Ensure we don't override the array entirely
+        }
+
+        const event = await Event.findByIdAndUpdate(id, updateData, { new: true })
             .populate('rentedAssets.assetId')
             .populate('planningSupplies.supplyId')
-            .populate('departmentId', 'name');
+            .populate('departmentId', 'name')
+            .populate('createdBy', 'name username')
+            .populate('activityLog.performedBy', 'name username');
 
         // Record Audit Log
         await recordAuditLog({
@@ -227,15 +269,22 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
             return res.status(403).json({ message: 'Technicians are not authorized to delete events.' });
         }
 
-        // Allow deletion if:
-        // 1. No rented assets
-        // 2. OR Status is Planning (assets are just a wishlist, not blocked)
-        // 3. OR Status is Cancelled (resources already released)
-        const hasAssets = eventToCheck.rentedAssets && eventToCheck.rentedAssets.length > 0;
-        const isSafeStatus = eventToCheck.status === 'planning' || eventToCheck.status === 'cancelled';
+        // RBAC Deletion Rules:
+        const isSuperuser = ['superuser', 'system_admin', 'admin'].includes(req.user.role);
 
-        if (hasAssets && !isSafeStatus) {
-            return res.status(400).json({ message: 'Cannot delete scheduled/ongoing event with assigned assets. Please release resources first.' });
+        if (eventToCheck.status === 'completed') {
+            if (!isSuperuser) {
+                return res.status(403).json({ message: 'Only Superusers or Admins can delete completed events.' });
+            }
+        } else {
+            const hasAssets = eventToCheck.rentedAssets && eventToCheck.rentedAssets.length > 0;
+            const hasSupplies = eventToCheck.planningSupplies && eventToCheck.planningSupplies.length > 0;
+
+            if (!isSuperuser) {
+                if (eventToCheck.status !== 'planning' || hasAssets || hasSupplies) {
+                    return res.status(403).json({ message: 'Regular users can only delete new events that are in planning and have no assets/supplies booked.' });
+                }
+            }
         }
 
         // Also check supplies? The requirement specifically mentioned assets ("tidak ada asset disana").
