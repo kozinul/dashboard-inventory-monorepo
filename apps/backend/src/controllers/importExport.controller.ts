@@ -1047,8 +1047,9 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                         locationId: locId,
                         location: row['Lokasi'],
                         status: row['Status']?.toLowerCase() || 'active',
-                        value: Number(row['Nilai (Purchase Value)']) || 0,
-                        purchaseDate: row['Tanggal Pembelian (YYYY-MM-DD)'] ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)']) : undefined,
+                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai (IDR)']) || Number(row['Nilai']) || 0,
+                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian']) : undefined,
+                        department: row['Departemen'],
                         warranty: {
                             expirationDate: row['Kedaluwarsa Garansi (YYYY-MM-DD)'] ? new Date(row['Kedaluwarsa Garansi (YYYY-MM-DD)']) : undefined
                         }
@@ -1202,8 +1203,9 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                         locationId: locId,
                         location: row['Lokasi'],
                         status: row['Status']?.toLowerCase() || 'active',
-                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai']) || 0,
-                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Beli']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Beli']) : undefined,
+                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai (IDR)']) || Number(row['Nilai']) || 0,
+                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian'] || row['Tgl Beli']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian'] || row['Tgl Beli']) : undefined,
+                        department: row['Departemen'],
                         warranty: {
                             expirationDate: (row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) ? new Date(row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) : undefined
                         }

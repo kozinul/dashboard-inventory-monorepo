@@ -127,7 +127,9 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
 export const getAssetById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const asset = await Asset.findById(req.params.id);
+        const asset = await Asset.findById(req.params.id)
+            .populate('departmentId')
+            .populate('locationId');
         if (!asset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
