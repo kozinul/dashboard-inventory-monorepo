@@ -142,7 +142,7 @@ export default function AddMaintenanceSupplyModal({ isOpen, onClose, ticket, onS
             await maintenanceService.updateTicketWork(ticket._id!, formData);
             
             showSuccessToast('Supplies added successfully');
-            onSuccess();
+            onSuccess?.();
             onClose();
         } catch (error) {
             console.error('Failed to add supplies to maintenance:', error);
