@@ -39,11 +39,15 @@ export default function DataManagementPage() {
         { id: 'name', label: 'Nama' },
         { id: 'partNumber', label: 'Part Number' },
         { id: 'category', label: 'Kategori' },
+        { id: 'description', label: 'Deskripsi' },
         { id: 'unit', label: 'Satuan' },
         { id: 'quantity', label: 'Jumlah' },
         { id: 'minimumStock', label: 'Stok Min' },
         { id: 'location', label: 'Lokasi' },
+        { id: 'department', label: 'Departemen' },
+        { id: 'branch', label: 'Cabang' },
         { id: 'cost', label: 'Biaya' },
+        { id: 'vendor', label: 'Vendor' },
         { id: 'compatibleModels', label: 'Kompatibilitas' }
     ];
 

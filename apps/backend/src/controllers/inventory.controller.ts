@@ -61,6 +61,15 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                     deptIds.push(...(req.user as any).managedDepartments);
                 }
 
+                // New: Also allow assets specifically assigned to this user, regardless of department
+                const assignedAssets = await Assignment.find({
+                    userId: req.user._id,
+                    status: 'assigned',
+                    isDeleted: { $ne: true }
+                }).select('assetId');
+
+                const assignedAssetIds = assignedAssets.map(a => a.assetId);
+
                 if (deptIds.length > 0) {
                     accessConditions.push({
                         departmentId: { $in: deptIds }
@@ -70,9 +79,12 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                     accessConditions.push({
                         department: req.user.department
                     });
-                } else {
-                    // If user has no department assigned, they fall back to seeing all assets in their branch.
-                    // No additional accessConditions are added, effectively ignoring department filters.
+                }
+
+                if (assignedAssetIds.length > 0) {
+                    accessConditions.push({
+                        _id: { $in: assignedAssetIds }
+                    });
                 }
 
                 if (accessConditions.length > 0) {

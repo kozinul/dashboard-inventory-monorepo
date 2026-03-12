@@ -166,7 +166,7 @@ export default function ServicePage() {
                 <div className="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 rounded-lg">
-                            <span className="material-symbols-outlined text-2xl">attach_money</span>
+                            <span className="material-symbols-outlined text-2xl">payments</span>
                         </div>
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Cost</p>

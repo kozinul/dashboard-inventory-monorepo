@@ -65,7 +65,11 @@ export const downloadTemplate = async (req: Request, res: Response, next: NextFu
                 quantity: 'Jumlah',
                 minimumStock: 'Stok Minimum',
                 location: 'Lokasi',
+                department: 'Departemen',
+                branch: 'Cabang',
                 cost: 'Biaya',
+                vendor: 'Vendor',
+                description: 'Deskripsi',
                 compatibleModels: 'Model Kompatibel'
             };
 
@@ -231,52 +235,37 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             });
             filename = `export_assets_${Date.now()}`;
         } else if (type === 'supply') {
-            const supplies = await Supply.find(query)
+            rawData = await Supply.find(query)
                 .populate('locationId', 'name')
                 .populate('unitId', 'name')
                 .populate('branchId', 'name')
-                .populate('departmentId', 'name');
-
-            const supplyIds = supplies.map(s => s._id);
-            const historyQuery: any = { supplyId: { $in: supplyIds } };
-            if (status) historyQuery.action = status; // Link status filter to history action
-            if (startDate || endDate) {
-                historyQuery.createdAt = {};
-                if (startDate) historyQuery.createdAt.$gte = new Date(startDate as string);
-                if (endDate) historyQuery.createdAt.$lte = new Date(endDate as string);
-            }
-
-            const historyRaw = await SupplyHistory.find(historyQuery)
-                .populate('supplyId', 'name partNumber unitId unit category')
-                .populate('userId', 'name')
-                .sort({ createdAt: 1 });
+                .populate('departmentId', 'name')
+                .populate('vendorId', 'name');
 
             headerMap = {
-                supply: 'Barang', sn: 'Part No', date: 'Tanggal',
-                action: 'Aksi', change: 'Qty (+/-)', stock: 'Stok Sisa',
-                user: 'User', notes: 'Catatan'
+                name: 'Nama', partNumber: 'Part No', category: 'Kategori',
+                unit: 'Satuan', quantity: 'Stok Terkini', minimumStock: 'Stok Min',
+                location: 'Lokasi', department: 'Departemen', branch: 'Cabang', cost: 'Biaya',
+                vendor: 'Vendor', description: 'Deskripsi'
             };
 
-            data = historyRaw.map(h => {
-                const s = h.supplyId as any;
+            data = rawData.map(s => {
                 return {
-                    supply: s?.name || 'N/A',
-                    sn: s?.partNumber || 'N/A',
-                    date: h.createdAt ? h.createdAt.toLocaleString('id-ID', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }) : 'N/A',
-                    action: h.action,
-                    change: h.quantityChange || 0,
-                    stock: h.newStock || 0,
-                    user: (h.userId as any)?.name || 'N/A',
-                    notes: h.notes || '-'
+                    name: s.name,
+                    partNumber: s.partNumber,
+                    category: s.category,
+                    unit: (s.unitId as any)?.name || s.unit,
+                    quantity: s.quantity || 0,
+                    minimumStock: s.minimumStock || 0,
+                    location: (s.locationId as any)?.name || s.location,
+                    department: (s.departmentId as any)?.name || s.department,
+                    branch: (s.branchId as any)?.name,
+                    cost: s.cost || 0,
+                    vendor: (s.vendorId as any)?.name || '-',
+                    description: s.description || '-'
                 };
             });
-            filename = `export_supply_history_${Date.now()}`;
+            filename = `export_supplies_${Date.now()}`;
         } else if (type === 'maintenance') {
             rawData = await MaintenanceRecord.find(query)
                 .populate('asset', 'name serial model')
@@ -997,7 +986,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
             branches: new Map<string, string>(),
             locations: new Map<string, string>(),
             categories: new Map<string, string>(),
-            units: new Map<string, string>()
+            units: new Map<string, string>(),
+            vendors: new Map<string, string>()
         };
 
         const branchId = (req.user as any).branchId;
@@ -1066,6 +1056,26 @@ export const importData = async (req: Request, res: Response, next: NextFunction
         } else if (type === 'supply') {
             for (const row of rows) {
                 try {
+                    let deptId = userDeptId;
+                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
+                        const name = row['Departemen'].trim();
+                        if (!cache.departments.has(name)) {
+                            const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (d) cache.departments.set(name, d._id.toString());
+                        }
+                        if (cache.departments.has(name)) deptId = cache.departments.get(name);
+                    }
+
+                    let bId = branchId;
+                    if (req.user.role === 'superuser' && row['Cabang']) {
+                        const name = row['Cabang'].trim();
+                        if (!cache.branches.has(name)) {
+                            const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (b) cache.branches.set(name, b._id.toString());
+                        }
+                        if (cache.branches.has(name)) bId = cache.branches.get(name);
+                    }
+
                     let locId = undefined;
                     if (row['Lokasi']) {
                         const name = row['Lokasi'].trim();
@@ -1077,8 +1087,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let unitId = undefined;
-                    if (row['Satuan (Unit)']) {
-                        const name = row['Satuan (Unit)'].trim();
+                    if (row['Satuan (Unit)'] || row['Satuan']) {
+                        const name = String(row['Satuan (Unit)'] || row['Satuan']).trim();
                         if (!cache.units.has(name)) {
                             const u = await Unit.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (u) cache.units.set(name, u._id.toString());
@@ -1086,33 +1096,65 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                         if (cache.units.has(name)) unitId = cache.units.get(name);
                     }
 
+                    let vendorId = undefined;
+                    if (row['Vendor']) {
+                        const name = String(row['Vendor']).trim();
+                        if (!cache.vendors.has(name)) {
+                            const v = await Vendor.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (v) cache.vendors.set(name, v._id.toString());
+                        }
+                        if (cache.vendors.has(name)) vendorId = cache.vendors.get(name);
+                    }
+
                     const supplyData = {
                         name: row['Nama'],
-                        partNumber: row['Part Number'],
+                        partNumber: row['Part Number'] || row['Part No'] || row['P/N'] || row['Serial/PN'] || '',
                         category: row['Kategori'],
-                        unit: row['Satuan (Unit)'] || 'Pcs',
+                        description: row['Deskripsi'] || row['Description'] || row['Keterangan'] || '',
+                        unit: row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
                         unitId: unitId,
-                        quantity: Number(row['Jumlah']) || 0,
-                        minimumStock: Number(row['Stok Minimum']) || 1,
+                        quantity: Number(row['Jumlah'] || row['Stok']) || 0,
+                        minimumStock: Number(row['Stok Minimum'] || row['Stok Min']) || 1,
                         locationId: locId,
                         location: row['Lokasi'],
-                        cost: Number(row['Biaya']) || 0,
-                        compatibleModels: row['Model Kompatibel'] ? row['Model Kompatibel'].split(',').map((s: string) => s.trim()) : [],
-                        branchId: branchId,
-                        departmentId: userDeptId
+                        vendorId: vendorId,
+                        cost: Number(row['Biaya'] || row['Nilai (IDR)'] || row['Nilai']) || 0,
+                        compatibleModels: (row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
+                        branchId: bId,
+                        departmentId: deptId,
+                        department: row['Departemen']
                     };
 
-                    const supply = new Supply(supplyData);
-                    await supply.save();
+                    const partNumber = supplyData.partNumber;
+                    let supply = await Supply.findOne({ partNumber, isDeleted: false });
 
-                    // Create initial history
-                    await SupplyHistory.create({
-                        supplyId: supply._id,
-                        action: 'IMPORT',
-                        quantityChange: supply.quantity,
-                        newStock: supply.quantity,
-                        notes: 'Imported from Excel'
-                    });
+                    if (supply) {
+                        // Update existing
+                        const previousStock = supply.quantity;
+                        Object.assign(supply, supplyData);
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'UPDATE',
+                            quantityChange: supply.quantity - previousStock,
+                            previousStock: previousStock,
+                            newStock: supply.quantity,
+                            notes: 'Updated via Excel Import'
+                        });
+                    } else {
+                        // Create new
+                        supply = new Supply(supplyData);
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'CREATE',
+                            quantityChange: supply.quantity,
+                            newStock: supply.quantity,
+                            notes: 'Imported from Excel'
+                        });
+                    }
 
                     results.success++;
                 } catch (err: any) {
@@ -1152,7 +1194,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
             branches: new Map<string, string>(),
             locations: new Map<string, string>(),
             categories: new Map<string, string>(),
-            units: new Map<string, string>()
+            units: new Map<string, string>(),
+            vendors: new Map<string, string>()
         };
 
         const branchId = (req.user as any).branchId;
@@ -1223,6 +1266,26 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 try {
+                    let deptId = userDeptId;
+                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
+                        const name = row['Departemen'].trim();
+                        if (!cache.departments.has(name)) {
+                            const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (d) cache.departments.set(name, d._id.toString());
+                        }
+                        if (cache.departments.has(name)) deptId = cache.departments.get(name);
+                    }
+
+                    let bId = branchId;
+                    if (req.user.role === 'superuser' && row['Cabang']) {
+                        const name = row['Cabang'].trim();
+                        if (!cache.branches.has(name)) {
+                            const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (b) cache.branches.set(name, b._id.toString());
+                        }
+                        if (cache.branches.has(name)) bId = cache.branches.get(name);
+                    }
+
                     let locId = undefined;
                     if (row['Lokasi']) {
                         const name = row['Lokasi'].trim();
@@ -1243,33 +1306,65 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                         if (cache.units.has(name)) unitId = cache.units.get(name);
                     }
 
+                    let vendorId = undefined;
+                    if (row['Vendor']) {
+                        const name = String(row['Vendor']).trim();
+                        if (!cache.vendors.has(name)) {
+                            const v = await Vendor.findOne({ name: new RegExp(`^${name}$`, 'i') });
+                            if (v) cache.vendors.set(name, v._id.toString());
+                        }
+                        if (cache.vendors.has(name)) vendorId = cache.vendors.get(name);
+                    }
+
                     const supplyData = {
                         name: row['Nama'],
-                        partNumber: row['Part Number'],
+                        partNumber: row['Part Number'] || row['Part No'] || row['P/N'] || row['Serial/PN'] || '',
                         category: row['Kategori'],
+                        description: row['Deskripsi'] || row['Description'] || row['Keterangan'] || '',
                         unit: row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
                         unitId: unitId,
-                        quantity: Number(row['Jumlah']) || 0,
+                        quantity: Number(row['Jumlah'] || row['Stok']) || 0,
                         minimumStock: Number(row['Stok Minimum'] || row['Stok Min']) || 1,
                         locationId: locId,
                         location: row['Lokasi'],
-                        cost: Number(row['Biaya']) || 0,
+                        vendorId: vendorId,
+                        cost: Number(row['Biaya'] || row['Nilai (IDR)'] || row['Nilai']) || 0,
                         compatibleModels: (row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
-                        branchId: branchId,
-                        departmentId: userDeptId
+                        branchId: bId,
+                        departmentId: deptId,
+                        department: row['Departemen']
                     };
 
-                    const supply = new Supply(supplyData);
-                    await supply.save();
+                    const partNumber = supplyData.partNumber;
+                    let supply = await Supply.findOne({ partNumber, isDeleted: false });
 
-                    // Create initial history
-                    await SupplyHistory.create({
-                        supplyId: supply._id,
-                        action: 'IMPORT',
-                        quantityChange: supply.quantity,
-                        newStock: supply.quantity,
-                        notes: 'Imported from Excel UI'
-                    });
+                    if (supply) {
+                        // Update existing
+                        const previousStock = supply.quantity;
+                        Object.assign(supply, supplyData);
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'UPDATE',
+                            quantityChange: supply.quantity - previousStock,
+                            previousStock: previousStock,
+                            newStock: supply.quantity,
+                            notes: 'Updated via Excel Import UI'
+                        });
+                    } else {
+                        // Create new
+                        supply = new Supply(supplyData);
+                        await supply.save();
+
+                        await SupplyHistory.create({
+                            supplyId: supply._id,
+                            action: 'CREATE',
+                            quantityChange: supply.quantity,
+                            newStock: supply.quantity,
+                            notes: 'Imported from Excel UI'
+                        });
+                    }
 
                     results.success++;
                 } catch (err: any) {

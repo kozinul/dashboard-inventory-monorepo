@@ -306,8 +306,11 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
             status: 'Draft',
             // Flag as internal if locationTarget is provided OR it was forced by Infrastructure check
             isInternalDepartment: !!req.body.locationTarget || !!req.body.isInternalDepartment,
-            // If internal panel/infra, auto-assign to user's department to manage it
-            assignedDepartment: (req.body.locationTarget || req.body.isInternalDepartment) ? (req.body.assignedDepartment || req.user.departmentId) : req.body.assignedDepartment,
+            // If internal panel/infra, auto-assign to user's department to manage it. 
+            // For regular assets, if not specified, default to the asset's department.
+            assignedDepartment: (req.body.locationTarget || req.body.isInternalDepartment) 
+                ? (req.body.assignedDepartment || req.user.departmentId) 
+                : (req.body.assignedDepartment || (assetId ? (await Asset.findById(assetId))?.departmentId : undefined)),
             // Set branchId based on user role (or inherit from user)
             branchId: userRole === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)

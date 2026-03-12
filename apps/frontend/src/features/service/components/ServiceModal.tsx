@@ -177,7 +177,7 @@ export function ServiceModal({ isOpen, onClose, onSuccess, editData }: ServiceMo
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Estimated Cost</label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">Rp.</span>
                             <input
                                 type="number"
                                 min="0"

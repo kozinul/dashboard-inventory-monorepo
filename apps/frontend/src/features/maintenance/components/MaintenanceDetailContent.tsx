@@ -8,8 +8,8 @@ import { useAuthStore } from '@/store/authStore';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
 import { TicketWorkModal } from '@/features/maintenance/components/TicketWorkModal';
 import { EscalateTicketModal } from '@/features/maintenance/components/EscalateTicketModal';
-import { supplyService, Supply } from '@/services/supplyService';
 import { userService, User } from '@/services/userService';
+import AddMaintenanceSupplyModal from './AddMaintenanceSupplyModal';
 
 interface MaintenanceDetailContentProps {
     ticketId: string;
@@ -29,9 +29,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
     const [technicians, setTechnicians] = useState<User[]>([]);
 
     // Supply Management
-    const [availableSupplies, setAvailableSupplies] = useState<Supply[]>([]);
-    const [selectedSupply, setSelectedSupply] = useState('');
-    const [supplyQty, setSupplyQty] = useState(1);
+    const [isAddSupplyModalOpen, setIsAddSupplyModalOpen] = useState(false);
 
     // Accept/Reject State
     const [assignData, setAssignData] = useState({
@@ -69,18 +67,9 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
     });
 
     useEffect(() => {
-        if (ticketId) {
-            fetchTicket(ticketId);
-        } else {
-            fetchTechnicians();
-        }
+        fetchTicket(ticketId);
+        fetchTechnicians();
     }, [ticketId]);
-
-    useEffect(() => {
-        if (ticket?.status === 'In Progress') {
-            loadSupplies();
-        }
-    }, [ticket?.status]);
 
     useEffect(() => {
         if (ticket) {
@@ -146,43 +135,19 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
         }
     };
 
-    const loadSupplies = async () => {
-        try {
-            const data = await supplyService.getAll();
-            setAvailableSupplies(data);
-        } catch (error) {
-            console.error('Failed to load supplies', error);
-        }
-    };
+    // Supplies are now loaded inside AddMaintenanceSupplyModal
 
-    const handleAddSupply = async () => {
-        if (!ticket || !selectedSupply || supplyQty <= 0) return;
-        const supply = availableSupplies.find(s => s._id === selectedSupply);
-        if (!supply) return;
+    const handleRemoveSupply = async (supplyItemId: string) => {
+        if (!ticket) return;
+        const result = await showConfirmDialog('Remove Supply?', 'Are you sure you want to remove this item?');
+        if (!result.isConfirmed) return;
 
         try {
-            const currentSupplies = ticket.suppliesUsed || [];
-            const newItem = {
-                supply: supply._id,
-                name: supply.name,
-                quantity: supplyQty,
-                cost: supply.cost
-            };
-
-            const updatedSupplies = [...currentSupplies, newItem];
-
-            await maintenanceService.updateTicketWork(ticket._id!, {
-                status: ticket.status,
-                suppliesUsed: updatedSupplies,
-                notes: `Added supply: ${supply.name} x${supplyQty}`
-            });
-
-            showSuccessToast('Supply added');
-            setSelectedSupply('');
-            setSupplyQty(1);
+            await maintenanceService.removeSupply(ticket._id!, supplyItemId);
+            showSuccessToast('Supply removed');
             fetchTicket(ticket._id!);
         } catch (error) {
-            showErrorToast('Failed to add supply');
+            showErrorToast('Failed to remove supply');
         }
     };
 
@@ -522,37 +487,74 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
                     </div>
 
                     {/* Supplies Used */}
-                    <div className="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold dark:text-white">Supplies & Parts</h3>
+                    <div className="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                            <h3 className="font-bold dark:text-white flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-lg">inventory_2</span>
+                                Supplies & Parts
+                            </h3>
                             {ticket.status === 'In Progress' && (isAdmin || isTechnician) && (
-                                <div className="flex gap-2">
-                                    <select value={selectedSupply} onChange={(e) => setSelectedSupply(e.target.value)} className="text-xs p-1.5 rounded-lg border dark:bg-slate-800">
-                                        <option value="">Selectitem...</option>
-                                        {availableSupplies.map(s => <option key={s._id} value={s._id}>{s.name} ({s.quantity})</option>)}
-                                    </select>
-                                    <button onClick={handleAddSupply} className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg">Add</button>
-                                </div>
+                                <button 
+                                    onClick={() => setIsAddSupplyModalOpen(true)} 
+                                    className="px-4 py-1.5 bg-primary text-white text-[11px] font-bold rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                                >
+                                    <span className="material-symbols-outlined text-sm">add</span>
+                                    Add Supply
+                                </button>
                             )}
                         </div>
 
                         {ticket.suppliesUsed && ticket.suppliesUsed.length > 0 ? (
-                            <div className="space-y-2">
-                                {ticket.suppliesUsed.map((item, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-sm">
-                                        <div>
-                                            <span className="font-bold dark:text-white">{item.name}</span>
-                                            <span className="text-slate-500 ml-2">x{item.quantity}</span>
-                                        </div>
-                                        <span className="font-mono text-slate-600">{formatIDR(item.cost * item.quantity)}</span>
-                                    </div>
-                                ))}
-                                <div className="pt-3 flex justify-between font-bold text-lg dark:text-white">
-                                    <span>Total Cost</span>
-                                    <span>{formatIDR(ticket.suppliesUsed.reduce((acc, i) => acc + (i.cost * i.quantity), 0))}</span>
-                                </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 dark:bg-slate-900/30 border-b border-slate-100 dark:border-slate-800">
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Supply</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest">Qty</th>
+                                            <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest uppercase">Cost</th>
+                                            <th className="px-6 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total</th>
+                                            <th className="px-6 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                        {ticket.suppliesUsed.map((item, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
+                                                <td className="px-6 py-3 font-medium dark:text-slate-200">{item.name}</td>
+                                                <td className="px-6 py-3 text-slate-600 dark:text-slate-400">{item.quantity}</td>
+                                                <td className="px-6 py-3 text-slate-500 dark:text-slate-500 font-mono text-xs">{formatIDR(item.cost)}</td>
+                                                <td className="px-6 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                                                    {formatIDR(item.cost * item.quantity)}
+                                                </td>
+                                                <td className="px-6 py-3 text-right">
+                                                    {ticket.status === 'In Progress' && (isAdmin || isTechnician) && (
+                                                        <button 
+                                                            onClick={() => handleRemoveSupply((item as any)._id || (item as any).supply)} 
+                                                            className="text-rose-500 hover:text-rose-600 transition-colors p-1"
+                                                            title="Remove"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-slate-50/30 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-800">
+                                            <td colSpan={3} className="px-6 py-4 font-bold text-slate-900 dark:text-white text-right">Total Cost</td>
+                                            <td className="px-6 py-4 text-right font-black text-lg text-primary">
+                                                {formatIDR(ticket.suppliesUsed.reduce((acc, i) => acc + (i.cost * i.quantity), 0))}
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
-                        ) : <p className="text-sm text-slate-500 italic">No supplies used yet.</p>}
+                        ) : (
+                            <div className="p-8 text-center text-slate-500 dark:text-slate-500 italic text-sm">
+                                No supplies used yet.
+                            </div>
+                        )}
                     </div>
 
                     {/* Work Progress (Before/After) */}
@@ -639,6 +641,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
             </div>
 
             {/* Modals from original detail page */}
+            <AddMaintenanceSupplyModal isOpen={isAddSupplyModalOpen} onClose={() => setIsAddSupplyModalOpen(false)} ticket={ticket} onSuccess={() => fetchTicket(ticketId)} />
             <MaintenanceModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={() => fetchTicket(ticketId)} initialData={ticket} />
             <EscalateTicketModal isOpen={isEscalateModalOpen} onClose={() => setIsEscalateModalOpen(false)} onSuccess={() => fetchTicket(ticketId)} ticket={ticket} />
             <TicketWorkModal isOpen={isWorkModalOpen} onClose={() => setIsWorkModalOpen(false)} onSuccess={() => fetchTicket(ticketId)} ticket={ticket} />

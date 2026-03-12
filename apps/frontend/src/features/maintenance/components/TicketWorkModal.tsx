@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import imageCompression from 'browser-image-compression';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
-import { supplyService, Supply } from '@/services/supplyService';
 import { showSuccessToast, showErrorToast, showConfirmDialog, showInputDialog } from '@/utils/swal';
 import { validateFile, formatFileSize } from '@/utils/fileValidation';
-import { useAuthStore } from '@/store/authStore';
+import AddMaintenanceSupplyModal from './AddMaintenanceSupplyModal';
 
 
 export interface TicketWorkModalProps {
@@ -16,7 +15,6 @@ export interface TicketWorkModalProps {
 }
 
 export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWorkModalProps) {
-    const { user } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
     const [, setUploadProgress] = useState(0);
     const [, setIsCompressing] = useState(false);
@@ -25,10 +23,8 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
     // Form States
     const [beforePhotos, setBeforePhotos] = useState<string[]>([]);
     const [afterPhotos, setAfterPhotos] = useState<string[]>([]);
-    const [supplies, setSupplies] = useState<Supply[]>([]);
-    const [selectedSupply, setSelectedSupply] = useState('');
-    const [supplyQty, setSupplyQty] = useState(1);
     const [addedSupplies, setAddedSupplies] = useState<any[]>([]);
+    const [isAddSupplyModalOpen, setIsAddSupplyModalOpen] = useState(false);
 
     const [workNotes, setWorkNotes] = useState('');
     const navigate = useNavigate();
@@ -42,38 +38,8 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
         }
     }, [ticket]);
 
-    // Load available supplies
-    useEffect(() => {
-        if (isOpen) {
-            loadSupplies();
-        }
-    }, [isOpen]);
-
-    const loadSupplies = async () => {
-        try {
-            const data = await supplyService.getAll();
-            setSupplies(data);
-        } catch (error) {
-            console.error('Failed to load supplies', error);
-        }
-    };
-
-    const handleAddSupply = () => {
-        if (!selectedSupply || supplyQty <= 0) return;
-
-        const supply = supplies.find(s => s._id === selectedSupply);
-        if (!supply) return;
-
-        const newItem = {
-            supply: supply._id,
-            name: supply.name,
-            quantity: supplyQty,
-            cost: supply.cost
-        };
-
-        setAddedSupplies([...addedSupplies, newItem]);
-        setSelectedSupply('');
-        setSupplyQty(1);
+    const handleSelectSupplies = (items: any[]) => {
+        setAddedSupplies([...addedSupplies, ...items]);
     };
 
     const removeSupply = (index: number) => {
@@ -454,92 +420,47 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                             <div className="space-y-6">
                                 <h3 className="text-lg font-bold">Used Supplies</h3>
 
-                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl flex gap-3 items-end">
-                                    <div className="flex-1">
-                                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Items</label>
-                                        <select
-                                            value={selectedSupply}
-                                            onChange={(e) => setSelectedSupply(e.target.value)}
-                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark"
-                                        >
-                                            <option value="">Select supply...</option>
-                                            {supplies
-                                                .filter(s => {
-                                                    const userDeptId = user?.departmentId;
-                                                    const userDeptObjId = user?.department && typeof user.department === 'object' ? (user.department as any)._id : undefined;
-                                                    const userDeptName = user?.department && typeof user.department === 'object' ? (user.department as any).name : user?.department;
-
-                                                    // If show all or no user dept
-                                                    if (!userDeptId && !userDeptObjId && !userDeptName) return true;
-
-                                                    // Robust ID extraction
-                                                    const sDeptId = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any)._id : s.departmentId;
-                                                    const sDeptRef = s.department && typeof s.department === 'object' ? (s.department as any)._id : s.department;
-
-                                                    const validSupplyIds = [sDeptId, sDeptRef, s.department?._id, s.department].filter(Boolean);
-
-                                                    let match = false;
-                                                    if (userDeptId && validSupplyIds.some(id => String(id) === String(userDeptId))) match = true;
-                                                    if (userDeptObjId && validSupplyIds.some(id => String(id) === String(userDeptObjId))) match = true;
-
-                                                    // Name Match Fallback
-                                                    const sName = s.departmentId && typeof s.departmentId === 'object' ? (s.departmentId as any).name : (s.department as any)?.name;
-                                                    if (!match && userDeptName && sName === userDeptName) match = true;
-                                                    if (!match && userDeptName && s.department?.name === userDeptName) match = true;
-
-                                                    return match;
-                                                })
-                                                .map(s => (
-                                                    <option key={s._id} value={s._id} disabled={s.quantity <= 0}>
-                                                        {s.name} ({s.quantity} {s.unit} avail)
-                                                    </option>
-                                                ))}
-                                        </select>
-                                    </div>
-                                    <div className="w-24">
-                                        <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Qty</label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={supplyQty}
-                                            onChange={(e) => setSupplyQty(parseInt(e.target.value) || 1)}
-                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-card-dark"
-                                        />
+                                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                                    <div className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                                        Total Items: {addedSupplies.length}
                                     </div>
                                     <button
-                                        onClick={handleAddSupply}
-                                        disabled={!selectedSupply}
-                                        className="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50"
+                                        onClick={() => setIsAddSupplyModalOpen(true)}
+                                        className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
                                     >
-                                        Add
+                                        <span className="material-symbols-outlined text-sm">add</span>
+                                        Add Supply
                                     </button>
                                 </div>
 
-                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                                     <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 dark:bg-slate-800 text-left">
-                                            <tr>
-                                                <th className="p-3 font-semibold text-slate-500">Item Name</th>
-                                                <th className="p-3 font-semibold text-slate-500">Quantity</th>
-                                                <th className="p-3 font-semibold text-slate-500 text-right">Action</th>
+                                        <thead>
+                                            <tr className="bg-slate-50 dark:bg-slate-800 text-left border-b border-slate-200 dark:border-slate-700">
+                                                <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Supply Name</th>
+                                                <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Qty</th>
+                                                <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Cost</th>
+                                                <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                             {addedSupplies.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={3} className="p-8 text-center text-slate-500">No supplies recorded</td>
+                                                    <td colSpan={4} className="p-8 text-center text-slate-500 italic">No supplies recorded</td>
                                                 </tr>
                                             ) : (
                                                 addedSupplies.map((item, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="p-3">{item.name}</td>
-                                                        <td className="p-3">{item.quantity}</td>
-                                                        <td className="p-3 text-right">
+                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                        <td className="px-4 py-3 font-medium dark:text-slate-200">{item.name}</td>
+                                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{item.quantity}</td>
+                                                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">Rp {item.cost?.toLocaleString('id-ID')}</td>
+                                                        <td className="px-4 py-3 text-right">
                                                             {idx >= (ticket.suppliesUsed?.length || 0) && (
                                                                 <button
                                                                     onClick={() => removeSupply(idx)}
-                                                                    className="text-red-600 hover:text-red-700"
+                                                                    className="text-red-600 hover:text-red-700 font-bold text-xs flex items-center gap-1 ml-auto"
                                                                 >
+                                                                    <span className="material-symbols-outlined text-sm">delete</span>
                                                                     Remove
                                                                 </button>
                                                             )}
@@ -548,6 +469,16 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                                                 ))
                                             )}
                                         </tbody>
+                                        {addedSupplies.length > 0 && (
+                                            <tfoot className="border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                                                <tr>
+                                                    <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-600 dark:text-slate-400">Total Estimation</td>
+                                                    <td className="px-4 py-3 text-right font-black text-primary">
+                                                        Rp {addedSupplies.reduce((sum, item) => sum + (item.cost * item.quantity), 0).toLocaleString('id-ID')}
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        )}
                                     </table>
                                 </div>
                             </div>
@@ -628,6 +559,12 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                     </div>
                 </div>
             </div>
+            <AddMaintenanceSupplyModal 
+                isOpen={isAddSupplyModalOpen} 
+                onClose={() => setIsAddSupplyModalOpen(false)} 
+                ticket={ticket} 
+                onSelect={handleSelectSupplies}
+            />
         </div>
     );
 }

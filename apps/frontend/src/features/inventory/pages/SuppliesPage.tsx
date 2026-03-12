@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
 import { supplyService, Supply } from '../../../services/supplyService';
+import { importExportService } from '@/services/importExportService';
 import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
+import ImportPreviewModal from '../components/ImportPreviewModal';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
 
 export default function SuppliesPage() {
@@ -15,6 +17,10 @@ export default function SuppliesPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedSupply, setSelectedSupply] = useState<Supply | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Import Preview State
+    const [importFile, setImportFile] = useState<File | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const fetchSupplies = async () => {
         setLoading(true);
@@ -39,6 +45,31 @@ export default function SuppliesPage() {
 
     const handleAdd = () => {
         setIsAddModalOpen(true);
+    };
+
+    const handleImportClick = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx, .xls';
+        input.onchange = (e: any) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                setImportFile(file);
+                setIsPreviewOpen(true);
+            }
+        };
+        input.click();
+    };
+
+    const handleConfirmImport = async (data: any[]) => {
+        try {
+            const result = await importExportService.bulkImportData('supply', data);
+            showSuccessToast(`Import completed: ${result.results.success} succeeded, ${result.results.failed} failed.`);
+            fetchSupplies();
+        } catch (error: any) {
+            showErrorToast(error.response?.data?.message || 'Failed to import supplies.');
+            throw error;
+        }
     };
 
     const handleEdit = (supply: Supply) => {
@@ -91,6 +122,13 @@ export default function SuppliesPage() {
                         />
                     </div>
                     <button
+                        onClick={handleImportClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm hover:brightness-110 transition-all border border-slate-200 dark:border-slate-700"
+                    >
+                        <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                        Import Excel
+                    </button>
+                    <button
                         onClick={handleAdd}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                     >
@@ -112,6 +150,16 @@ export default function SuppliesPage() {
                 onClose={() => setIsEditModalOpen(false)}
                 onUpdate={fetchSupplies}
                 supply={selectedSupply}
+            />
+
+            <ImportPreviewModal
+                isOpen={isPreviewOpen}
+                onClose={() => {
+                    setIsPreviewOpen(false);
+                    setImportFile(null);
+                }}
+                file={importFile}
+                onConfirm={handleConfirmImport}
             />
 
             {/* Table */}
