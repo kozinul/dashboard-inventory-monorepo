@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ReportPreviewTable } from '@/features/reports/components/ReportPreviewTable';
-import { ReportCard } from '@/features/reports/components/ReportCard';
 import { importExportService, ExportOptions } from '@/services/importExportService';
 import { branchService, Branch } from '@/services/branchService';
 import { departmentService, Department } from '@/services/departmentService';
+import { categoryService, Category } from '@/services/categoryService';
+import { locationService, BoxLocation } from '@/services/locationService';
 import { useAuthStore } from '@/store/authStore';
 
 const REPORT_TYPES = [
@@ -19,14 +20,18 @@ export default function ReportsPage() {
     const [branchId, setBranchId] = useState('');
     const [departmentId, setDepartmentId] = useState('');
     const [status, setStatus] = useState('');
+    const [category, setCategory] = useState('');
+    const [locationId, setLocationId] = useState('');
     const [maintenanceType, setMaintenanceType] = useState('');
     const [groupBy, setGroupBy] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+
 
     const [branches, setBranches] = useState<Branch[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [locations, setLocations] = useState<BoxLocation[]>([]);
 
     const [previewData, setPreviewData] = useState<any[]>([]);
     const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
@@ -49,6 +54,8 @@ export default function ReportsPage() {
         }
 
         departmentService.getAll().then(setDepartments);
+        categoryService.getAll().then(setCategories);
+        locationService.getAll().then(setLocations);
     }, [isSuperUser, isAdmin, isManager, isTechnician, user]);
 
     const filteredDepartments = (isSuperUser || isAdmin || isTechnician || isManager) && branchId
@@ -63,6 +70,8 @@ export default function ReportsPage() {
                 branchId: branchId || undefined,
                 departmentId: departmentId || undefined,
                 status: status || undefined,
+                category: category || undefined,
+                locationId: locationId || undefined,
                 maintenanceType: maintenanceType || undefined,
                 groupBy: groupBy || undefined,
                 startDate: startDate || undefined,
@@ -89,6 +98,8 @@ export default function ReportsPage() {
                 branchId: branchId || undefined,
                 departmentId: departmentId || undefined,
                 status: status || undefined,
+                category: category || undefined,
+                locationId: locationId || undefined,
                 maintenanceType: maintenanceType || undefined,
                 groupBy: groupBy || undefined,
                 startDate: startDate || undefined,
@@ -216,8 +227,14 @@ export default function ReportsPage() {
                             {reportType === 'asset' && (
                                 <>
                                     <option value="active">Active</option>
+                                    <option value="storage">Storage</option>
                                     <option value="assigned">Assigned</option>
+                                    <option value="in_use">In Use</option>
                                     <option value="maintenance">Maintenance</option>
+                                    <option value="request maintenance">Request Maintenance</option>
+                                    <option value="rented">Rented</option>
+                                    <option value="event">Event</option>
+                                    <option value="retired">Retired</option>
                                     <option value="disposed">Disposed</option>
                                 </>
                             )}
@@ -245,6 +262,34 @@ export default function ReportsPage() {
                             )}
                         </select>
                     </div>
+
+                    {reportType === 'asset' && (
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Kategori Asset</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
+                            >
+                                <option value="">Semua Kategori</option>
+                                {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                            </select>
+                        </div>
+                    )}
+
+                    {(reportType === 'asset' || reportType === 'supply') && (
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Lokasi</label>
+                            <select
+                                value={locationId}
+                                onChange={(e) => setLocationId(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
+                            >
+                                <option value="">Semua Lokasi</option>
+                                {locations.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                            </select>
+                        </div>
+                    )}
 
                     {reportType === 'maintenance' && (
                         <div className="space-y-1.5">
@@ -276,6 +321,7 @@ export default function ReportsPage() {
                                     <option value="status">Status</option>
                                     <option value="branch">Branch</option>
                                     <option value="department">Department</option>
+                                    <option value="location">Location</option>
                                 </>
                             )}
                             {reportType === 'maintenance' && (
@@ -364,50 +410,13 @@ export default function ReportsPage() {
                             {previewData.length > 0 && <span className="text-xs font-normal text-slate-500 bg-slate-100 dark:bg-background-dark px-2 py-1 rounded-md ml-2">{previewData.length} records</span>}
                         </h3>
                     </div>
-
-                    <div className="flex items-center p-1 bg-slate-100 dark:bg-background-dark rounded-xl h-10">
-                        <button
-                            onClick={() => setViewMode('table')}
-                            className={`px-4 h-full flex items-center gap-2 rounded-lg text-xs font-bold transition-all ${viewMode === 'table' ? 'bg-white dark:bg-card-dark text-primary shadow-sm' : 'text-slate-500'}`}
-                        >
-                            <span className="material-symbols-outlined text-sm">table_rows</span>
-                            Tabel
-                        </button>
-                        <button
-                            onClick={() => setViewMode('cards')}
-                            className={`px-4 h-full flex items-center gap-2 rounded-lg text-xs font-bold transition-all ${viewMode === 'cards' ? 'bg-white dark:bg-card-dark text-primary shadow-sm' : 'text-slate-500'}`}
-                        >
-                            <span className="material-symbols-outlined text-sm">grid_view</span>
-                            Cards
-                        </button>
-                    </div>
                 </div>
 
-                {viewMode === 'table' ? (
-                    <ReportPreviewTable
-                        data={previewData}
-                        headers={previewHeaders}
-                        isLoading={isLoadingPreview}
-                    />
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {isLoadingPreview ? (
-                            <div className="col-span-full h-64 flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                            </div>
-                        ) : previewData.length > 0 ? (
-                            previewData.map((record, i) => (
-                                <ReportCard key={i} data={record} type={reportType} />
-                            ))
-                        ) : (
-                            <div className="col-span-full h-64 flex flex-col items-center justify-center text-slate-500">
-                                <span className="material-symbols-outlined text-5xl mb-3">error_outline</span>
-                                <p className="font-medium text-lg">No data matches your filters</p>
-                                <p className="text-sm">Try adjusting your date range or scope</p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <ReportPreviewTable
+                    data={previewData}
+                    headers={previewHeaders}
+                    isLoading={isLoadingPreview}
+                />
             </div>
 
         </div>

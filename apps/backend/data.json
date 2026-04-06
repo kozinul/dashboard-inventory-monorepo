@@ -368,7 +368,7 @@
   ],
   "assets": [
     {
-      "_id": "69ae6e227c0f1e062e4d28b3",
+      "_id": "69b3a324d9f1d5b16e6969c8",
       "name": "mic wireless",
       "model": "Beta 58A",
       "category": "Microphone Wireless",
@@ -376,33 +376,118 @@
       "departmentId": "69a4dbece832d700df26fbb3",
       "branchId": "69a4500fc62dc66c69587038",
       "department": "Audio Visual",
-      "locationId": "69ab81d582920630f2e37a7b",
+      "locationId": "69a53059e1caea8c275d8c39",
       "parentAssetId": null,
-      "location": "Rak AV",
+      "location": "AV ROOM",
       "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "purchaseDate": "2011-01-01T00:00:00.000Z",
+      "value": 12000000,
+      "technicalSpecifications": {},
+      "images": [],
+      "rentalRates": [],
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-03-13T05:39:48.944Z",
+      "updatedAt": "2026-03-13T05:39:48.944Z",
+      "__v": 0
+    },
+    {
+      "_id": "69cccb7c0ba62ff197c88c12",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G2-LIU20241103AAWRFS1065958",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "parentAssetId": null,
+      "locationDetail": "Smoking Area",
+      "status": "in_use",
       "isContainer": false,
       "totalSlots": 0,
       "slotNumber": null,
       "requiresExternalService": false,
       "images": [
         {
-          "url": "http://10.10.5.192/uploads/file-1772610871538-413675973.jpg",
+          "url": "/uploads/file-1775029790184-632506115.jpg",
           "caption": "",
-          "filename": "file-1772610871538-413675973.jpg",
-          "_id": "69ae6e227c0f1e062e4d28b4"
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69ccce1e0ba62ff197c88f92"
         }
       ],
-      "purchaseDate": "2011-01-01T00:00:00.000Z",
-      "value": 12000000,
-      "technicalSpecifications": {},
-      "rentalRates": [
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "4 MP Smart Hybrid Light Fixed Bullet Network Camera",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": " 192.168.1.105",
+        "Username": "admin",
+        "Password": "p455w0rd"
+      },
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "rentalRates": [],
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:38:36.502Z",
+      "updatedAt": "2026-04-03T07:29:36.039Z",
+      "__v": 0,
+      "location": "OutDoor",
+      "locationId": "69cccbaf0ba62ff197c88c4e"
+    },
+    {
+      "_id": "69ccceb60ba62ff197c88ffc",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575933",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
         {
-          "name": "daily",
-          "rate": 300000,
-          "unit": "day",
-          "_id": "69a7e99f0e2654562fa4e9b3"
+          "url": "/uploads/file-1775029942458-313291888.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69ccceb60ba62ff197c88ffd"
         }
       ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "4 MP Fixed Bullet Network Camera",
+        "Resolusi": "4 MP (2560 x 1440)",
+        "Power": " 12 VDC or PoE (802.3af, 36 V to 57 V).",
+        "IP Address": "192.168.1.104",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
       "vendor": {
         "name": "",
         "contact": "",
@@ -417,25 +502,3607 @@
       },
       "documents": [],
       "maintenanceHistory": [],
-      "activityLog": [
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:52:22.491Z",
+      "updatedAt": "2026-04-03T07:40:54.599Z",
+      "__v": 0,
+      "locationDetail": "Loading Dock ND 4"
+    },
+    {
+      "_id": "69cccf4a0ba62ff197c890ac",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575928",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
         {
-          "action": "installed",
-          "details": "Installed in Rak AV at Slot 1",
-          "performedBy": "69a51504e832d700df2706b5",
-          "date": "2026-03-09T06:52:32.651Z",
-          "_id": "69ae6e307c0f1e062e4d2a6e"
-        },
-        {
-          "action": "dismantled",
-          "details": "Dismantled from Panel and returned to warehouse",
-          "performedBy": "69a51504e832d700df2706b5",
-          "date": "2026-03-09T08:39:15.472Z",
-          "_id": "69ae87339ac9a83ca5adf514"
+          "url": "/uploads/file-1775030090367-57683706.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccf4a0ba62ff197c890ad"
         }
       ],
-      "createdAt": "2026-03-09T06:52:18.356Z",
-      "updatedAt": "2026-03-09T08:39:15.481Z",
-      "__v": 2
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.103",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:54:50.374Z",
+      "updatedAt": "2026-04-03T07:42:14.851Z",
+      "__v": 0,
+      "locationDetail": "Loading Dock Pecatu 5"
+    },
+    {
+      "_id": "69cccf8b0ba62ff197c890c3",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575966",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030155136-888988941.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccf8b0ba62ff197c890c4"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.108",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:55:55.142Z",
+      "updatedAt": "2026-04-03T07:43:49.965Z",
+      "__v": 0,
+      "locationDetail": "POS 3"
+    },
+    {
+      "_id": "69cccf9b0ba62ff197c890df",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575959",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030171573-731446068.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccf9b0ba62ff197c890e0"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.102",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:56:11.579Z",
+      "updatedAt": "2026-04-03T07:45:59.550Z",
+      "__v": 0,
+      "locationDetail": "South Parking 1"
+    },
+    {
+      "_id": "69cccfa80ba62ff197c890fc",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575908",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030184589-390994219.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccfa80ba62ff197c890fd"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.107",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:56:24.598Z",
+      "updatedAt": "2026-04-03T08:23:26.248Z",
+      "__v": 0,
+      "locationDetail": "Entrance Basement 1"
+    },
+    {
+      "_id": "69cccfb20ba62ff197c8910f",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575906",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030194607-951553127.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccfb20ba62ff197c89110"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.106",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:56:34.612Z",
+      "updatedAt": "2026-04-03T08:24:13.528Z",
+      "__v": 0,
+      "locationDetail": "Entrance Basement 2"
+    },
+    {
+      "_id": "69cccfbe0ba62ff197c8912a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575815",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030206280-260373453.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccfbe0ba62ff197c8912b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.100",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:56:46.286Z",
+      "updatedAt": "2026-04-03T08:25:20.612Z",
+      "__v": 0,
+      "locationDetail": "East Lobby Corner 1"
+    },
+    {
+      "_id": "69cccfca0ba62ff197c8913f",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575927",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030218682-413336378.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cccfca0ba62ff197c89140"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T07:56:58.687Z",
+      "updatedAt": "2026-04-03T08:26:04.071Z",
+      "__v": 0,
+      "locationDetail": "East Lobby Corner 2"
+    },
+    {
+      "_id": "69ccd1010ba62ff197c893fb",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1023G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G2-LIU20240724AAWRFH9075344",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030529823-462913676.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69ccd1010ba62ff197c893fc"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.109",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T08:02:09.827Z",
+      "updatedAt": "2026-04-03T08:27:18.851Z",
+      "__v": 0,
+      "locationDetail": "Jimbaran Entrance 1"
+    },
+    {
+      "_id": "69ccd15b0ba62ff197c8948a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1043G0E-I20221116AAWRK90575885",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775030619977-379795610.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69ccd15b0ba62ff197c8948b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.182",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-01T08:03:39.982Z",
+      "updatedAt": "2026-04-03T08:29:02.636Z",
+      "__v": 0,
+      "locationDetail": "Pecatu Loading 1,2"
+    },
+    {
+      "_id": "69cf46c80ba62ff197c91984",
+      "name": "NVR HIkvision 16 CH",
+      "model": "DS-7616NI-Q1",
+      "category": "NVR",
+      "serial": "DS-7616NI-Q11620220809CCRRK36902491WCVU",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "parentAssetId": null,
+      "locationDetail": "",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775191765133-666537254.jpg",
+          "caption": "",
+          "filename": "file-1775191765133-666537254.jpg",
+          "_id": "69cf46d50ba62ff197c919ca"
+        }
+      ],
+      "purchaseDate": "2024-01-01T00:00:00.000Z",
+      "value": 1869000,
+      "technicalSpecifications": {
+        "IP Address": "192.168.1.110",
+        "Max Channel": "16",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "rentalRates": [],
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T04:49:12.250Z",
+      "updatedAt": "2026-04-03T04:56:55.107Z",
+      "__v": 0,
+      "location": "CCTV Room",
+      "locationId": "69a65283adc5e9de1f2845f6"
+    },
+    {
+      "_id": "69cf47c00ba62ff197c91b3c",
+      "name": "NVR HIkvision 16 CH",
+      "model": "DS-7616NI-Q2",
+      "category": "NVR",
+      "serial": "DS-7616NI-Q21620220209CCRRJ44051737WCVU",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "parentAssetId": null,
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775192113128-122156731.jpg",
+          "caption": "",
+          "filename": "file-1775192113128-122156731.jpg",
+          "_id": "69cf48310ba62ff197c91c8b"
+        }
+      ],
+      "purchaseDate": "2024-01-01T00:00:00.000Z",
+      "value": 1800000,
+      "technicalSpecifications": {
+        "IP Address": "192.168.1.110",
+        "Max Channel": "16",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T04:53:20.404Z",
+      "updatedAt": "2026-04-03T04:56:45.699Z",
+      "__v": 0,
+      "location": "CCTV Room",
+      "locationDetail": "",
+      "locationId": "69a65283adc5e9de1f2845f6"
+    },
+    {
+      "_id": "69cf48f50ba62ff197c91eb8",
+      "name": "NVR HIkvision 16 CH",
+      "model": "DS-7616NI-Q2",
+      "category": "NVR",
+      "serial": "DS-7616NI-Q21620230703CCRRAD3392407WCVU",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a65283adc5e9de1f2845f6",
+      "parentAssetId": null,
+      "location": "CCTV Room",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775192309887-632439601.jpg",
+          "caption": "",
+          "filename": "file-1775192113128-122156731.jpg",
+          "_id": "69cf48f50ba62ff197c91eb9"
+        }
+      ],
+      "purchaseDate": "2024-01-01T00:00:00.000Z",
+      "value": 1800000,
+      "technicalSpecifications": {
+        "IP Address": "192.168.1.150",
+        "Max Channel": "16",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T04:58:29.894Z",
+      "updatedAt": "2026-04-03T05:00:33.012Z",
+      "__v": 0,
+      "locationDetail": ""
+    },
+    {
+      "_id": "69cf4a150ba62ff197c92134",
+      "name": "NVR HIkvision 16 CH",
+      "model": "DS-7616NI-Q2",
+      "category": "NVR",
+      "serial": "DS-7616NI-Q21620230625CCRRAD0360136WCVU",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a65283adc5e9de1f2845f6",
+      "parentAssetId": null,
+      "location": "CCTV Room",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775192597538-151667189.jpg",
+          "caption": "",
+          "filename": "file-1775192113128-122156731.jpg",
+          "_id": "69cf4a150ba62ff197c92135"
+        }
+      ],
+      "purchaseDate": "2024-01-01T00:00:00.000Z",
+      "value": 1800000,
+      "technicalSpecifications": {
+        "IP Address": "192.168.1.170",
+        "Max Channel": "16",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T05:03:17.545Z",
+      "updatedAt": "2026-04-03T05:04:00.573Z",
+      "__v": 0
+    },
+    {
+      "_id": "69cf4a710ba62ff197c92204",
+      "name": "NVR HIkvision 16 CH",
+      "model": "DS-7616NI-Q2",
+      "category": "NVR",
+      "serial": "DS-7616NI-Q21620241118CCRRFS8810889WCVU",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a65283adc5e9de1f2845f6",
+      "parentAssetId": null,
+      "location": "CCTV Room",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775192689085-11062804.jpg",
+          "caption": "",
+          "filename": "file-1775192113128-122156731.jpg",
+          "_id": "69cf4a710ba62ff197c92205"
+        }
+      ],
+      "purchaseDate": "2024-01-01T00:00:00.000Z",
+      "value": 1800000,
+      "technicalSpecifications": {
+        "IP Address": "192.168.1.212",
+        "Max Channel": "16",
+        "Username": "admin",
+        "Password": "Bndcc2025"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T05:04:49.090Z",
+      "updatedAt": "2026-04-03T05:05:48.265Z",
+      "__v": 0,
+      "locationDetail": ""
+    },
+    {
+      "_id": "69cf952c0ba62ff197c9540c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930415",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775211820226-49028415.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf952c0ba62ff197c9540d"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.117",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:23:40.234Z",
+      "updatedAt": "2026-04-03T10:25:19.714Z",
+      "__v": 0,
+      "locationDetail": "Main Gate 2"
+    },
+    {
+      "_id": "69cf95b40ba62ff197c954fd",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930420",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775211956039-543066206.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf95b40ba62ff197c954fe"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.115",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:25:56.044Z",
+      "updatedAt": "2026-04-03T10:28:05.702Z",
+      "__v": 0,
+      "locationDetail": "Candi Bentar"
+    },
+    {
+      "_id": "69cf964a0ba62ff197c955d3",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930395",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212106711-997459229.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf964a0ba62ff197c955d4"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.116",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:28:26.716Z",
+      "updatedAt": "2026-04-03T10:29:02.557Z",
+      "__v": 0,
+      "locationDetail": "DPN LOADING 5"
+    },
+    {
+      "_id": "69cf96840ba62ff197c95692",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930421",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212164056-736263964.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf96840ba62ff197c95693"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.112",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:29:24.061Z",
+      "updatedAt": "2026-04-03T10:30:00.621Z",
+      "__v": 0,
+      "locationDetail": "PARKIR SELATAN"
+    },
+    {
+      "_id": "69cf96b70ba62ff197c95767",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930130",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212215265-475594190.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf96b70ba62ff197c95768"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.113",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:30:15.271Z",
+      "updatedAt": "2026-04-03T10:30:56.623Z",
+      "__v": 0,
+      "locationDetail": "PARKIR SELATAN 02"
+    },
+    {
+      "_id": "69cf97020ba62ff197c9582a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930450",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212290838-331772395.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf97020ba62ff197c9582b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.120",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:31:30.843Z",
+      "updatedAt": "2026-04-03T10:32:13.593Z",
+      "__v": 0,
+      "locationDetail": "ESCAPE ITDC"
+    },
+    {
+      "_id": "69cf97420ba62ff197c958ef",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930431",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212354194-692374660.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf97420ba62ff197c958f0"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.2",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:32:34.199Z",
+      "updatedAt": "2026-04-03T10:33:22.215Z",
+      "__v": 0,
+      "locationDetail": "LOBBY TIMUR NDH 01"
+    },
+    {
+      "_id": "69cf97800ba62ff197c959e8",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930115",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212416981-334138714.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf97800ba62ff197c959e9"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.3",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:33:36.992Z",
+      "updatedAt": "2026-04-03T10:34:07.423Z",
+      "__v": 0,
+      "locationDetail": "LOBBY TIMUR NDH 02"
+    },
+    {
+      "_id": "69cf97ab0ba62ff197c95ab1",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1023G0E-I20220415AAWRJ75930393",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212459613-498213602.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf97ab0ba62ff197c95ab2"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "createdAt": "2026-04-03T10:34:19.618Z",
+      "updatedAt": "2026-04-03T10:34:54.688Z",
+      "__v": 0,
+      "locationDetail": "MAIN GATE 1"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d10",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002328",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814763-222782978.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d11"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.899Z",
+      "updatedAt": "2026-04-03T10:40:14.899Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d12",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002273",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213235077-276961753.png",
+          "caption": "",
+          "filename": "file-1775213235077-276961753.png",
+          "_id": "69cf9ab30ba62ff197c96163"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": " Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.165",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.899Z",
+      "updatedAt": "2026-04-03T10:47:15.121Z",
+      "locationDetail": "KINTAMANI SERVICE AREA"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d14",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002321",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213204352-450839627.png",
+          "caption": "",
+          "filename": "file-1775213204352-450839627.png",
+          "_id": "69cf9a940ba62ff197c960bc"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.159",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.900Z",
+      "updatedAt": "2026-04-03T10:46:44.399Z",
+      "locationDetail": "KINTAMANI LOBBY 2"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d16",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4001741",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213275637-565858560.png",
+          "caption": "",
+          "filename": "file-1775213275637-565858560.png",
+          "_id": "69cf9adb0ba62ff197c96211"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.155",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.900Z",
+      "updatedAt": "2026-04-03T10:49:00.918Z",
+      "locationDetail": "MANAGEMENT HRD"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d18",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002326",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213479995-24598100.png",
+          "caption": "",
+          "filename": "file-1775213479995-24598100.png",
+          "_id": "69cf9ba80ba62ff197c96431"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.166",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.900Z",
+      "updatedAt": "2026-04-03T10:52:30.478Z",
+      "locationDetail": "KINTAMANI 5"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d1a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002314",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213637628-11118958.png",
+          "caption": "",
+          "filename": "file-1775213637628-11118958.png",
+          "_id": "69cf9c450ba62ff197c96656"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.167",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.900Z",
+      "updatedAt": "2026-04-03T10:54:45.852Z",
+      "locationDetail": "KINTAMANI 6"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d1c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002325",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213784780-114688647.png",
+          "caption": "",
+          "filename": "file-1775213784780-114688647.png",
+          "_id": "69cf9cd80ba62ff197c96816"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP ",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.158",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.900Z",
+      "updatedAt": "2026-04-03T10:57:47.292Z",
+      "locationDetail": "KINTAMANI LOBBY 1"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d1e",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002405",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775213929051-298147002.png",
+          "caption": "",
+          "filename": "file-1775213929051-298147002.png",
+          "_id": "69cf9d690ba62ff197c96a34"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.156",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.901Z",
+      "updatedAt": "2026-04-03T10:59:57.003Z",
+      "locationDetail": "MANAGEMENT SM"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d20",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002712",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775214051252-807155445.png",
+          "caption": "",
+          "filename": "file-1775214051252-807155445.png",
+          "_id": "69cf9de30ba62ff197c96bf0"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.164",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.901Z",
+      "updatedAt": "2026-04-03T11:01:59.320Z",
+      "locationDetail": "LINEN"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d22",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1143G2-LIU",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002343",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69a52e4ce1caea8c275d8786",
+      "parentAssetId": null,
+      "location": "MZ",
+      "status": "in_use",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775214188117-853470367.png",
+          "caption": "",
+          "filename": "file-1775214188117-853470367.png",
+          "_id": "69cf9e6c0ba62ff197c96e0e"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "Smart Hybrid Light Fixed Dome Network Camera",
+        "Resolusi": "4 MP",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.163",
+        "Username": "admin",
+        "Password": "bndcc1234"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.901Z",
+      "updatedAt": "2026-04-03T11:04:14.794Z",
+      "locationDetail": "LIFT SERVICE MZN"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d24",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002317",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814766-68517019.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d25"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.902Z",
+      "updatedAt": "2026-04-03T10:40:14.902Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d26",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002315",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814766-405024124.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d27"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.902Z",
+      "updatedAt": "2026-04-03T10:40:14.902Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d28",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002316",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814767-907605245.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d29"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.902Z",
+      "updatedAt": "2026-04-03T10:40:14.902Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d2a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002690",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814767-349694948.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d2b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.902Z",
+      "updatedAt": "2026-04-03T10:40:14.902Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d2c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002344",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814767-980534112.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d2d"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.903Z",
+      "updatedAt": "2026-04-03T10:40:14.903Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d2e",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002705",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814767-682317978.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d2f"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.903Z",
+      "updatedAt": "2026-04-03T10:40:14.903Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d30",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002406",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814767-203169511.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d31"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.903Z",
+      "updatedAt": "2026-04-03T10:40:14.903Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d32",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002309",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814791-675013806.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d33"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.903Z",
+      "updatedAt": "2026-04-03T10:40:14.903Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d34",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "-",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814791-394226549.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d35"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.903Z",
+      "updatedAt": "2026-04-03T10:40:14.903Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d36",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2DE4225IW-DE20231228AAWRAY8102101",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814791-657952473.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d37"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.904Z",
+      "updatedAt": "2026-04-03T10:40:14.904Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d38",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2DE4225IW-DE20231228AAWRAY8102099",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814791-52154870.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d39"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.905Z",
+      "updatedAt": "2026-04-03T10:40:14.905Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d3a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2DE4225IW-DE20231228AAWRAY8102106",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-521511093.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d3b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.905Z",
+      "updatedAt": "2026-04-03T10:40:14.905Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d3c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2DE4225IW-DE20231228AAWRAY8102138",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-129496177.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d3d"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.905Z",
+      "updatedAt": "2026-04-03T10:40:14.905Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d3e",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4001768",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-120240298.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d3f"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.905Z",
+      "updatedAt": "2026-04-03T10:40:14.905Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d40",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002421",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-296635801.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d41"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.906Z",
+      "updatedAt": "2026-04-03T10:40:14.906Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d42",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002419",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-214759396.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d43"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.906Z",
+      "updatedAt": "2026-04-03T10:40:14.906Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d44",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002407",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814792-212888157.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d45"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.906Z",
+      "updatedAt": "2026-04-03T10:40:14.906Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d46",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002275",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-313350715.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d47"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.906Z",
+      "updatedAt": "2026-04-03T10:40:14.906Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d48",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002313",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-354517965.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d49"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.907Z",
+      "updatedAt": "2026-04-03T10:40:14.907Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d4a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002335",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-534447969.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d4b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.907Z",
+      "updatedAt": "2026-04-03T10:40:14.907Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d4c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20230819AAWRAF4002329",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-655267651.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d4d"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.907Z",
+      "updatedAt": "2026-04-03T10:40:14.907Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d4e",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338015",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-756919972.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d4f"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.907Z",
+      "updatedAt": "2026-04-03T10:40:14.907Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d50",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338057",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814793-492455477.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d51"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.907Z",
+      "updatedAt": "2026-04-03T10:40:14.907Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d52",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338030",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-598548262.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d53"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.908Z",
+      "updatedAt": "2026-04-03T10:40:14.908Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d54",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338388",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-74714655.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d55"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.908Z",
+      "updatedAt": "2026-04-03T10:40:14.908Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d56",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250302AAWRFW9338392",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-514206295.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d57"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.908Z",
+      "updatedAt": "2026-04-03T10:40:14.908Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d58",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338039",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-850864921.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d59"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.908Z",
+      "updatedAt": "2026-04-03T10:40:14.908Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d5a",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338073",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-713245025.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d5b"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.908Z",
+      "updatedAt": "2026-04-03T10:40:14.908Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d5c",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338311",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814794-698359712.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d5d"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.909Z",
+      "updatedAt": "2026-04-03T10:40:14.909Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d5e",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338017",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814795-373852296.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d5f"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.909Z",
+      "updatedAt": "2026-04-03T10:40:14.909Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d60",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338319",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814795-206074339.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d61"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.909Z",
+      "updatedAt": "2026-04-03T10:40:14.909Z"
+    },
+    {
+      "_id": "69cf990e0ba62ff197c95d62",
+      "name": "Camera HikVision",
+      "model": "DS-2CD1043G0E-I",
+      "category": "CCTV",
+      "serial": "DS-2CD1143G2-LIU20250301AAWRFW9338354",
+      "departmentId": "69a45010c62dc66c69587040",
+      "branchId": "69a4500fc62dc66c69587038",
+      "department": "Information Technology",
+      "locationId": "69cccbaf0ba62ff197c88c4e",
+      "parentAssetId": null,
+      "location": "OutDoor",
+      "status": "active",
+      "isContainer": false,
+      "totalSlots": 0,
+      "slotNumber": null,
+      "requiresExternalService": false,
+      "images": [
+        {
+          "url": "/uploads/file-1775212814795-629817342.jpg",
+          "caption": "",
+          "filename": "file-1775029790184-632506115.jpg",
+          "_id": "69cf990e0ba62ff197c95d63"
+        }
+      ],
+      "purchaseDate": "2024-04-01T00:00:00.000Z",
+      "value": 1414000,
+      "technicalSpecifications": {
+        "Tipe": "IP Camera (Bullet Outdoor)",
+        "Resolusi": "4 MP (2560 × 1440)",
+        "Power": "PoE (802.3af) atau 12V DC - Konsumsi: ±5–6.5W",
+        "IP Address": "192.168.1.114",
+        "Username": "admin",
+        "Password": "Admin12345"
+      },
+      "rentalRates": [],
+      "vendor": {
+        "name": "",
+        "contact": "",
+        "phone": "",
+        "email": "",
+        "address": "",
+        "website": ""
+      },
+      "warranty": {
+        "expirationDate": null,
+        "details": ""
+      },
+      "documents": [],
+      "maintenanceHistory": [],
+      "activityLog": [],
+      "__v": 0,
+      "createdAt": "2026-04-03T10:40:14.909Z",
+      "updatedAt": "2026-04-03T10:40:14.909Z"
     }
   ],
   "assetTemplates": [],
@@ -740,10 +4407,17 @@
         "69a45010c62dc66c69587040"
       ],
       "icon": "category",
-      "technicalSpecsTemplate": {},
+      "technicalSpecsTemplate": {
+        "Tipe": "",
+        "Resolusi": "",
+        "Power": "",
+        "IP Address": "",
+        "Username": "",
+        "Password": ""
+      },
       "isInfrastructure": true,
       "createdAt": "2026-03-02T04:32:18.648Z",
-      "updatedAt": "2026-03-02T04:32:18.648Z",
+      "updatedAt": "2026-04-03T07:26:41.243Z",
       "__v": 0
     },
     {
@@ -1174,6 +4848,19 @@
       "createdAt": "2026-03-07T01:39:33.577Z",
       "updatedAt": "2026-03-07T01:39:33.577Z",
       "__v": 0
+    },
+    {
+      "_id": "69cccbaf0ba62ff197c88c4e",
+      "name": "OutDoor",
+      "type": "Building",
+      "parentId": null,
+      "capacity": 0,
+      "description": "",
+      "status": "Active",
+      "isWarehouse": false,
+      "createdAt": "2026-04-01T07:39:27.758Z",
+      "updatedAt": "2026-04-01T07:39:27.758Z",
+      "__v": 0
     }
   ],
   "locationTypes": [
@@ -1341,78 +5028,7 @@
       "__v": 0
     }
   ],
-  "maintenanceRecords": [
-    {
-      "_id": "69a6804775d484a1c289600b",
-      "asset": "69a632babd89368467e2ae2d",
-      "isInternalDepartment": false,
-      "title": "Upgrade Ram",
-      "description": "Pc lemot",
-      "requestedBy": "69a5421c5d8de0e8f6e50032",
-      "requestedAt": "2026-03-03T06:31:35.924Z",
-      "serviceProviderType": "Internal",
-      "type": "Maintenance",
-      "status": "Closed",
-      "branchId": "69a4500fc62dc66c69587038",
-      "beforePhotos": [],
-      "afterPhotos": [],
-      "visualProof": [],
-      "history": [
-        {
-          "status": "Draft",
-          "changedBy": "69a5421c5d8de0e8f6e50032",
-          "changedAt": "2026-03-03T06:31:35.924Z",
-          "notes": "Ticket created in draft",
-          "_id": "69a6804775d484a1c289600c"
-        },
-        {
-          "status": "Sent",
-          "changedBy": "69a5421c5d8de0e8f6e50032",
-          "changedAt": "2026-03-03T06:31:43.035Z",
-          "notes": "Ticket submitted for review",
-          "_id": "69a6804f75d484a1c2896023"
-        },
-        {
-          "status": "Accepted",
-          "changedBy": "69a27eb7f6ee0e6a0a8de666",
-          "changedAt": "2026-03-03T06:34:26.091Z",
-          "notes": "Ticket accepted and assigned to technician. Type set to Maintenance",
-          "_id": "69a680f275d484a1c28962dc"
-        },
-        {
-          "status": "In Progress",
-          "changedBy": "69a5421c5d8de0e8f6e50032",
-          "changedAt": "2026-03-03T07:32:19.498Z",
-          "notes": "Technician started work",
-          "_id": "69a68e8375d484a1c28968a8"
-        },
-        {
-          "status": "Done",
-          "changedBy": "69a5421c5d8de0e8f6e50032",
-          "changedAt": "2026-03-03T07:32:22.284Z",
-          "notes": "Maintenance Completed",
-          "_id": "69a68e8675d484a1c28968d6"
-        },
-        {
-          "status": "Closed",
-          "changedBy": "69a6808575d484a1c2896077",
-          "changedAt": "2026-03-03T07:32:44.870Z",
-          "notes": "Ticket closed by department manager.",
-          "_id": "69a68e9c75d484a1c289696d"
-        }
-      ],
-      "suppliesUsed": [],
-      "notes": [],
-      "createdAt": "2026-03-03T06:31:35.954Z",
-      "updatedAt": "2026-03-03T07:32:44.875Z",
-      "ticketNumber": "MT-20260303-001",
-      "__v": 5,
-      "processedAt": "2026-03-03T06:34:26.091Z",
-      "processedBy": "69a27eb7f6ee0e6a0a8de666",
-      "technician": "69a5421c5d8de0e8f6e50032",
-      "pendingNote": "Ticket closed by department manager."
-    }
-  ],
+  "maintenanceRecords": [],
   "transfers": [],
   "disposals": [],
   "assignments": [
@@ -1449,82 +5065,7 @@
     }
   ],
   "rentals": [],
-  "events": [
-    {
-      "_id": "69ae6f247c0f1e062e4d2ce2",
-      "name": "Meeting Dengan Bea Cukai",
-      "room": "Taman sari 1",
-      "startTime": "2026-03-09T06:00:00.000Z",
-      "endTime": "2026-03-09T07:00:00.000Z",
-      "description": "",
-      "status": "completed",
-      "departmentId": "69a4dbece832d700df26fbb3",
-      "branchId": "69a4500fc62dc66c69587038",
-      "createdBy": "69a799ba2a4488d2a3f994fd",
-      "rentedAssets": [
-        {
-          "assetId": "69a7e522d87cf6f6c6604040",
-          "rentalRate": 300000,
-          "rentalRateUnit": "day",
-          "_id": "69ae6f327c0f1e062e4d2e36"
-        },
-        {
-          "assetId": "69ae4ed57c0f1e062e4d1f78",
-          "rentalRate": 300000,
-          "rentalRateUnit": "day",
-          "_id": "69ae6f3d7c0f1e062e4d2f55"
-        }
-      ],
-      "planningSupplies": [
-        {
-          "supplyId": "69ae6ecd7c0f1e062e4d2c9a",
-          "quantity": 2,
-          "cost": 40000,
-          "_id": "69ae6f397c0f1e062e4d2eb1"
-        }
-      ],
-      "createdAt": "2026-03-09T06:56:36.069Z",
-      "updatedAt": "2026-03-09T06:59:46.942Z",
-      "__v": 0
-    },
-    {
-      "_id": "69ae6f6f7c0f1e062e4d300b",
-      "name": "technical meeting",
-      "room": "Uluwatu 6",
-      "startTime": "2026-03-09T07:00:00.000Z",
-      "endTime": "2026-03-09T08:00:00.000Z",
-      "description": "",
-      "status": "completed",
-      "departmentId": "69a4dbece832d700df26fbb3",
-      "branchId": "69a4500fc62dc66c69587038",
-      "createdBy": "69a799ba2a4488d2a3f994fd",
-      "rentedAssets": [
-        {
-          "assetId": "69a7e522d87cf6f6c6604040",
-          "rentalRate": 300000,
-          "rentalRateUnit": "day",
-          "_id": "69ae6fa07c0f1e062e4d306b"
-        },
-        {
-          "assetId": "69ae4ed57c0f1e062e4d1f78",
-          "rentalRate": 300000,
-          "rentalRateUnit": "day",
-          "_id": "69ae6fa07c0f1e062e4d306c"
-        }
-      ],
-      "planningSupplies": [
-        {
-          "supplyId": "69ae6ecd7c0f1e062e4d2c9a",
-          "quantity": 2,
-          "cost": 40000,
-          "_id": "69ae6fa97c0f1e062e4d3095"
-        }
-      ],
-      "createdAt": "2026-03-09T06:57:51.027Z",
-      "updatedAt": "2026-03-09T07:00:58.480Z",
-      "__v": 0
-    }
-  ],
+  "events": [],
   "supplyHistory": [
     {
       "_id": "69aa887682920630f2e350d1",
@@ -1861,9 +5402,9 @@
           "resource": "inventory",
           "actions": {
             "view": true,
-            "create": false,
-            "edit": false,
-            "delete": false
+            "create": true,
+            "edit": true,
+            "delete": true
           },
           "_id": "69a541b65d8de0e8f6e4ff93"
         },
@@ -1871,18 +5412,18 @@
           "resource": "panels",
           "actions": {
             "view": true,
-            "create": false,
-            "edit": false,
-            "delete": false
+            "create": true,
+            "edit": true,
+            "delete": true
           },
           "_id": "69a541b65d8de0e8f6e4ff94"
         },
         {
           "resource": "incoming",
           "actions": {
-            "view": false,
-            "create": false,
-            "edit": false,
+            "view": true,
+            "create": true,
+            "edit": true,
             "delete": false
           },
           "_id": "69a541b65d8de0e8f6e4ff95"
@@ -1923,7 +5464,7 @@
             "view": true,
             "create": true,
             "edit": true,
-            "delete": false
+            "delete": true
           },
           "_id": "69a541b65d8de0e8f6e4ff99"
         },
@@ -1963,7 +5504,7 @@
             "view": true,
             "create": true,
             "edit": true,
-            "delete": false
+            "delete": true
           },
           "_id": "69a541b65d8de0e8f6e4ff9d"
         },
@@ -2118,7 +5659,7 @@
           "_id": "69ae81a29ac9a83ca5adee93"
         }
       ],
-      "updatedAt": "2026-03-09T08:15:30.557Z"
+      "updatedAt": "2026-03-10T09:09:25.547Z"
     }
   ]
 }

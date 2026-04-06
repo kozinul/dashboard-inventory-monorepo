@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useBreadcrumb } from "../../context/BreadcrumbContext";
-import { MagnifyingGlassIcon, BellIcon } from "@heroicons/react/24/outline";
+import { BellIcon } from "@heroicons/react/24/outline";
 import { AssetHero } from "../../features/inventory/components/asset-details/AssetHero";
 import { AssetGallery } from "../../features/inventory/components/asset-details/AssetGallery";
 import { TechnicalSpecsEditor } from "../../features/inventory/components/asset-details/TechnicalSpecsEditor";
@@ -151,14 +151,6 @@ export default function AssetDetailsPage() {
                     {/* Breadcrumbs removed to avoid duplication with global layout */}
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                        <input
-                            className="bg-slate-100 dark:bg-slate-700 border-none rounded-lg pl-10 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-primary w-64 text-slate-900 dark:text-white placeholder-slate-500"
-                            placeholder="Search assets..."
-                            type="text"
-                        />
-                    </div>
                     <button className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-primary rounded-lg border border-slate-200 dark:border-slate-700">
                         <BellIcon className="w-5 h-5" />
                     </button>

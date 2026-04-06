@@ -16,6 +16,7 @@ export type ExportOptions = {
     departmentId?: string;
     status?: string;
     category?: string;
+    locationId?: string;
     maintenanceType?: string;
     groupBy?: string;
     startDate?: string;

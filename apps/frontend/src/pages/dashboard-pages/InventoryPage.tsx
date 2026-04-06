@@ -17,9 +17,11 @@ export default function InventoryPage() {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Filter State
+    // Filter & Search State
+    const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
     const [selectedStatus, setSelectedStatus] = useState<string>('All Statuses');
+    const [selectedLocation, setSelectedLocation] = useState<string>('All Locations');
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -58,7 +60,7 @@ export default function InventoryPage() {
     // Reset pagination when filters change
     useEffect(() => {
         setPage(1);
-    }, [selectedCategory, selectedStatus, activeBranchId, limit]);
+    }, [searchQuery, selectedCategory, selectedStatus, selectedLocation, activeBranchId, limit]);
 
     // Derive categories
     // const categories = ['All Categories', ...Array.from(new Set(assets.map(a => a.category))).filter(Boolean).sort()];
@@ -70,11 +72,28 @@ export default function InventoryPage() {
 
     const categories = ['All Categories', ...Array.from(new Set(branchAssets.map(a => a.category))).filter(Boolean).sort()];
     const statuses = ['All Statuses', ...Array.from(new Set(branchAssets.map(a => a.status))).filter(Boolean).sort()];
+    const getLocationName = (a: any) => {
+        if (a.location && typeof a.location === 'string') return a.location;
+        if (a.locationId && a.locationId.name) return a.locationId.name;
+        return 'Unassigned';
+    };
+
+    const locations = ['All Locations', ...Array.from(new Set(branchAssets.map(a => getLocationName(a)))).filter(Boolean).sort()];
 
     const filteredAssets = branchAssets.filter(a => {
         const matchCategory = selectedCategory === 'All Categories' || a.category === selectedCategory;
         const matchStatus = selectedStatus === 'All Statuses' || a.status === selectedStatus;
-        return matchCategory && matchStatus;
+        const matchLocation = selectedLocation === 'All Locations' || getLocationName(a) === selectedLocation;
+        
+        const searchLower = searchQuery.toLowerCase();
+        const matchSearch = !searchQuery || 
+                            (a.name?.toLowerCase().includes(searchLower)) ||
+                            (a.serial?.toLowerCase().includes(searchLower)) ||
+                            (a.category?.toLowerCase().includes(searchLower)) ||
+                            (getLocationName(a)?.toLowerCase().includes(searchLower)) ||
+                            (a.locationDetail?.toLowerCase().includes(searchLower));
+
+        return matchCategory && matchStatus && matchLocation && matchSearch;
     });
 
     // Local Pagination Logic
@@ -190,7 +209,31 @@ export default function InventoryPage() {
                         Centralized Inventory Database
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                        <input
+                            type="text"
+                            placeholder="Search assets..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg pl-9 pr-4 py-2 text-sm font-medium focus:ring-primary focus:border-primary placeholder:text-slate-400 w-48 transition-all"
+                        />
+                    </div>
+
+                    <div className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">location_on</span>
+                        <select
+                            value={selectedLocation}
+                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            className="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg pl-9 pr-8 py-2 text-sm font-medium focus:ring-primary focus:border-primary appearance-none cursor-pointer capitalize"
+                        >
+                            {locations.map((loc) => (
+                                <option key={loc} value={loc}>{loc}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">filter_list</span>
                         <select

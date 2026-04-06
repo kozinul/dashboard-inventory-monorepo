@@ -4,30 +4,39 @@ import { User } from '../models/user.model.js';
 import { Asset } from '../models/asset.model.js';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import { DisposalRecord } from '../models/disposal.model.js';
+import bcrypt from 'bcryptjs';
 import { connectDB } from '../config/db.js';
 
 dotenv.config();
 
 const users = [
     {
+        username: 'admin',
+        password: 'password123',
         email: 'admin@dashboard.com',
         name: 'Admin User',
         role: 'admin',
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuANZBAyoImGG5_Q-wm8bGlla5zeAybOeWHdzSy_2FHI8TR4lf6ZpxqNsfb0qioAzAcTE5FuvZk1HdFPftLPPfNEeWPv-LVaBr3bG_DP2MrUEOHxWPy9o1gqLRyEyyzZZ1moB5VXInlJXDTvzNssPSZd3C4zl5SzXSQRYOgqnf8cY85pNbvIyB2MrPDjtQmQ318Mf0b8ekmr4GLCtzQIyGEFe-Ga6uMdvvbZKMJz2Akxo7sSm5FbfDCelS_JGATTBhv34ZGWRK7KOqk'
     },
     {
+        username: 'johndoe',
+        password: 'password123',
         email: 'john.doe@dashboard.com',
         name: 'John Doe',
         role: 'user',
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD362EHTy7kuJU7Vxv8DpRLDqBiy6z9g_FMK4ntlIBOOL0EcMPBEtlc0CA5OEzJv5_IQdUUQdb7sl88y8XocUbKi8dNUehjqNCzJ1YaGF4-dAUBZCAwuhe8D0w4GaWt-KoI3URuyurFhEQJDp71vGQ0VUUEMJhnVI8KkQlFu6SgAfNzaTdspe5IFe5e9FjH94tvMFy91mXP4SncBd-SmcuJbDkYsUvGzfp7A387HJaEvU0CQOP_Ip8U7yCrM-J6bPPxvdX4dduNwCU'
     },
     {
+        username: 'sarah',
+        password: 'password123',
         email: 'sarah.miller@dashboard.com',
         name: 'Sarah Miller',
         role: 'user',
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9YsuO6sK72utOvfzo5Jne2g8J9QTj5SOI5jTPOSmRJlxSmw78pHZs7-gLEfxo6eZZKibrg5CnsPNdE5HaUUEWRBdExVtAZ0NRsFcRLdZ0AIyHWubSiDPPuhNm8dDNuF86ldTnbqL8rphLdU90yvFZT4uOxAnkwV5Kmp66LDZ0RjDhBQCp-XC2ZD3uFExS6YRzxszY7pxabHjtAtRlCSENuH8-0ysq6Uj9eY3tfxOg7Ybj6m6IXOdc-njYtgom2qp3oCM17UyeQ3o'
     },
     {
+        username: 'mross',
+        password: 'password123',
         email: 'mike.ross@dashboard.com',
         name: 'Mike Ross',
         role: 'user',
@@ -161,7 +170,11 @@ const seedData = async () => {
 
         console.log('Cleared existing data...');
 
-        // Create Users
+        // Create Users properly so pre-save hooks are triggered or hash passwords
+        const salt = await bcrypt.genSalt(10);
+        for (const u of users) {
+            u.password = await bcrypt.hash(u.password as string, salt);
+        }
         const createdUsers = await User.insertMany(users);
         console.log(`Created ${createdUsers.length} users`);
 
@@ -172,8 +185,10 @@ const seedData = async () => {
         // Create Maintenance Records
         const maintenanceTasks = [
             {
-                asset: createdAssets.find(a => a.serial === "SN-MBP-2024-001")?._id, // Just mapped to random asset for demo if original not found
+                asset: createdAssets.find(a => a.serial === "SN-MBP-2024-001")?._id, 
                 technician: createdUsers.find(u => u.name === "John Doe")?._id,
+                requestedBy: createdUsers.find(u => u.name === "Admin User")?._id,
+                title: 'Screen Replacement',
                 type: "Repair",
                 status: "In Progress",
                 visualProof: [
@@ -183,6 +198,8 @@ const seedData = async () => {
             {
                 asset: createdAssets.find(a => a.serial === "SN-DEL-9921")?._id,
                 technician: createdUsers.find(u => u.name === "Sarah Miller")?._id,
+                requestedBy: createdUsers.find(u => u.name === "John Doe")?._id,
+                title: 'Data Wipe and Reinstall',
                 type: "Routine",
                 status: "Done",
                 visualProof: [
@@ -193,6 +210,8 @@ const seedData = async () => {
             {
                 asset: createdAssets.find(a => a.serial === "SN-AUD-112")?._id,
                 technician: createdUsers.find(u => u.name === "Mike Ross")?._id,
+                requestedBy: createdUsers.find(u => u.name === "Admin User")?._id,
+                title: 'Audio Output Distorted',
                 type: "Repair",
                 status: "Pending",
                 visualProof: []

@@ -108,6 +108,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             departmentId,
             status,
             category,
+            locationId,
             maintenanceType,
             groupBy,
             startDate,
@@ -165,6 +166,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
         // 3. Generic Filters
         if (status && type !== 'supply') query.status = status;
         if (category) query.category = category;
+        if (locationId) query.locationId = locationId;
         if (maintenanceType && type === 'maintenance') query.type = maintenanceType;
 
         // 4. Date Range Filtering
@@ -191,7 +193,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
             headerMap = {
                 name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
-                department: 'Departemen', branch: 'Cabang', location: 'Lokasi',
+                department: 'Departemen', branch: 'Cabang', location: 'Lokasi', locationDetail: 'Detail Lokasi',
                 status: 'Status', assignment: 'Assignment', value: 'Nilai (IDR)',
                 purchaseDate: 'Tgl Pembelian', lastUpdate: 'Terakhir Update'
             };
@@ -226,6 +228,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     department: (a.departmentId as any)?.name || a.department,
                     branch: (a.branchId as any)?.name,
                     location: (a.locationId as any)?.name || a.location,
+                    locationDetail: a.locationDetail || '-',
                     status: a.status,
                     assignment: assignmentInfo,
                     value: a.value || 0,
