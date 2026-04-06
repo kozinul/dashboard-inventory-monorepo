@@ -25,7 +25,7 @@ export const syncPermissions = async () => {
             }
             
             if (updated) {
-                techPerms.permissions = perms;
+                techPerms.permissions = perms as any;
                 await techPerms.save();
                 console.log('Fixed technician permissions on live database.');
             }
@@ -50,7 +50,7 @@ export const syncPermissions = async () => {
                 updated = true;
             }
             if (updated) {
-                managerPerms.permissions = perms;
+                managerPerms.permissions = perms as any;
                 await managerPerms.save();
                 console.log('Fixed manager permissions on live database.');
             }
