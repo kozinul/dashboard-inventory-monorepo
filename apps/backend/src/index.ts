@@ -24,8 +24,12 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
+import { syncPermissions } from './utils/syncPermissions.js';
+
 // Database
-connectDB();
+connectDB().then(() => {
+    syncPermissions();
+});
 
 import userRoutes from './routes/user.routes.js';
 import departmentRoutes from './routes/department.routes.js';
