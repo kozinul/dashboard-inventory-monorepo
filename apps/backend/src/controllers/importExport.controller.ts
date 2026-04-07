@@ -111,6 +111,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             locationId,
             maintenanceType,
             groupBy,
+            building,
             startDate,
             endDate
         } = req.query;
@@ -167,6 +168,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
         if (status && type !== 'supply') query.status = status;
         if (category) query.category = category;
         if (locationId) query.locationId = locationId;
+        if (building && type === 'asset') query.building = building;
         if (maintenanceType && type === 'maintenance') query.type = maintenanceType;
 
         // 4. Date Range Filtering
@@ -193,7 +195,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
             headerMap = {
                 name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
-                department: 'Departemen', branch: 'Cabang', location: 'Lokasi', locationDetail: 'Detail Lokasi',
+                department: 'Departemen', branch: 'Cabang', building: 'Gedung',
+                location: 'Lokasi', locationDetail: 'Detail Lokasi',
                 status: 'Status', assignment: 'Assignment', value: 'Nilai (IDR)',
                 purchaseDate: 'Tgl Pembelian', lastUpdate: 'Terakhir Update'
             };
@@ -227,6 +230,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     serial: a.serial,
                     department: (a.departmentId as any)?.name || a.department,
                     branch: (a.branchId as any)?.name,
+                    building: a.building || '-',
                     location: (a.locationId as any)?.name || a.location,
                     locationDetail: a.locationDetail || '-',
                     status: a.status,
@@ -670,37 +674,57 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
             if (type === 'asset') {
                 const groupedData: any[] = [];
-                const groups = [...new Set(data.map(item => `${item[headerMap.name]} | ${item[headerMap.model]}`))];
+                
+                // Flexible grouping for assets
+                if (groupBy && headerMap[groupBy as string]) {
+                    const groupHeader = headerMap[groupBy as string];
+                    const groups = [...new Set(data.map(item => String(item[groupHeader] || 'Unknown')))];
+                    
+                    groups.forEach(groupValue => {
+                        const groupItems = data.filter(item => String(item[groupHeader] || 'Unknown') === groupValue);
+                        if (groupItems.length === 0) return;
 
-                groups.forEach(groupKey => {
-                    const [name, model] = groupKey.split(' | ');
-                    const groupItems = data.filter(item => item[headerMap.name] === name && item[headerMap.model] === model);
-                    if (groupItems.length === 0) return;
+                        // Header row for the group
+                        const headerRow: any = {};
+                        Object.values(headerMap).forEach(h => headerRow[h] = '');
+                        headerRow[groupHeader] = `${groupHeader.toUpperCase()}: ${groupValue}`;
+                        groupedData.push(headerRow);
 
-                    // Header row
-                    const headerRow: any = {};
-                    Object.values(headerMap).forEach(h => headerRow[h] = '');
-                    headerRow[headerMap.name] = `NAMA: ${name}`;
-                    headerRow[headerMap.model] = `MODEL: ${model}`;
-                    headerRow[headerMap.category] = `Kategori: ${groupItems[0][headerMap.category]}`;
-                    groupedData.push(headerRow);
+                        // Add items
+                        groupedData.push(...groupItems.map(item => ({
+                            ...item,
+                            [headerMap.value]: formatIDR(item[headerMap.value])
+                        })));
 
-                    // Items
-                    groupedData.push(...groupItems.map(item => ({
-                        ...item,
-                        [headerMap.value]: formatIDR(item[headerMap.value])
-                    })));
+                        // Total Unit row
+                        const totalUnitRow: any = {};
+                        Object.values(headerMap).forEach(h => totalUnitRow[h] = '');
+                        totalUnitRow[headerMap.serial] = 'TOTAL UNIT';
+                        totalUnitRow[headerMap.department] = groupItems.length;
+                        groupedData.push(totalUnitRow);
 
-                    // Total Unit row
-                    const totalUnitRow: any = {};
-                    Object.values(headerMap).forEach(h => totalUnitRow[h] = '');
-                    totalUnitRow[headerMap.serial] = 'TOTAL UNIT';
-                    totalUnitRow[headerMap.department] = groupItems.length;
-                    groupedData.push(totalUnitRow);
-
-                    // Spacer
-                    groupedData.push({});
-                });
+                        // Spacer
+                        groupedData.push({});
+                    });
+                } else {
+                    // Default behavior (hardcoded name|model or flat if user preferred)
+                    // Given "im good" feedback for flat, we'll use flat if no groupBy is provided
+                    // but to maintain some structure in Preview, let's keep a basic name|model group? 
+                    // Actually, let's just make it flat if no groupBy is selected to be "flexible"
+                    return res.json({
+                        data: data.map(item => ({
+                            ...item,
+                            [headerMap.value]: formatIDR(item[headerMap.value])
+                        })),
+                        meta: {
+                            reportDate,
+                            generatedBy,
+                            type,
+                            count: data.length,
+                            headers: Object.values(headerMap)
+                        }
+                    });
+                }
 
                 return res.json({
                     data: groupedData,
@@ -743,43 +767,65 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             doc.moveDown();
 
             if (type === 'asset') {
-                const groups = [...new Set(data.map(item => `${item[headerMap.name]} | ${item[headerMap.model]}`))];
+                if (groupBy && headerMap[groupBy as string]) {
+                    const groupHeader = headerMap[groupBy as string];
+                    const groups = [...new Set(data.map(item => String(item[groupHeader] || 'Unknown')))];
 
-                for (const groupKey of groups) {
-                    const [name, model] = groupKey.split(' | ');
-                    const groupItems = data.filter(item => item[headerMap.name] === name && item[headerMap.model] === model);
-                    if (groupItems.length === 0) continue;
+                    for (const groupValue of groups) {
+                        const groupItems = data.filter(item => String(item[groupHeader] || 'Unknown') === groupValue);
+                        if (groupItems.length === 0) continue;
 
+                        const table = {
+                            title: `${groupHeader.toUpperCase()}: ${groupValue}`,
+                            headers: Object.values(headerMap),
+                            rows: groupItems.map(item => Object.keys(headerMap).map(key => {
+                                const val = item[key];
+                                if (key === 'value') return formatIDR(val);
+                                return String(val !== undefined && val !== null ? val : '-');
+                            }))
+                        };
+
+                        // Add total unit row
+                        const totalRow = Object.values(headerMap).map(h => '');
+                        totalRow[Object.keys(headerMap).indexOf('serial')] = 'TOTAL UNIT';
+                        totalRow[Object.keys(headerMap).indexOf('department')] = String(groupItems.length);
+                        table.rows.push(totalRow);
+
+                        await doc.table(table, {
+                            prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
+                            prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
+                                if (indexRow === table.rows.length - 1) {
+                                    doc.font('Helvetica-Bold').fontSize(7);
+                                } else {
+                                    doc.font('Helvetica').fontSize(7);
+                                }
+                                return doc;
+                            },
+                        });
+                        doc.moveDown();
+                    }
+                } else {
+                    // Flat PDF table if no grouping
                     const table = {
-                        title: `ASSET: ${name} (MODEL: ${model}) - Kategori: ${groupItems[0][headerMap.category]}`,
+                        title: 'Daftar Inventaris Aset',
                         headers: Object.values(headerMap),
-                        rows: groupItems.map(item => Object.keys(headerMap).map(key => {
+                        rows: data.map(item => Object.keys(headerMap).map(key => {
                             const val = item[key];
                             if (key === 'value') return formatIDR(val);
                             return String(val !== undefined && val !== null ? val : '-');
                         }))
                     };
 
-                    // Add total unit row
-                    const totalRow = Object.values(headerMap).map(h => '');
-                    totalRow[Object.keys(headerMap).indexOf('serial')] = 'TOTAL UNIT';
-                    totalRow[Object.keys(headerMap).indexOf('department')] = String(groupItems.length);
-                    table.rows.push(totalRow);
-
                     await doc.table(table, {
                         prepareHeader: () => doc.font('Helvetica-Bold').fontSize(8),
                         prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
-                            if (indexRow === table.rows.length - 1) {
-                                doc.font('Helvetica-Bold').fontSize(7);
-                            } else {
-                                doc.font('Helvetica').fontSize(7);
-                            }
+                            doc.font('Helvetica').fontSize(7);
                             return doc;
                         },
                     });
-                    doc.moveDown();
                 }
-            } else if (type === 'rental') {
+            }
+ else if (type === 'rental') {
                 const eventsSet = [...new Set(data.map(item => item[headerMap.event]))];
                 let grandTotal = 0;
 

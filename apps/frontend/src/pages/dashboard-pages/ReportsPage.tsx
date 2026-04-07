@@ -24,6 +24,7 @@ export default function ReportsPage() {
     const [locationId, setLocationId] = useState('');
     const [maintenanceType, setMaintenanceType] = useState('');
     const [groupBy, setGroupBy] = useState('');
+    const [building, setBuilding] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -74,6 +75,7 @@ export default function ReportsPage() {
                 locationId: locationId || undefined,
                 maintenanceType: maintenanceType || undefined,
                 groupBy: groupBy || undefined,
+                building: building || undefined,
                 startDate: startDate || undefined,
                 endDate: endDate || undefined
             });
@@ -102,6 +104,7 @@ export default function ReportsPage() {
                 locationId: locationId || undefined,
                 maintenanceType: maintenanceType || undefined,
                 groupBy: groupBy || undefined,
+                building: building || undefined,
                 startDate: startDate || undefined,
                 endDate: endDate || undefined
             });
@@ -307,6 +310,22 @@ export default function ReportsPage() {
                         </div>
                     )}
 
+                    {reportType === 'asset' && (
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Filter Gedung</label>
+                            <select
+                                value={building}
+                                onChange={(e) => setBuilding(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
+                            >
+                                <option value="">Semua Gedung</option>
+                                {[...new Set(locations.filter(l => !l.parentId).map(l => l.name))].sort().map(b => (
+                                    <option key={b} value={b}>{b}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-500 uppercase ml-1">Group By</label>
                         <select
@@ -317,10 +336,13 @@ export default function ReportsPage() {
                             <option value="">No Grouping</option>
                             {reportType === 'asset' && (
                                 <>
+                                    <option value="name">Nama</option>
+                                    <option value="model">Model</option>
                                     <option value="category">Category</option>
                                     <option value="status">Status</option>
                                     <option value="branch">Branch</option>
                                     <option value="department">Department</option>
+                                    <option value="building">Building</option>
                                     <option value="location">Location</option>
                                 </>
                             )}

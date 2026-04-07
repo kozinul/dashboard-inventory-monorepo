@@ -19,6 +19,7 @@ export type ExportOptions = {
     locationId?: string;
     maintenanceType?: string;
     groupBy?: string;
+    building?: string;
     startDate?: string;
     endDate?: string;
     columns?: string[];
