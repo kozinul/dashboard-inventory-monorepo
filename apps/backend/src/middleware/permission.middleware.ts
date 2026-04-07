@@ -34,3 +34,35 @@ export const checkPermission = (resource: ResourceType, action: keyof Permission
         next();
     };
 };
+
+/**
+ * Middleware to check if a user has permission for at least one of the specified resources
+ * @param resources The array of resource names (e.g., ['inventory', 'users'])
+ * @param action The action type ('view', 'create', 'edit', 'delete')
+ */
+export const checkAnyPermission = (resources: ResourceType[], action: keyof Permission['actions'] = 'view') => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        if (!req.user) {
+            res.status(401);
+            return next(new Error('Not authorized, no user found'));
+        }
+
+        if (req.user.role === 'superuser') {
+            return next();
+        }
+
+        const userPermissions = await getMergedPermissionsFromDb(
+            req.user.role,
+            req.user.useCustomPermissions ? req.user.customPermissions : undefined
+        );
+
+        const permitted = resources.some(resource => hasPermission(userPermissions, resource, action));
+
+        if (!permitted) {
+            res.status(403);
+            return next(new Error(`Permission denied: You do not have '${action}' access to any of '${resources.join(', ')}'`));
+        }
+
+        next();
+    };
+};

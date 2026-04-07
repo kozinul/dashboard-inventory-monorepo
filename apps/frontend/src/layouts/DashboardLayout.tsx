@@ -268,7 +268,7 @@ function DashboardLayout() {
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'panels', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer', 'users'].includes(resource || '');
+            return ['dashboard', 'inventory', 'panels', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
         }
 
         // Standard User permissions

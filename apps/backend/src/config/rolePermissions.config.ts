@@ -200,7 +200,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'disposal', actions: viewOnly() },
         { resource: 'assignments', actions: viewCreateEdit() },
         { resource: 'history', actions: viewOnly() },
-        { resource: 'users', actions: viewOnly() },
         { resource: 'master_data', actions: viewOnly() },
         { resource: 'branches', actions: viewOnly() },
         { resource: 'vendors', actions: viewCreateEdit() },

@@ -7,10 +7,11 @@ import { useRoleStore, Role } from '@/store/roleStore';
 // Permission resources organized by groups
 const RESOURCE_GROUPS = [
     {
-        group: 'Dashboard & Reports',
-        icon: '📊',
+        group: 'Main Application',
+        icon: '🏠',
         resources: [
             { id: 'dashboard', label: 'Dashboard', actions: ['view'], description: 'Overview of system status and key metrics' },
+            { id: 'my_assets', label: 'My Assets', actions: ['view'], description: 'Assets assigned to the current user' },
             { id: 'reports', label: 'Reports', actions: ['view'], description: 'Access system reports and analytics' },
         ]
     },
@@ -18,21 +19,21 @@ const RESOURCE_GROUPS = [
         group: 'Inventory Management',
         icon: '📦',
         resources: [
-            { id: 'inventory', label: 'Master Inventory', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory items' },
+            { id: 'inventory', label: 'Inventory & Supplies', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset inventory and supplies' },
             { id: 'panels', label: 'Panels & Racks', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage racks, panels, and server locations' },
-            { id: 'incoming', label: 'Incoming Items', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
-            { id: 'transfer', label: 'Transfer', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
-            { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },
             { id: 'assignments', label: 'Assignments', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset assignments to users' },
+            { id: 'transfer', label: 'Transfers', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
+            { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },
+            { id: 'incoming', label: 'Incoming Items', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
         ]
     },
     {
-        group: 'Maintenance Management',
+        group: 'Maintenance & Services',
         icon: '🔧',
         resources: [
-            { id: 'maintenance', label: 'Maintenance', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage maintenance tickets and records' },
             { id: 'my_tickets', label: 'My Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Tickets created by the user' },
             { id: 'dept_tickets', label: 'Dept. Tickets', actions: ['view', 'create', 'edit', 'delete'], description: 'Department ticket queue for approval' },
+            { id: 'maintenance', label: 'Maintenance', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage maintenance tickets and records' },
             { id: 'assigned_tickets', label: 'Assigned Tickets', actions: ['view', 'create', 'edit'], description: 'Tickets assigned to the current user (technician)' },
             { id: 'services', label: 'External Services', actions: ['view', 'create', 'edit', 'delete'], description: 'External service and vendor management' },
         ]
@@ -46,34 +47,27 @@ const RESOURCE_GROUPS = [
         ]
     },
     {
-        group: 'User Resources',
-        icon: '👤',
-        resources: [
-            { id: 'my_assets', label: 'My Assets', actions: ['view'], description: 'Assets assigned to the current user' },
-            { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage user accounts and roles' },
-            { id: 'settings', label: 'Settings', actions: ['view', 'edit'], description: 'System-wide configuration and account settings' },
-        ]
-    },
-    {
-        group: 'Master Data',
+        group: 'Master Data & Users',
         icon: '⚙️',
         resources: [
             { id: 'master_data', label: 'Master Data (Menu)', actions: ['view', 'create', 'edit', 'delete'], description: 'Top level access to Master Data dropdown' },
-            { id: 'branches', label: 'Branches', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage branch/office definitions' },
-            { id: 'categories', label: 'Categories', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage item categories' },
-            { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage physical locations and rooms' },
+            { id: 'categories', label: 'Categories & Units', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage item categories and metric units' },
             { id: 'vendors', label: 'Vendors', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage vendor and supplier information' },
+            { id: 'locations', label: 'Locations', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage physical locations and rooms' },
+            { id: 'branches', label: 'Branches', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage branch/office definitions' },
+            { id: 'users', label: 'User Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage user accounts and roles' },
             { id: 'asset_templates', label: 'Asset Templates', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage templates for asset creation' },
-            { id: 'history', label: 'History', actions: ['view'], description: 'View audit logs and activity history' },
         ]
     },
     {
-        group: 'System Settings & Logs',
+        group: 'System Settings & Tools',
         icon: '💻',
         resources: [
-            { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Bulk Excel Import/Export center' },
+            { id: 'settings', label: 'Settings & Database', actions: ['view', 'edit'], description: 'System-wide configuration and database settings' },
+            { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'], description: 'Bulk Data & Excel Import/Export center' },
+            { id: 'tools', label: 'Tools', actions: ['view', 'create'], description: 'System Tools (e.g. JSON ➜ Excel)' },
             { id: 'audit_logs', label: 'Activity Logs', actions: ['view'], description: 'View global system activity tracking' },
-            { id: 'tools', label: 'Tools (JSON ➜ Excel)', actions: ['view', 'create'], description: 'JSON to Excel Auto-conversion Tool' },
+            { id: 'history', label: 'Asset History', actions: ['view'], description: 'View asset history and audit logs' },
         ]
     },
 ];

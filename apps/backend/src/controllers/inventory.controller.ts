@@ -196,6 +196,22 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
     }
 };
 
+// Helper to find building from location recursively
+async function resolveBuilding(locationId: string): Promise<string | null> {
+    const { Location } = await import('../models/location.model.js');
+    let current = await Location.findById(locationId);
+    if (!current) return null;
+
+    // Traverse up to find top parent or location with type 'Building'
+    let parent = current;
+    while (parent.parentId) {
+        const nextParent = await Location.findById(parent.parentId);
+        if (!nextParent) break;
+        parent = nextParent;
+    }
+    return parent.name;
+}
+
 export const createAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // RBAC: Non-admin users can only create assets in their department
@@ -271,6 +287,9 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
                     asset.status = 'storage';
                 }
             }
+            
+            // Resolve building name
+            asset.building = await resolveBuilding(asset.locationId.toString());
         }
 
         await asset.save();
@@ -416,6 +435,9 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
                         updateData.status = 'active';
                     }
                 }
+                
+                // Resolve building name
+                updateData.building = await resolveBuilding(resolvedLocationId);
             }
         }
 

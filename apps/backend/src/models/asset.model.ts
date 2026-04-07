@@ -59,6 +59,11 @@ const assetSchema = new mongoose.Schema({
         required: false,
         trim: true
     },
+    building: {
+        type: String,
+        required: false,
+        trim: true
+    },
     status: {
         type: String,
         enum: AssetStatusSchema.options,

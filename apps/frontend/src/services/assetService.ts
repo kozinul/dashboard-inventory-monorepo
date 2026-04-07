@@ -13,6 +13,7 @@ export interface Asset {
     locationId?: string;
     location?: string;
     locationDetail?: string;
+    building?: string;
     parentAssetId?: string | { _id: string; name: string; serial: string };
     children?: Asset[];
     departmentId?: string;

@@ -51,6 +51,19 @@ export function AssetLocationCell({ asset }: { asset: Asset }) {
     );
 }
 
+export function AssetBuildingCell({ asset }: { asset: Asset }) {
+    if (!asset.building) {
+        return <span className="text-xs text-slate-400 italic">No Building</span>;
+    }
+
+    return (
+        <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-amber-500/70">domain</span>
+            <span className="text-xs font-semibold text-foreground">{asset.building}</span>
+        </div>
+    );
+}
+
 export function AssetMetaCell({ title, subtitle }: { title: string, subtitle: string }) {
     return (
         <div>

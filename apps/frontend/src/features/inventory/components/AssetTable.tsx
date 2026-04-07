@@ -1,5 +1,5 @@
 import { Asset } from '../../../services/assetService';
-import { AssetImageCell, AssetNameCell, AssetLocationCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
+import { AssetImageCell, AssetNameCell, AssetLocationCell, AssetBuildingCell, AssetStatusBadge, AssetRowActions } from './AssetTableParts';
 
 interface AssetTableProps {
     assets: Asset[];
@@ -67,6 +67,7 @@ export function AssetTable({
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest w-16">Image</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Asset Details</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Building</th>
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Location</th>
                             {!onSelect && <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Department</th>}
                             <th className="px-6 py-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
@@ -99,6 +100,9 @@ export function AssetTable({
                                         <span className="text-xs font-medium text-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
                                             {asset.category}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <AssetBuildingCell asset={asset} />
                                     </td>
                                     <td className="px-6 py-4">
                                         <AssetLocationCell asset={asset} />

@@ -8,14 +8,14 @@ import {
     deleteUser,
     updateUserPermissions
 } from '../controllers/user.controller.js';
-import { checkPermission } from '../middleware/permission.middleware.js';
+import { checkPermission, checkAnyPermission } from '../middleware/permission.middleware.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get('/', checkPermission('users', 'view'), getUsers);
+router.get('/', checkAnyPermission(['users', 'assignments', 'maintenance', 'rental', 'dept_tickets'], 'view'), getUsers);
 router.get('/technicians', getTechnicians);
 router.post('/', checkPermission('users', 'create'), createUser);
 router.get('/:id', checkPermission('users', 'view'), getUser);
