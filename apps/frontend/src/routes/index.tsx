@@ -45,6 +45,9 @@ import UserDetailsPage from '../features/users/pages/UserDetailsPage';
 import DataManagementPage from '../pages/dashboard-pages/DataManagementPage';
 import ErrorPage from '../pages/ErrorPage';
 import ToolsPage from '../pages/master-data/ToolsPage';
+import StockOpnamePage from '../pages/dashboard-pages/StockOpnamePage';
+import StockOpnameDetailPage from '../pages/dashboard-pages/StockOpnameDetailPage';
+import ItemMutationReportPage from '../pages/dashboard-pages/ItemMutationReportPage';
 
 // Auth Imports
 import LoginPage from '../pages/LoginPage';
@@ -95,6 +98,14 @@ export const router = createBrowserRouter([
                                 element: <AssetDetailsPage />,
                             },
                             {
+                                path: 'inventory/stock-opname',
+                                element: <StockOpnamePage />,
+                            },
+                            {
+                                path: 'inventory/stock-opname/:id',
+                                element: <StockOpnameDetailPage />,
+                            },
+                            {
                                 path: 'incoming',
                                 element: <IncomingGoodsPage />,
                             },
@@ -138,6 +149,10 @@ export const router = createBrowserRouter([
                             {
                                 path: 'reports',
                                 element: <ReportsPage />,
+                            },
+                            {
+                                path: 'reports/mutasi-barang',
+                                element: <ItemMutationReportPage />,
                             },
                             {
                                 path: 'rental',

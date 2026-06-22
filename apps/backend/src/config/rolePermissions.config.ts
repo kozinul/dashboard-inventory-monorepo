@@ -58,7 +58,11 @@ export const RESOURCES = [
     'audit_logs',
 
     // Tools
-    'tools'
+    'tools',
+
+    // Stock Opname & Mutation
+    'stock_opname',
+    'item_mutation_report'
 ] as const;
 
 export type ResourceType = typeof RESOURCES[number];
@@ -118,6 +122,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'data_management', actions: viewOnly() },
         { resource: 'audit_logs', actions: viewOnly() },
         { resource: 'tools', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewCreateEdit() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     dept_admin: [
@@ -144,6 +150,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'vendors', actions: viewCreateEdit() },
         { resource: 'data_management', actions: viewOnly() },
         { resource: 'audit_logs', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewCreateEdit() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     supervisor: [
@@ -170,6 +178,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'branches', actions: viewOnly() },
         { resource: 'vendors', actions: viewCreateEdit() },
         { resource: 'tools', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewOnly() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     user: [
@@ -182,6 +192,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'history', actions: viewOnly() },
         { resource: 'data_management', actions: fullAccess() }, // Users often upload self-service import/exports
         { resource: 'master_data', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewOnly() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     technician: [
@@ -204,6 +216,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'branches', actions: viewOnly() },
         { resource: 'vendors', actions: viewCreateEdit() },
         { resource: 'data_management', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewOnly() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     auditor: [
@@ -214,6 +228,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'audit_logs', actions: viewOnly() },
         { resource: 'data_management', actions: viewOnly() },
         { resource: 'vendors', actions: viewOnly() },
+        { resource: 'stock_opname', actions: viewCreateEdit() },
+        { resource: 'item_mutation_report', actions: viewOnly() },
     ]
 };
 

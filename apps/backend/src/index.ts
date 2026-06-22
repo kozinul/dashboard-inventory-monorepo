@@ -106,6 +106,12 @@ app.use('/api/v1/search', searchRoutes); // Register search routes
 app.use('/api/v1/role-permissions', rolePermissionRoutes); // Register role permissions routes
 app.use('/api/v1/tools', toolsRoutes); // Register tools routes
 
+import stockOpnameRoutes from './routes/stockOpname.routes.js';
+app.use('/api/v1/stock-opname', stockOpnameRoutes);
+
+import reportRoutes from './routes/report.routes.js';
+app.use('/api/v1/reports', reportRoutes);
+
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

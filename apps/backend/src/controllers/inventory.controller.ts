@@ -214,17 +214,17 @@ async function resolveBuilding(locationId: string): Promise<string | null> {
 
 export const createAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // RBAC: Non-admin users can only create assets in their department
-        // UPDATE: Technicians and Managers can create assets for ANY department in their branch
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
-            if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
-                return res.status(403).json({ message: 'You can only create assets in your department' });
-            }
-            // Auto-assign to user's department if not specified
+        // RBAC: Auto-assign department for non-superuser
+        if (req.user && req.user.role !== 'superuser') {
             if (!req.body.departmentId) {
                 req.body.departmentId = req.user.departmentId;
                 if (!req.body.department && req.user.department) {
                     req.body.department = req.user.department;
+                }
+            } else if (!['admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
+                // Restricted roles can only create in their own department
+                if (req.body.departmentId !== req.user.departmentId) {
+                    return res.status(403).json({ message: 'You can only create assets in your department' });
                 }
             }
         }
@@ -251,27 +251,45 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
         });
 
         // Auto-assign to Warehouse if no location specified
-        if (!asset.locationId && asset.departmentId) {
+        if (!asset.locationId) {
             const { Location } = await import('../models/location.model.js');
-            const warehouse = await Location.findOne({
-                departmentId: asset.departmentId,
-                isWarehouse: true,
-                branchId: asset.branchId
-            });
+            let warehouse = null;
+
+            // Try 1: Match department + branch
+            if (asset.departmentId) {
+                warehouse = await Location.findOne({
+                    departmentId: asset.departmentId,
+                    isWarehouse: true,
+                    branchId: asset.branchId
+                });
+            }
+
+            // Try 2: Match branch only
+            if (!warehouse && asset.branchId) {
+                warehouse = await Location.findOne({
+                    branchId: asset.branchId,
+                    isWarehouse: true
+                });
+            }
+
+            // Try 3: Any warehouse
+            if (!warehouse) {
+                warehouse = await Location.findOne({ isWarehouse: true });
+            }
+
+            // Try 4: Match by type/name containing 'warehouse' or 'gudang'
+            if (!warehouse) {
+                warehouse = await Location.findOne({
+                    $or: [
+                        { type: { $regex: /warehouse|gudang/i } },
+                        { name: { $regex: /warehouse|gudang/i } }
+                    ]
+                });
+            }
 
             if (warehouse) {
                 asset.locationId = warehouse._id;
                 asset.location = warehouse.name;
-            } else {
-                // Fallback to any warehouse in branch
-                const anyWarehouse = await Location.findOne({
-                    branchId: asset.branchId,
-                    isWarehouse: true
-                });
-                if (anyWarehouse) {
-                    asset.locationId = anyWarehouse._id;
-                    asset.location = anyWarehouse.name;
-                }
             }
         }
 
@@ -807,27 +825,45 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         asset.status = 'storage'; // Auto-update status to Storage / Warehouse
 
         // Find Department Warehouse to move asset back to
-        if (asset.departmentId) {
+        {
             const { Location } = await import('../models/location.model.js');
-            const warehouse = await Location.findOne({
-                departmentId: asset.departmentId,
-                isWarehouse: true,
-                branchId: asset.branchId
-            });
+            let warehouse = null;
+
+            // Try 1: Match department + branch
+            if (asset.departmentId) {
+                warehouse = await Location.findOne({
+                    departmentId: asset.departmentId,
+                    isWarehouse: true,
+                    branchId: asset.branchId
+                });
+            }
+
+            // Try 2: Match branch only
+            if (!warehouse && asset.branchId) {
+                warehouse = await Location.findOne({
+                    branchId: asset.branchId,
+                    isWarehouse: true
+                });
+            }
+
+            // Try 3: Any warehouse
+            if (!warehouse) {
+                warehouse = await Location.findOne({ isWarehouse: true });
+            }
+
+            // Try 4: Match by type/name
+            if (!warehouse) {
+                warehouse = await Location.findOne({
+                    $or: [
+                        { type: { $regex: /warehouse|gudang/i } },
+                        { name: { $regex: /warehouse|gudang/i } }
+                    ]
+                });
+            }
 
             if (warehouse) {
                 asset.locationId = warehouse._id;
                 asset.location = warehouse.name;
-            } else {
-                // Fallback to any warehouse in branch
-                const anyWarehouse = await Location.findOne({
-                    branchId: asset.branchId,
-                    isWarehouse: true
-                });
-                if (anyWarehouse) {
-                    asset.locationId = anyWarehouse._id;
-                    asset.location = anyWarehouse.name;
-                }
             }
         }
 

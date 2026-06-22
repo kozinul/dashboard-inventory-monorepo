@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { showErrorToast, showSuccess, showConfirmDialog, showSelectDialog } from '@/utils/swal'
 import { UserRow } from "@/features/users/components/UserRow"
-import { StatsGrid } from "@/features/users/components/StatsGrid"
 import { userService, CreateUserDto } from "@/services/userService"
 import { User } from "@dashboard/schemas"
 import { UserModal } from "@/features/users/components/UserModal"
@@ -263,10 +262,6 @@ export default function UserManagementPage() {
                                 <button className="px-3 py-1 rounded border border-slate-300 dark:border-slate-600 text-sm hover:bg-slate-200 dark:hover:bg-slate-card transition-colors">Next</button>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="mt-8">
-                        <StatsGrid />
                     </div>
                 </>
             )}

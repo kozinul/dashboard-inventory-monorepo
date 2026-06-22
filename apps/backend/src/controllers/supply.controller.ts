@@ -7,10 +7,9 @@ export const createSupply = async (req: Request, res: Response, next: NextFuncti
     try {
         const supplyData = { ...req.body };
 
-        // RBAC: Auto-assign department for non-privileged users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // RBAC: Auto-assign department for non-superuser
+        if (req.user && req.user.role !== 'superuser') {
             supplyData.departmentId = req.user.departmentId;
-            // Also assign department name if available, to keep data consistent
             if (req.user.department) {
                 supplyData.department = req.user.department;
             }
@@ -18,12 +17,41 @@ export const createSupply = async (req: Request, res: Response, next: NextFuncti
 
         // Auto-assign default Warehouse location if not provided
         if (!supplyData.locationId) {
-            const warehouse = await Location.findOne({
-                name: /Warehouse/i,
-                branchId: req.user.role === 'superuser'
-                    ? (req.body.branchId || (req.user as any).branchId)
-                    : (req.user as any).branchId
-            });
+            const branchId = req.user.role === 'superuser'
+                ? (req.body.branchId || (req.user as any).branchId)
+                : (req.user as any).branchId;
+
+            let warehouse = null;
+
+            // Try 1: Match department + branch
+            if (supplyData.departmentId) {
+                warehouse = await Location.findOne({
+                    departmentId: supplyData.departmentId,
+                    isWarehouse: true,
+                    branchId
+                });
+            }
+
+            // Try 2: Match branch only
+            if (!warehouse && branchId) {
+                warehouse = await Location.findOne({ branchId, isWarehouse: true });
+            }
+
+            // Try 3: Any warehouse
+            if (!warehouse) {
+                warehouse = await Location.findOne({ isWarehouse: true });
+            }
+
+            // Try 4: Match by type/name
+            if (!warehouse) {
+                warehouse = await Location.findOne({
+                    $or: [
+                        { type: { $regex: /warehouse|gudang/i } },
+                        { name: { $regex: /warehouse|gudang/i } }
+                    ]
+                });
+            }
+
             if (warehouse) {
                 supplyData.locationId = warehouse._id;
                 supplyData.location = warehouse.name;
@@ -171,6 +199,10 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
         );
 
         if (supply) {
+            const oldLocId = oldSupply.locationId?.toString();
+            const newLocId = supply.locationId?.toString();
+            const locationChanged = oldLocId !== newLocId;
+
             // Check for stock changes
             if (oldSupply.quantity !== supply.quantity) {
                 const diff = supply.quantity - oldSupply.quantity;
@@ -178,11 +210,25 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
 
                 await SupplyHistory.create({
                     supplyId: supply._id,
-                    action: action,
+                    action,
                     quantityChange: diff,
                     previousStock: oldSupply.quantity,
                     newStock: supply.quantity,
+                    fromLocation: oldLocId || undefined,
+                    toLocation: newLocId || undefined,
                     notes: req.body.reason || 'Stock update'
+                });
+            } else if (locationChanged) {
+                // Location-only change
+                await SupplyHistory.create({
+                    supplyId: supply._id,
+                    action: 'MOVE',
+                    quantityChange: 0,
+                    previousStock: oldSupply.quantity,
+                    newStock: supply.quantity,
+                    fromLocation: oldLocId || undefined,
+                    toLocation: newLocId || undefined,
+                    notes: req.body.reason || 'Item moved'
                 });
             } else {
                 // Generic update
@@ -218,6 +264,16 @@ export const deleteSupply = async (req: Request, res: Response, next: NextFuncti
                 return res.status(403).json({ message: 'You can only delete supplies from your department' });
             }
         }
+
+        await SupplyHistory.create({
+            supplyId: supply._id,
+            action: 'DELETE',
+            quantityChange: -supply.quantity,
+            previousStock: supply.quantity,
+            newStock: 0,
+            userId: req.user?._id,
+            notes: 'Item deleted'
+        });
 
         await Supply.findByIdAndDelete(req.params.id);
         res.json({ message: 'Supply deleted successfully' });

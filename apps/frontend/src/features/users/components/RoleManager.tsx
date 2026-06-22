@@ -25,6 +25,8 @@ const RESOURCE_GROUPS = [
             { id: 'transfer', label: 'Transfers', actions: ['view', 'create', 'edit', 'delete'], description: 'Manage asset transfers between locations' },
             { id: 'disposal', label: 'Disposal', actions: ['view', 'create', 'edit', 'delete'], description: 'Asset disposal and write-offs' },
             { id: 'incoming', label: 'Incoming Items', actions: ['view', 'create', 'edit', 'delete'], description: 'Process incoming items and receipts' },
+            { id: 'stock_opname', label: 'Stock Opname', actions: ['view', 'create', 'edit', 'delete'], description: 'Physical inventory counting and audit' },
+            { id: 'item_mutation_report', label: 'Item Mutation Report', actions: ['view'], description: 'View item movement and mutation history' },
         ]
     },
     {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from '@/lib/axios';
 import { ServerIcon } from '@heroicons/react/24/outline';
+import { useAppStore } from '@/store/appStore';
 
 interface LocationPanel {
     _id: string;
@@ -19,14 +20,17 @@ export default function PanelListPage() {
     const [allLocations, setAllLocations] = useState<LocationPanel[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { activeBranchId } = useAppStore();
+
     useEffect(() => {
         fetchPanels();
-    }, []);
+    }, [activeBranchId]);
 
     const fetchPanels = async () => {
         try {
-            // Fetch ALL Locations to build hierarchy paths
-            const response = await axios.get('/locations');
+            // Fetch ALL Locations to build hierarchy paths based on branch
+            const params = activeBranchId === 'ALL' ? {} : { branchId: activeBranchId };
+            const response = await axios.get('/locations', { params });
             const data = response.data;
             setAllLocations(data);
 

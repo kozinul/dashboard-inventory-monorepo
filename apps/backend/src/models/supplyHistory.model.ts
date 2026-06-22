@@ -8,7 +8,7 @@ const supplyHistorySchema = new mongoose.Schema({
     },
     action: {
         type: String,
-        enum: ['CREATE', 'UPDATE', 'RESTOCK', 'USE', 'DELETE'],
+        enum: ['CREATE', 'UPDATE', 'RESTOCK', 'USE', 'DELETE', 'AUDIT', 'ADJUST', 'MOVE'],
         required: true
     },
     quantityChange: {
@@ -26,6 +26,16 @@ const supplyHistorySchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: false
+    },
+    fromLocation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location',
+        required: false
+    },
+    toLocation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Location',
         required: false
     },
     notes: {

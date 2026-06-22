@@ -44,6 +44,8 @@ const RESOURCES = [
     { id: 'data_management', label: 'Data Management', actions: ['view', 'create', 'edit', 'delete'] },
     { id: 'audit_logs', label: 'Activity Logs', actions: ['view'] },
     { id: 'tools', label: 'Tools (JSON ➜ Excel)', actions: ['view', 'create'] },
+    { id: 'stock_opname', label: 'Stock Opname', actions: ['view', 'create', 'edit', 'delete'] },
+    { id: 'item_mutation_report', label: 'Item Mutation Report', actions: ['view'] },
 ];
 
 interface UserPermissionEditorProps {

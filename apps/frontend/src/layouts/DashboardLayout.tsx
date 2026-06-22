@@ -19,7 +19,9 @@ import {
     ArrowsRightLeftIcon,
     DocumentArrowUpIcon,
     ServerIcon,
-    ClockIcon
+    ClockIcon,
+    ClipboardDocumentCheckIcon,
+    DocumentTextIcon
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
@@ -41,6 +43,7 @@ const mainNavigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
     { name: 'Supplies', href: '/inventory/supplies', icon: CubeIcon },
+    { name: 'Stock Opname', href: '/inventory/stock-opname', icon: ClipboardDocumentCheckIcon },
     { name: 'Panels', href: '/inventory/panels', icon: ServerIcon },
     { name: 'My Assets', href: '/my-assets', icon: BriefcaseIcon },
     { name: 'Assignments', href: '/assignments', icon: BriefcaseIcon },
@@ -49,6 +52,7 @@ const mainNavigation = [
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
+    { name: 'Mutasi Barang', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
@@ -101,7 +105,7 @@ function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const { user } = useAuthStore()
-    const { activeBranchId, branches, setActiveBranch, isLoading: isBranchLoading, isSwitching } = useAppStore()
+    const { activeBranchId, branches, setActiveBranch, isLoading: isBranchLoading, isSwitching, initialize: initializeBranches } = useAppStore()
     const activeBranch = branches.find(b => b._id === activeBranchId);
     const { counts, startPolling } = useMaintenanceStore();
     const navigate = useNavigate();
@@ -152,6 +156,11 @@ function DashboardLayout() {
                 break;
         }
     };
+
+    // Initialize branches data when layout mounts
+    useEffect(() => {
+        initializeBranches();
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -219,7 +228,9 @@ function DashboardLayout() {
             'Branches': 'branches',
             'Database': 'settings', // Map database to settings
             'Data Management': 'data_management',
-            'Tools': 'tools'
+            'Tools': 'tools',
+            'Stock Opname': 'stock_opname',
+            'Mutasi Barang': 'item_mutation_report'
         };
 
         const resource = resourceMap[item.name];
