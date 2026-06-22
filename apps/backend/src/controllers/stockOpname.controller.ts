@@ -362,6 +362,33 @@ export const exportStockOpnameExcel = async (req: Request, res: Response, next: 
     }
 };
 
+// 11. Cleanup Stock Opname — force delete (for training/maintenance)
+export const cleanupStockOpname = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { ids } = req.body;
+
+        if (ids && Array.isArray(ids) && ids.length > 0) {
+            await StockOpnameItem.deleteMany({ stockOpnameId: { $in: ids } });
+            const result = await StockOpname.deleteMany({ _id: { $in: ids } });
+            return res.json({
+                message: `Deleted ${result.deletedCount} Stock Opname(s)`,
+                deletedCount: result.deletedCount
+            });
+        }
+
+        // Delete all
+        const itemsResult = await StockOpnameItem.deleteMany({});
+        const soResult = await StockOpname.deleteMany({});
+        res.json({
+            message: `Deleted ${soResult.deletedCount} Stock Opname(s) and ${itemsResult.deletedCount} item(s)`,
+            deletedCount: soResult.deletedCount,
+            itemsDeleted: itemsResult.deletedCount
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // 10. Import SO Items from Excel
 export const importStockOpnameExcel = async (req: Request, res: Response, next: NextFunction) => {
     try {

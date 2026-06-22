@@ -4,7 +4,8 @@ import { protect, authorize } from '../middleware/auth.middleware.js';
 import { 
     createStockOpname, getStockOpnames, getStockOpnameDetail, 
     startStockOpname, verifyStockOpnameItem, setOpnameToReview, completeStockOpname,
-    deleteStockOpname, exportStockOpnameExcel, importStockOpnameExcel 
+    deleteStockOpname, exportStockOpnameExcel, importStockOpnameExcel,
+    cleanupStockOpname 
 } from '../controllers/stockOpname.controller.js';
 
 const router = express.Router();
@@ -20,6 +21,8 @@ router.put('/items/:itemId', verifyStockOpnameItem);
 router.put('/:id/review', authorize('superuser', 'admin', 'system_admin', 'manager'), setOpnameToReview);
 router.put('/:id/complete', authorize('superuser', 'admin', 'system_admin', 'manager'), completeStockOpname);
 router.delete('/:id', authorize('superuser', 'admin', 'system_admin'), deleteStockOpname);
+
+router.post('/cleanup', authorize('superuser', 'admin', 'system_admin'), cleanupStockOpname);
 
 router.get('/:id/export', exportStockOpnameExcel);
 router.post('/:id/import', authorize('superuser', 'admin', 'system_admin', 'manager'), upload.single('file'), importStockOpnameExcel);

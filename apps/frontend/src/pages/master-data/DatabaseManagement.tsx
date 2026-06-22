@@ -15,6 +15,17 @@ interface Backup {
     createdAt: string;
 }
 
+interface StockOpname {
+    _id: string;
+    title: string;
+    status: string;
+    type: string;
+    createdAt: string;
+    locationId?: { name: string };
+    departmentId?: { name: string };
+    createdBy?: { name: string };
+}
+
 export default function DatabaseManagement() {
     const [backups, setBackups] = useState<Backup[]>([]);
     const [loading, setLoading] = useState(false);
@@ -22,6 +33,11 @@ export default function DatabaseManagement() {
     const [restoring, setRestoring] = useState<string | null>(null);
     const [deleting, setDeleting] = useState<string | null>(null);
     const [resetting, setResetting] = useState(false);
+
+    // SO Cleanup
+    const [soList, setSoList] = useState<StockOpname[]>([]);
+    const [soLoading, setSoLoading] = useState(false);
+    const [selectedSOs, setSelectedSOs] = useState<Set<string>>(new Set());
 
     const API_URL = '/database';
 
@@ -180,6 +196,81 @@ export default function DatabaseManagement() {
         }
     };
 
+    // --- SO Cleanup ---
+    const fetchStockOpnames = async () => {
+        setSoLoading(true);
+        try {
+            const res = await axios.get('/stock-opname');
+            setSoList(res.data);
+        } catch {
+            // silently fail
+        } finally {
+            setSoLoading(false);
+        }
+    };
+
+    const toggleSelectSO = (id: string) => {
+        setSelectedSOs(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAllSO = () => {
+        if (selectedSOs.size === soList.length) {
+            setSelectedSOs(new Set());
+        } else {
+            setSelectedSOs(new Set(soList.map(s => s._id)));
+        }
+    };
+
+    const handleDeleteSelectedSO = async () => {
+        if (selectedSOs.size === 0) return;
+        const result = await Swal.fire({
+            title: 'Delete Selected Stock Opname?',
+            text: `This will delete ${selectedSOs.size} Stock Opname record(s) and all their items. This cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete them!'
+        });
+        if (!result.isConfirmed) return;
+        try {
+            await axios.post('/stock-opname/cleanup', { ids: Array.from(selectedSOs) });
+            Swal.fire({ title: 'Deleted!', text: 'Selected Stock Opname data deleted.', icon: 'success' });
+            setSelectedSOs(new Set());
+            fetchStockOpnames();
+        } catch {
+            Swal.fire({ title: 'Error', text: 'Failed to delete selected Stock Opname data.', icon: 'error' });
+        }
+    };
+
+    const handleDeleteAllSO = async () => {
+        const result = await Swal.fire({
+            title: 'Delete ALL Stock Opname Data?',
+            text: 'This will permanently delete ALL Stock Opname records and items. This cannot be undone!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete ALL!'
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const res = await axios.post('/stock-opname/cleanup');
+            Swal.fire({
+                title: 'Cleaned!',
+                text: res.data.message || 'All Stock Opname data deleted.',
+                icon: 'success'
+            });
+            setSelectedSOs(new Set());
+            fetchStockOpnames();
+        } catch {
+            Swal.fire({ title: 'Error', text: 'Failed to clean Stock Opname data.', icon: 'error' });
+        }
+    };
+
     const downloadBackup = async (filename: string) => {
         try {
             const response = await axios.get(`${API_URL}/${filename}/download`, {
@@ -201,6 +292,7 @@ export default function DatabaseManagement() {
 
     useEffect(() => {
         fetchBackups();
+        fetchStockOpnames();
     }, []);
 
     const formatBytes = (bytes: number, decimals = 2) => {
@@ -347,6 +439,107 @@ export default function DatabaseManagement() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Stock Opname Cleanup */}
+            <div className="mt-10">
+                <div className="sm:flex sm:items-center justify-between">
+                    <div className="sm:flex-auto">
+                        <h2 className="text-base font-semibold leading-6 text-gray-900">Stock Opname Cleanup</h2>
+                        <p className="mt-2 text-sm text-gray-700">
+                            Permanently delete Stock Opname records. Useful for resetting training/testing data.
+                        </p>
+                    </div>
+                    <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                        <button
+                            type="button"
+                            onClick={handleDeleteSelectedSO}
+                            disabled={selectedSOs.size === 0}
+                            className="block rounded-md bg-orange-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:opacity-50"
+                        >
+                            <span className="flex items-center gap-2">
+                                <TrashIcon className="h-5 w-5" />
+                                Delete Selected ({selectedSOs.size})
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleDeleteAllSO}
+                            className="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                        >
+                            <span className="flex items-center gap-2">
+                                <ExclamationTriangleIcon className="h-5 w-5" />
+                                Delete All
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div className="mt-4 flow-root">
+                    <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                                <table className="min-w-full divide-y divide-gray-300">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" className="relative w-8 px-3 sm:pl-6">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                                    checked={selectedSOs.size === soList.length && soList.length > 0}
+                                                    onChange={toggleSelectAllSO}
+                                                />
+                                            </th>
+                                            <th scope="col" className="py-3.5 pl-2 pr-3 text-left text-sm font-semibold text-gray-900">Title</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 bg-white">
+                                        {soLoading ? (
+                                            <tr>
+                                                <td colSpan={5} className="py-4 text-center text-sm text-gray-500">Loading...</td>
+                                            </tr>
+                                        ) : soList.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="py-4 text-center text-sm text-gray-500">No Stock Opname records found.</td>
+                                            </tr>
+                                        ) : (
+                                            soList.map(so => (
+                                                <tr key={so._id} className="hover:bg-gray-50">
+                                                    <td className="relative w-8 px-3 py-4 sm:pl-6">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                                            checked={selectedSOs.has(so._id)}
+                                                            onChange={() => toggleSelectSO(so._id)}
+                                                        />
+                                                    </td>
+                                                    <td className="whitespace-nowrap py-4 pl-2 pr-3 text-sm font-medium text-gray-900">{so.title}</td>
+                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{so.type}</td>
+                                                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                                                            so.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                                            so.status === 'ONGOING' ? 'bg-blue-100 text-blue-800' :
+                                                            so.status === 'REVIEW' ? 'bg-yellow-100 text-yellow-800' :
+                                                            so.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
+                                                            'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            {so.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                        {new Date(so.createdAt).toLocaleDateString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

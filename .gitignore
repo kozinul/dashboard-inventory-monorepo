@@ -52,3 +52,9 @@ coverage/
 
 # ESLint
 .eslintcache
+
+# Scratch/test files
+fix_technician.js
+test_populate.ts
+test_users.js
+*.scratch.*
