@@ -58,3 +58,4 @@ fix_technician.js
 test_populate.ts
 test_users.js
 *.scratch.*
+.devcontainer/devcontainer-lock.json
