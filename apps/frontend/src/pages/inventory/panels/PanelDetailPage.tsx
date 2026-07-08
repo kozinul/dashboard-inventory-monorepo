@@ -13,6 +13,7 @@ interface Asset {
     status: string;
     departmentId?: { name: string };
     department?: string;
+    parentAssetId?: string | null;
 }
 
 export default function PanelDetailPage() {
@@ -53,6 +54,7 @@ export default function PanelDetailPage() {
             const slotArray: Asset[][] = Array.from({ length: capacity }, () => []);
 
             children.forEach((child: Asset) => {
+                if (child.parentAssetId) return;
                 if (child.slotNumber && child.slotNumber > 0 && child.slotNumber <= capacity) {
                     if (child.slotNumber) {
                         const slotIndex = child.slotNumber - 1;
