@@ -70,6 +70,16 @@ Daftar perubahan signifikan berdasarkan commit terakhir (Maret–Juli 2026).
 5. **Assign**: Klik "Assign Device" (header) atau "Assign" (channel view) → dropdown unslotted children → pilih device → auto-assign ke channel
 6. **Remove**: Klik ikon `remove_circle` → konfirmasi → child terputus dari parent
 
+### Fix: Rack View — Sembunyikan Child Assets dari Slot Tampilan
+
+**Tujuan:** Memperbaiki tampilan rack/panel agar hanya menampilkan aset top-level (yang terpasang langsung di rack), bukan aset anak (contoh: camera di dalam NVR).
+
+#### Perubahan
+1. **`apps/frontend/src/pages/inventory/panels/PanelDetailPage.tsx:56`**:
+   - Tambah filter `if (child.parentAssetId) return;` pada iterasi `children.forEach`
+   - Asset yang memiliki `parentAssetId` (berarti dia adalah anak dari container lain) tidak dimasukkan ke slot rack
+   - Hanya aset tanpa parent (top-level) yang muncul di Rack View
+
 ---
 
 ## 2026-07-07
