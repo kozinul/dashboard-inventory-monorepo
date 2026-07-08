@@ -13,6 +13,8 @@ interface AssetSelectionModalProps {
     title?: string;
     branchId?: string;
     departmentId?: string;
+    unassigned?: boolean;
+    category?: string;
 }
 
 export function AssetSelectionModal({
@@ -21,7 +23,9 @@ export function AssetSelectionModal({
     onSelect,
     title = "Select Asset to Install",
     branchId,
-    departmentId
+    departmentId,
+    unassigned,
+    category
 }: AssetSelectionModalProps) {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [loading, setLoading] = useState(false);
@@ -38,7 +42,9 @@ export function AssetSelectionModal({
                 limit: 50,
                 search: search || undefined,
                 branchId: branchId || undefined,
-                departmentId: departmentId || (user && !['superuser', 'admin'].includes(user.role) ? user.departmentId : undefined)
+                departmentId: departmentId || (user && user.role !== 'superuser' ? user.departmentId : undefined),
+                unassigned: unassigned ? 'true' : undefined,
+                category: category || undefined
             };
 
             const response = await assetService.getAll(params);
@@ -137,7 +143,7 @@ export function AssetSelectionModal({
                                             <div className="text-center py-12 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
                                                 <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">inventory_2</span>
                                                 <p className="text-slate-500 text-sm">
-                                                    {user && ['superuser', 'admin'].includes(user.role)
+                                                    {user && user.role === 'superuser'
                                                         ? "No available assets found."
                                                         : "No available assets found in your department."}
                                                 </p>

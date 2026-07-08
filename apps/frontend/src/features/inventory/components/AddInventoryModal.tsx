@@ -23,6 +23,8 @@ interface InventoryFormInputs {
     departmentId: string;
     status: 'active' | 'maintenance' | 'storage' | 'retired';
     requiresExternalService: boolean;
+    isContainer: boolean;
+    totalSlots: string;
     value: string;
     purchaseDate: string;
     locationId: string;
@@ -53,7 +55,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const { user } = useAuthStore();
-    const isNonAdmin = user && !['superuser', 'admin', 'system_admin'].includes(user.role);
+    const isNonAdmin = user && user.role !== 'superuser';
 
     // Watch departmentId to filter categories
     const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<InventoryFormInputs>({
@@ -66,6 +68,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     });
 
     const selectedDepartmentId = watch('departmentId');
+    const isContainerChecked = watch('isContainer');
     const filteredCategories = categories.filter(cat =>
         cat.authorizedDepartments.length === 0 ||
         cat.authorizedDepartments.some(d => d._id === selectedDepartmentId)
@@ -76,6 +79,8 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
             // Reset form for fresh state on every open
             reset({
                 status: 'active',
+                isContainer: false,
+                totalSlots: '',
                 departmentId: isNonAdmin ? user?.departmentId : ''
             });
 
@@ -153,6 +158,8 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                 locationDetail: data.locationDetail,
                 status: data.status,
                 requiresExternalService: data.requiresExternalService,
+                isContainer: data.isContainer,
+                totalSlots: data.isContainer ? parseInt(data.totalSlots, 10) : 0,
                 value: parseFloat(data.value.replace(/[^0-9.]/g, '')), // Basic cleaning
                 purchaseDate: data.purchaseDate,
                 images: [],
@@ -176,6 +183,8 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
             // Reset form and local state, preserving default department for non-admins
             reset({
                 status: 'active',
+                isContainer: false,
+                totalSlots: '',
                 departmentId: isNonAdmin ? user?.departmentId : '',
                 locationId: '',
                 locationDetail: ''
@@ -193,6 +202,8 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const handleClose = () => {
         reset({
             status: 'active',
+            isContainer: false,
+            totalSlots: '',
             departmentId: isNonAdmin ? user?.departmentId : '',
             locationId: '',
             locationDetail: ''
@@ -371,6 +382,34 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                         Requires External Service
                                                     </label>
                                                 </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="isContainer"
+                                                        {...register('isContainer')}
+                                                        className="w-4 h-4 text-primary bg-slate-50 border-slate-200 rounded focus:ring-primary dark:bg-slate-800 dark:border-slate-700"
+                                                    />
+                                                    <label htmlFor="isContainer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                        Is Container
+                                                    </label>
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1 ml-6">Centang jika aset ini dapat menampung aset lain (contoh: NVR 16ch untuk camera).</p>
+                                                {isContainerChecked && (
+                                                    <div className="mt-2 ml-6">
+                                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Total Slots</label>
+                                                        <input
+                                                            {...register('totalSlots', { required: isContainerChecked ? 'Total slots is required' : false })}
+                                                            type="number"
+                                                            min="1"
+                                                            placeholder="e.g. 16"
+                                                            className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                        />
+                                                        {errors.totalSlots && <span className="text-xs text-red-500 mt-1">{errors.totalSlots.message}</span>}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div>

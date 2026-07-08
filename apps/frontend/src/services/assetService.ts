@@ -20,6 +20,8 @@ export interface Asset {
     department?: string;
     branchId?: string | { _id: string; name: string };
     status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
+    isContainer?: boolean;
+    totalSlots?: number;
     requiresExternalService?: boolean;
     slotNumber?: number;
     value: number;

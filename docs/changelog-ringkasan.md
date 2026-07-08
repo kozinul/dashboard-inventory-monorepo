@@ -1,6 +1,111 @@
 # Ringkasan Perubahan Terbaru
 
-Daftar perubahan signifikan berdasarkan commit terakhir (Maret–Juni 2026).
+Daftar perubahan signifikan berdasarkan commit terakhir (Maret–Juli 2026).
+
+---
+
+## 2026-07-08
+
+### Is Container — Checkbox & Total Slots di Form Add & Edit Asset
+
+**Tujuan:** Menambahkan checkbox "Is Container" dan input "Total Slots" pada form Add New Asset dan Edit Asset untuk menandai aset yang dapat menampung aset lain (contoh: NVR 16 channel yang dapat menampung maksimal 16 camera).
+
+#### Latar Belakang
+- Backend model `Asset` sudah memiliki field `isContainer` (Boolean, default false) dan `totalSlots` (Number, default 0) serta `parentAssetId` + endpoint `install`/`dismantle`
+- Form **Add New Asset** dan **Edit Asset** belum memiliki UI untuk mengatur field tersebut
+
+#### Perubahan Frontend
+
+1. **`apps/frontend/src/services/assetService.ts:23-24`** — Interface `Asset` ditambahkan field:
+   - `isContainer?: boolean`
+   - `totalSlots?: number`
+
+2. **`apps/frontend/src/features/inventory/components/AddInventoryModal.tsx`**:
+   - Tambah `isContainer: boolean` & `totalSlots: string` ke interface form
+   - Checkbox "Is Container" + help text *"Centang jika aset ini dapat menampung aset lain"*
+   - Conditional input "Total Slots" (number, required) muncul saat checkbox dicentang
+   - On submit: `isContainer` sebagai boolean, `totalSlots` di-parse ke `parseInt()`
+   - Form reset menyertakan kedua field
+
+3. **`apps/frontend/src/features/inventory/components/EditInventoryModal.tsx`**:
+   - Sama seperti Add form: tambah checkbox "Is Container" + conditional "Total Slots"
+   - Form populate membaca dari `asset.isContainer` & `asset.totalSlots`
+   - Payload menyertakan `isContainer` & `totalSlots` dengan konversi yang sama
+
+#### Backend
+- ✅ Model `asset.model.ts` — sudah memiliki `isContainer` & `totalSlots`
+- ✅ Controller — `createAsset`/`updateAsset` menggunakan `...req.body` sehingga otomatis menerima field baru
+
+---
+
+### Connected Devices — Rewrite Tab dengan Dual View (Table & Channel)
+
+**Tujuan:** Mengubah tab "Connected Devices" di halaman detail aset menjadi lebih informatif dengan dual view: Table View untuk overview dan Channel View untuk dokumentasi CCTV per-channel.
+
+#### Perubahan
+
+1. **`apps/frontend/src/features/inventory/components/asset-details/AssetConnectedDevicesTab.tsx`** — Rewrite total:
+   - **Dual View**: Toggle "List" | "Channel View" di header (Channel View hanya muncul jika `totalSlots > 0`)
+   - **Table View**: Tabel child assets dengan kolom Asset (link), Serial, Category, **Location**, Status, Channel, Actions (Remove)
+   - **Channel View**: Layout per-channel (CH 1, CH 2, ...) menampilkan:
+     - Thumbnail device, nama (link), serial, **📍 lokasi** (building/location/detail), status badge
+     - Empty channel: tombol "Assign" → dropdown unslotted children
+   - **Smart Assign**:
+     - Tombol "Assign Device" di header: klik → dropdown daftar **unslotted children** (child yang belum punya channel). Pilih → auto-assign ke slot kosong pertama
+     - Jika tidak ada unslotted children → SweetAlert info
+     - Channel View "Assign" → dropdown unslotted children. Jika tidak ada → "No devices to assign"
+   - **Remove**: tombol `remove_circle` dengan konfirmasi SweetAlert, panggil `POST /inventory/items/:id/dismantle`
+   - Header menampilkan jumlah device terhubung + available slots (contoh: "5 devices connected (11 available)")
+   - Empty state menyesuaikan (container vs non-container)
+
+2. **`apps/backend/src/controllers/inventory.controller.ts`**:
+   - ✅ Perbaikan activity log: `Installed in ${parentName}` tidak lagi menampilkan "at Slot undefined"
+   - ✅ Perbaikan select children: menambahkan `slotNumber`, `images`, `location`, `building`, `locationDetail`, `parentAssetId` — sebelumnya hanya `name serial model category status` sehingga `slotNumber` tidak terbaca di frontend
+
+#### Cara Kerja
+1. Buka halaman detail aset container (isContainer = true)
+2. Tab "Connected Devices" menampilkan child assets dalam **Table View** (default)
+3. Beralih ke **Channel View** via toggle untuk melihat layout per-channel
+4. Channel View mendokumentasikan CCTV/device SN ada di channel berapa dari NVR ini, lengkap dengan lokasi
+5. **Assign**: Klik "Assign Device" (header) atau "Assign" (channel view) → dropdown unslotted children → pilih device → auto-assign ke channel
+6. **Remove**: Klik ikon `remove_circle` → konfirmasi → child terputus dari parent
+
+---
+
+## 2026-07-07
+
+### RBAC Refactoring — Role Hierarchy & Data Scoping
+
+**Tujuan:** Mengubah role hierarchy dan data scoping di seluruh sistem agar `superuser` melihat semua cabang/semua departemen, `system_admin` melihat cabang sendiri/semua departemen, dan role lainnya (`admin`/`manager`/`dept_admin`/`supervisor`/`technician`/`user`/`auditor`) hanya melihat cabang + departemen sendiri.
+
+#### Backend — Controller Refactoring (20 controller di-update)
+- **Branch scoping:** semua controller diubah sehingga hanya `superuser` yang bisa mengakses data lintas cabang; role lain dibatasi ke cabang sendiri
+- **Department scoping:** `superuser` dan `system_admin` dapat mengakses semua departemen dalam cakupan cabangnya; `admin` dan role dibawahnya dibatasi ke departemen sendiri
+- **Create/Update:** hanya `superuser` yang bisa mengubah `branchId` secara bebas saat membuat/mengedit data
+- Controller yang diperbarui: `inventory`, `dashboard`, `disposal`, `event`, `location`, `rental`, `report`, `search`, `stockOpname`, `supply`, `unit`, `user`, `vendor`, `category`, `assignment`, `maintenance`, `transfer`, `auditLog`, `importExport`, `supply` (delete permission)
+- Pola `!['superuser', 'admin', 'system_admin']` diganti dengan `req.user.role !== 'superuser'` (untuk branch) dan `req.user.role !== 'superuser' && req.user.role !== 'system_admin'` (untuk departemen)
+- `admin` tidak lagi dianggap setara `superuser` untuk data scoping; `admin` sekarang diperlakukan seperti `manager` untuk scope data (cabang + departemen sendiri), namun tetap memiliki full action permissions dari `rolePermissions.config.ts`
+- Backend `protect` middleware sudah melakukan `.populate('branchId')`; frontend sudah di-address di commit sebelumnya (`DashboardLayout.tsx:163`)
+
+#### Frontend — Role Checks & UI Scoping
+- **AssetSelectionModal.tsx** — `admin` tidak lagi bisa melihat aset semua departemen
+- **AddInventoryModal.tsx** — `admin` tidak lagi bisa memilih departemen sembarangan; `system_admin` tetap bisa pilih departemen dalam cabangnya
+- **DashboardLayout.tsx** — branch initialization sekarang hanya `superuser` yang skip; audit log access dibatasi ke `superuser`/`system_admin` saja
+- **EventsTab.tsx** — `admin` tidak lagi punya akses delete event completed (hanya `superuser`/`system_admin`)
+- **TransferPage.tsx** — `system_admin` ditambahkan ke `canCreateTransfer` dan `isManager`
+- **InventoryPage.tsx** — `system_admin` ditambahkan ke `canEdit`
+- **ReportsPage.tsx** — `system_admin` ditambahkan ke filteredDepartments dan department dropdown
+- **MaintenanceDetailContent.tsx** — `system_admin` ditambahkan ke `isAdmin`
+- **LocationModal.tsx** — `system_admin` ditambahkan ke `canManageWarehouse`
+- **UserPermissionEditor.tsx** — `system_admin` ditambahkan ke full access check
+- **SuppliesPage.tsx** — fix typo `'administrator'` → `'admin'`, tambah `system_admin`
+- **MaintenanceTable.tsx** — fix typo `'administrator'` → `'admin'`, tambah `system_admin`
+
+#### Catatan
+- Permission config (`rolePermissions.config.ts`) tetap tidak berubah — permission config mengontrol ACTION (view/create/edit/delete), bukan data scope
+- Middleware `authorize()` untuk route-level access tetap berfungsi per-route
+- Semua pattern yang tersisa di frontend (`StockOpnamePage`, `RentalPage`, `EventDetailsPage`, dll) adalah ACTION permission checks, bukan data scoping — tidak perlu diubah
+- Build successfully: `vite build` lulus tanpa error
 
 ---
 

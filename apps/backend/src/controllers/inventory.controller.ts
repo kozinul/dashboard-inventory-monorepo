@@ -20,14 +20,11 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         }
 
         // Filter by branch
-        // For superusers, allow filtering by query param
+        // Only superuser can see all branches
         if (req.user.role === 'superuser') {
             if (req.query.branchId && req.query.branchId !== 'ALL') {
                 filters.branchId = req.query.branchId;
             }
-        } else {
-            // For non-superusers, we handle branch scoping within the access conditions below
-            // to allow seeing assigned assets from other branches
         }
 
         if (req.query.category) filters.category = req.query.category;
@@ -44,24 +41,24 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
         if (req.query.locationId) filters.locationId = req.query.locationId;
 
-        // RBAC / Branch Filtering
+        // RBAC / Branch & Department Filtering
         if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId;
 
-            // Force branch filter for everyone except superusers
+            // Force branch filter for all non-superuser roles
             filters.branchId = userBranchId;
 
-            const accessConditions: any[] = [];
+            // Department check: system_admin sees all departments in their branch, others are restricted
+            if (req.user.role !== 'system_admin') {
+                const accessConditions: any[] = [];
 
-            // Department check for all non-admin roles (managers, technicians etc are restricted to their department/managed departments)
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
                 const deptIds: any[] = [];
                 if (req.user.departmentId) deptIds.push(req.user.departmentId);
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
                     deptIds.push(...(req.user as any).managedDepartments);
                 }
 
-                // New: Also allow assets specifically assigned to this user, regardless of department
+                // Also allow assets specifically assigned to this user, regardless of department
                 const assignedAssets = await Assignment.find({
                     userId: req.user._id,
                     status: 'assigned',
@@ -75,7 +72,6 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                         departmentId: { $in: deptIds }
                     });
                 } else if (req.user.department) {
-                    // Fallback to string matching if no IDs are available (legacy data support)
                     accessConditions.push({
                         department: req.user.department
                     });
@@ -90,14 +86,16 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
                 if (accessConditions.length > 0) {
                     andConditions.push({ $or: accessConditions });
                 }
-            } else if (req.user.role === 'superuser') {
-                // Superusers see all branches by default, 
-                // but can filter if a specific branchId is provided
-                if (req.query.branchId && req.query.branchId !== 'ALL') {
-                    filters.branchId = req.query.branchId;
-                }
             }
+        }
 
+        if (req.query.isContainer !== undefined) {
+            const isContainer = req.query.isContainer === 'true';
+            filters.isContainer = isContainer;
+        }
+
+        if (req.query.unassigned === 'true') {
+            filters.parentAssetId = null;
         }
 
         if (req.query.search) {
@@ -118,7 +116,8 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             .skip(skip)
             .limit(limit)
             .populate('departmentId', 'name')
-            .populate('locationId', 'name');
+            .populate('locationId', 'name')
+            .populate('parentAssetId', 'name serial');
 
         const totalOptions = Object.keys(filters).length === 0 ? {} : filters;
         const total = await Asset.countDocuments(totalOptions);
@@ -151,13 +150,13 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
             const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
             const assetBranchId = asset.branchId?.toString() || asset.branchId;
 
-            // Strict branch check
+            // Strict branch check for all non-superuser
             if (userBranchId !== assetBranchId) {
                 return res.status(403).json({ message: 'Access denied: Asset belongs to another branch' });
             }
 
-            // Department check for non-privileged roles
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
+            // Department check: system_admin bypasses, others must match department
+            if (req.user.role !== 'system_admin') {
                 const deptIds = [];
                 if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -185,7 +184,7 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
         }
 
         // Fetch children (assets contained in this asset)
-        const children = await Asset.find({ parentAssetId: asset._id }).select('name serial model category status');
+        const children = await Asset.find({ parentAssetId: asset._id }).select('name serial model category status slotNumber images location building locationDetail parentAssetId');
 
         const assetObj = asset.toJSON();
         (assetObj as any).children = children;
@@ -214,14 +213,16 @@ async function resolveBuilding(locationId: string): Promise<string | null> {
 
 export const createAsset = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // RBAC: Auto-assign department for non-superuser
+        // RBAC: Auto-assign department for non-superuser roles
+        // system_admin can create in any department in their branch
+        // admin and below are restricted to their own department
         if (req.user && req.user.role !== 'superuser') {
             if (!req.body.departmentId) {
                 req.body.departmentId = req.user.departmentId;
                 if (!req.body.department && req.user.department) {
                     req.body.department = req.user.department;
                 }
-            } else if (!['admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
+            } else if (req.user.role !== 'system_admin' && !['manager', 'technician', 'supervisor'].includes(req.user.role)) {
                 // Restricted roles can only create in their own department
                 if (req.body.departmentId !== req.user.departmentId) {
                     return res.status(403).json({ message: 'You can only create assets in your department' });
@@ -244,7 +245,7 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
 
         const asset = new Asset({
             ...req.body,
-            // Set branchId based on user role
+            // Set branchId based on user role: only superuser can choose branch
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId
@@ -338,18 +339,17 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC: Check if user can update this asset
-        // UPDATE: Technicians, Managers, Supervisors can update assets regardless of department (in their branch)
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
+        // superuser bypasses, system_admin bypasses (they see all depts in their branch)
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
 
-            if (!isDeptMatch) {
+            if (!isDeptMatch && !['manager', 'technician', 'supervisor'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'You can only update assets from your department' });
             }
             // Prevent changing department to one you don't own
             if (req.body.departmentId && req.body.departmentId !== req.user.departmentId) {
-                // If they have no departmentId yet but matching string, we should probably allow setting it to THEIR departmentId
                 if (req.user.departmentId) {
                     req.body.departmentId = req.user.departmentId;
                 } else {
@@ -359,11 +359,10 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         const updateData = { ...req.body };
-        // Superusers can change branchId if provided
+        // Only superuser can change branchId
         if (req.user.role === 'superuser' && req.body.branchId) {
             updateData.branchId = req.body.branchId;
         } else {
-            // Non-superusers cannot change branchId
             delete updateData.branchId;
         }
 
@@ -489,13 +488,13 @@ export const deleteAsset = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC: Check if user can delete this asset
-        // UPDATE: Technicians and Managers can delete assets regardless of department
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
+        // superuser/system_admin bypass dept check, manager/technician/supervisor also bypass
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const isDeptMatch =
                 (existingAsset.departmentId && req.user.departmentId && existingAsset.departmentId.toString() === req.user.departmentId.toString()) ||
                 (existingAsset.department && req.user.department && existingAsset.department === req.user.department);
 
-            if (!isDeptMatch) {
+            if (!isDeptMatch && !['manager', 'technician', 'supervisor'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'You can only delete assets from your department' });
             }
         }
@@ -541,12 +540,12 @@ export const bulkDeleteAssets = async (req: Request, res: Response, next: NextFu
         for (const asset of assetsToDelete) {
             // RBAC: Check if user can delete this asset
             let canDelete = true;
-            if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
+            if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
                 const isDeptMatch =
                     (asset.departmentId && req.user.departmentId && asset.departmentId.toString() === req.user.departmentId.toString()) ||
                     (asset.department && req.user.department && asset.department === req.user.department);
 
-                if (!isDeptMatch) {
+                if (!isDeptMatch && !['manager', 'technician', 'supervisor'].includes(req.user.role)) {
                     canDelete = false;
                 }
             }
@@ -606,9 +605,9 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
 
         let assetIds: any[] = [];
 
-        // RBAC: Filter stats by department for non-admin users
-        // Aligned with getAssets logic: admin/manager/technician see entire branch
-        if (req.user && !['superuser', 'admin', 'system_admin', 'manager', 'supervisor'].includes(req.user.role)) {
+        // RBAC: Filter stats by department for non-privileged users
+        // system_admin sees all departments, others are restricted
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             if (req.user.departmentId) {
                 const deptIds = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -705,17 +704,12 @@ export const getAvailableAssetsForEvent = async (req: Request, res: Response, ne
         // Enforce branch and department filtering
         if (req.user && req.user.role !== 'superuser') {
             query.branchId = (req.user as any).branchId;
-            // Enforce department for everyone except top roles (Admin, etc)
-            // Manager is now restricted to their department as requested
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
+            if (req.user.role !== 'system_admin') {
                 if (req.user.departmentId) {
                     query.departmentId = req.user.departmentId;
                 } else if (departmentId) {
                     query.departmentId = departmentId;
                 }
-            } else if (departmentId) {
-                // Admins can filter by department if provided (e.g. from event)
-                query.departmentId = departmentId;
             }
         } else if (req.user && req.user.role === 'superuser') {
             if (req.query.branchId && req.query.branchId !== 'ALL') {
@@ -773,9 +767,10 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
         asset.status = 'in_use'; // Auto-update status
 
         // Log Activity
+        const slotDetail = slotNumber !== undefined ? ` at Slot ${slotNumber}` : '';
         asset.activityLog.push({
             action: 'installed',
-            details: `Installed in ${parentName} at Slot ${slotNumber}`,
+            details: `Installed in ${parentName}${slotDetail}`,
             performedBy: userId,
             date: new Date()
         });
@@ -789,7 +784,7 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
             resourceType: 'Asset',
             resourceId: asset._id.toString(),
             resourceName: asset.name,
-            details: `Installed asset in ${parentName} at Slot ${slotNumber}`,
+            details: `Installed asset in ${parentName}${slotDetail}`,
             branchId: (req.user as any).branchId?.toString(),
             departmentId: asset.departmentId?.toString()
         });

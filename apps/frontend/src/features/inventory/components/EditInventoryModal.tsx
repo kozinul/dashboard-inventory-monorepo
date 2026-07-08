@@ -25,6 +25,8 @@ interface InventoryFormInputs {
     status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
     parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
+    isContainer: boolean;
+    totalSlots: string;
     value: string;
     purchaseDate?: string;
     locationId: string;
@@ -58,6 +60,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<InventoryFormInputs>();
 
     const selectedDepartmentId = watch('departmentId');
+    const isContainerChecked = watch('isContainer');
     const filteredCategories = categories.filter(cat =>
         cat.authorizedDepartments.length === 0 ||
         cat.authorizedDepartments.some(d => d._id === selectedDepartmentId) ||
@@ -108,6 +111,8 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 locationDetail: asset.locationDetail || '',
                 status: asset.status,
                 requiresExternalService: asset.requiresExternalService || false,
+                isContainer: asset.isContainer || false,
+                totalSlots: asset.totalSlots?.toString() || '',
                 value: asset.value?.toString() || '0',
                 purchaseDate: asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split('T')[0] : '',
                 vendorName: asset.vendor?.name || '',
@@ -178,6 +183,8 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 parentAssetId: (data.parentAssetId || null) as any, // Convert empty string to null for Mongoose
                 department: selectedDept?.name || asset.department,
                 value: isNaN(Number(data.value)) ? asset.value : Number(data.value),
+                isContainer: data.isContainer,
+                totalSlots: data.isContainer ? parseInt(data.totalSlots, 10) : 0,
             };
 
             // Only send location string if user explicitly picked a location (not Auto)
@@ -415,6 +422,34 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                         Requires External Service
                                                     </label>
                                                 </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="isContainer"
+                                                        {...register('isContainer')}
+                                                        className="w-4 h-4 text-primary bg-slate-50 border-slate-200 rounded focus:ring-primary dark:bg-slate-800 dark:border-slate-700"
+                                                    />
+                                                    <label htmlFor="isContainer" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                        Is Container
+                                                    </label>
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1 ml-6">Centang jika aset ini dapat menampung aset lain (contoh: NVR 16ch untuk camera).</p>
+                                                {isContainerChecked && (
+                                                    <div className="mt-2 ml-6">
+                                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Total Slots</label>
+                                                        <input
+                                                            {...register('totalSlots', { required: isContainerChecked ? 'Total slots is required' : false })}
+                                                            type="number"
+                                                            min="1"
+                                                            placeholder="e.g. 16"
+                                                            className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                        />
+                                                        {errors.totalSlots && <span className="text-xs text-red-500 mt-1">{errors.totalSlots.message}</span>}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div>
