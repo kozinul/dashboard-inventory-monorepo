@@ -16,12 +16,12 @@ export const globalSearch = async (req: Request, res: Response, next: NextFuncti
 
         // RBAC Base Filters
         const baseFilter: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             baseFilter.branchId = req.user.branchId;
         }
 
-        // Department filtering for non-admin roles
-        if (!['superuser', 'admin', 'system_admin'].includes(req.user.role)) {
+        // Department filtering: system_admin sees all departments
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const deptIds: any[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId);
             if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {

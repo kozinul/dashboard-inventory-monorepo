@@ -8,7 +8,7 @@ export const vendorController = {
             // Build filter based on user role and branch
             const filter: any = {};
 
-            if (req.user.role !== 'superuser') {
+            if (req.user && req.user.role !== 'superuser') {
                 const userBranchId = (req.user as any).branchId;
                 if (userBranchId) {
                     filter.$or = [
@@ -49,7 +49,6 @@ export const vendorController = {
     // Create a new vendor
     create: async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // Set branchId based on user role
             const branchId = req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId;
@@ -70,11 +69,11 @@ export const vendorController = {
         try {
             const updateData = { ...req.body };
 
-            // Superusers can change branchId if provided
+            // Only superuser can change branchId
             if (req.user.role === 'superuser' && req.body.branchId) {
                 updateData.branchId = req.body.branchId;
             } else {
-                // Non-superusers cannot change branchId
+                // Non-admins cannot change branchId
                 delete updateData.branchId;
             }
 

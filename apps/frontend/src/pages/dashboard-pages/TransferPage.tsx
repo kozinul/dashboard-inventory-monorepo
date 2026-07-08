@@ -18,7 +18,7 @@ export default function TransferPage() {
 
     // Permission check
     const hasCreatePermission = user?.permissions?.find(p => p.resource === 'transfer')?.actions.create || false;
-    const canCreateTransfer = ['superuser', 'admin', 'manager', 'technician'].includes(user?.role || '') || hasCreatePermission;
+    const canCreateTransfer = ['superuser', 'system_admin', 'admin', 'manager', 'technician'].includes(user?.role || '') || hasCreatePermission;
 
     const fetchTransfers = async () => {
         setIsLoading(true);
@@ -108,7 +108,7 @@ export default function TransferPage() {
 
     // 2. Approval (WaitingApproval) - Shows for Manager of SENDER
     // Only show if user is admin/manager and is part of the sending branch/dept
-    const isManager = ['superuser', 'admin', 'manager'].includes(user?.role || '');
+    const isManager = ['superuser', 'system_admin', 'admin', 'manager'].includes(user?.role || '');
     const approvalPending = transfers.filter(t => {
         if (t.status !== 'WaitingApproval' || !t.assetId) return false;
         if (isSuperUser) return true; // Superuser sees all

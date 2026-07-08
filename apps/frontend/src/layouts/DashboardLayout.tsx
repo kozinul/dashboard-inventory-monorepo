@@ -54,7 +54,7 @@ const mainNavigation = [
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
     { name: 'Mutasi Barang', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
-    { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
+    // { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
     { name: 'Data Management', href: '/data-management', icon: DocumentArrowUpIcon },
     { name: 'Activity Log', href: '/activity-log', icon: ClockIcon },
@@ -159,7 +159,10 @@ function DashboardLayout() {
 
     // Initialize branches data when layout mounts
     useEffect(() => {
-        initializeBranches();
+        const userBranch = user && user.role !== 'superuser'
+            ? (typeof user.branchId === 'object' ? (user.branchId as any)._id : user.branchId)
+            : undefined;
+        initializeBranches(userBranch);
     }, []);
 
     useEffect(() => {
@@ -235,9 +238,8 @@ function DashboardLayout() {
 
         const resource = resourceMap[item.name];
 
-        // Audit Logs is always restricted to admin roles
         if (resource === 'audit_logs') {
-            return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
+            return user?.role === 'superuser' || user?.role === 'system_admin';
         }
 
         // ============================================================

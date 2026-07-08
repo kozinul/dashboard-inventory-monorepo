@@ -32,7 +32,7 @@ export function LocationModal({ isOpen, onClose, onSubmit, editingLocation, pare
     const [loadingTypes, setLoadingTypes] = useState(false);
     const [departments, setDepartments] = useState<Department[]>([]);
     const { user } = useAuthStore();
-    const canManageWarehouse = user?.role === 'superuser' || user?.role === 'admin';
+    const canManageWarehouse = user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
 
     useEffect(() => {
         const fetchTypes = async () => {

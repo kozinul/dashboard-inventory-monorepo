@@ -15,7 +15,7 @@ const fmtDate = (d: Date) => {
 
 const getBranchFilter = (req: Request) => {
     const { branchId } = req.query;
-    if (req.user.role !== 'superuser') {
+    if (req.user && req.user.role !== 'superuser') {
         return (req.user as any).branchId;
     }
     return branchId && branchId !== 'ALL' ? branchId : null;
@@ -38,9 +38,9 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
 
         // ── 1. Supply History ──
         const supplyQuery: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             supplyQuery.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 supplyQuery.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -85,9 +85,9 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
 
         // ── 2. Asset Activities (Assignments, Transfers, AuditLog) ──
         const assetFilter: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             assetFilter.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 assetFilter.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -238,9 +238,9 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
         }
 
         const supplyQuery: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             supplyQuery.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 supplyQuery.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -250,7 +250,7 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
 
         const suppliesScope = await Supply.find(supplyQuery).select('_id');
         const supplyIds = suppliesScope.map(s => s._id);
-
+        
         const supplyHistory = supplyIds.length > 0
             ? await SupplyHistory.find({ ...dateMatch, supplyId: { $in: supplyIds } })
                 .sort({ createdAt: -1 })

@@ -49,10 +49,10 @@ export const getStockOpnames = async (req: Request, res: Response, next: NextFun
         const branchId = (req.user as any).branchId;
         const query: any = {};
         
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             query.branchId = branchId;
-            // Managers restricted to their department, unless admin
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
+            // system_admin sees all departments, others restricted
+            if (req.user.role !== 'system_admin') {
                 if (req.user.departmentId) {
                     query.departmentId = req.user.departmentId;
                 }
@@ -238,7 +238,7 @@ export const completeStockOpname = async (req: Request, res: Response, next: Nex
         if (!so) return res.status(404).json({ message: 'Stock Opname not found' });
         if (so.status !== 'REVIEW') return res.status(400).json({ message: 'Only SO under REVIEW can be completed' });
 
-        if (!['superuser', 'admin', 'system_admin', 'manager'].includes(req.user.role)) {
+        if (req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             return res.status(403).json({ message: 'Not authorized to complete and adjust Stock Opname' });
         }
 

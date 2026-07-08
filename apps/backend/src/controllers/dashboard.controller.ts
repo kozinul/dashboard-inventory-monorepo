@@ -10,13 +10,15 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         const branchFilter: any = {};
 
         // Apply branch scoping based on role and query
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             branchFilter.branchId = (req.user as any).branchId;
         } else if (branchId && branchId !== 'ALL') {
             branchFilter.branchId = branchId;
         }
 
-        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+        const isSuperuser = req.user.role === 'superuser';
+        const isSystemAdmin = req.user.role === 'system_admin';
+        const needsDeptFilter = !isSuperuser && !isSystemAdmin;
         const deptIds = [];
         if (req.user.departmentId) deptIds.push(req.user.departmentId);
         if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -25,26 +27,26 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
 
         // Assets filter (Asset model has departmentId)
         const assetFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             assetFilter.departmentId = { $in: deptIds };
         }
 
         // Resolve Asset IDs for the department to filter other collections
         let deptAssetIds: any[] = [];
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             const deptAssets = await Asset.find(assetFilter).select('_id');
             deptAssetIds = deptAssets.map(a => a._id);
         }
 
         // Rental filter (Rental model does NOT have departmentId)
         const rentalFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             rentalFilter.assetId = { $in: deptAssetIds };
         }
 
         // Maintenance filter (MaintenanceRecord model does NOT have departmentId)
         const maintenanceFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             const hasManagedDepts = (req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0;
             if (req.user.role === 'user' && !hasManagedDepts) {
                 // Users WITHOUT managed depts see strictly THEIR requested tickets for THEIR department assets
@@ -56,7 +58,7 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
                 // Managers and users with managed departments see all tickets for their department assets
                 maintenanceFilter.asset = { $in: deptAssetIds };
             }
-        } else if (!isPowerUser && req.user.role === 'user') {
+        } else if (needsDeptFilter && req.user.role === 'user') {
             maintenanceFilter.requestedBy = req.user._id;
         }
 
@@ -95,13 +97,15 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
         const branchFilter: any = {};
 
         // Apply branch scoping based on role and query
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             branchFilter.branchId = (req.user as any).branchId;
         } else if (branchId && branchId !== 'ALL') {
             branchFilter.branchId = branchId;
         }
 
-        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+        const isSuperuser = req.user.role === 'superuser';
+        const isSystemAdmin = req.user.role === 'system_admin';
+        const needsDeptFilter = !isSuperuser && !isSystemAdmin;
         const deptIds = [];
         if (req.user.departmentId) deptIds.push(req.user.departmentId);
         if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -110,14 +114,14 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
 
         // Fetch asset IDs for the department to filter maintenance records
         let deptAssetIds: any[] = [];
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             const deptAssets = await Asset.find({ ...branchFilter, departmentId: { $in: deptIds } }).select('_id');
             deptAssetIds = deptAssets.map(a => a._id);
         }
 
         // Maintenance filter
         const maintenanceFilter: any = { ...branchFilter };
-        if (!isPowerUser && deptIds.length > 0) {
+        if (needsDeptFilter && deptIds.length > 0) {
             const hasManagedDepts = (req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0;
             if (req.user.role === 'user' && !hasManagedDepts) {
                 maintenanceFilter.$and = [
@@ -127,7 +131,7 @@ export const getRecentActivity = async (req: Request, res: Response, next: NextF
             } else {
                 maintenanceFilter.asset = { $in: deptAssetIds };
             }
-        } else if (!isPowerUser && req.user.role === 'user') {
+        } else if (needsDeptFilter && req.user.role === 'user') {
             maintenanceFilter.requestedBy = req.user._id;
         }
 
@@ -154,21 +158,22 @@ export const getLowStockSupplies = async (req: Request, res: Response, next: Nex
         const branchFilter: any = {};
 
         // Apply branch scoping based on role and query
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             branchFilter.branchId = (req.user as any).branchId;
         } else if (branchId && branchId !== 'ALL') {
             branchFilter.branchId = branchId;
         }
 
-        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+        const isSuperuser = req.user.role === 'superuser';
+        const isSystemAdmin = req.user.role === 'system_admin';
         const deptIds: any[] = [];
         if (req.user.departmentId) deptIds.push(req.user.departmentId);
         if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
             deptIds.push(...(req.user as any).managedDepartments);
         }
 
-        // Apply department scoping for non-admin/superuser
-        if (!isPowerUser && deptIds.length > 0) {
+        // Apply department scoping for non-superuser/non-system_admin
+        if (!isSuperuser && !isSystemAdmin && deptIds.length > 0) {
             branchFilter.departmentId = { $in: deptIds };
         }
 

@@ -99,7 +99,7 @@ export const getEvents = async (req: Request, res: Response, next: NextFunction)
     try {
         const filter: any = {};
 
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
@@ -134,8 +134,8 @@ export const getEventById = async (req: Request, res: Response, next: NextFuncti
         }
 
         // RBAC: Check if user can access this event
-        // RBAC: Check branch access for non-superuser
-        if (req.user.role !== 'superuser' && event.branchId && event.branchId.toString() !== (req.user as any).branchId?.toString()) {
+        // RBAC: Check branch access for non-admin
+        if (req.user && req.user.role !== 'superuser' && event.branchId && event.branchId.toString() !== (req.user as any).branchId?.toString()) {
             return res.status(403).json({ message: 'Access denied: Event belongs to another branch' });
         }
 
@@ -367,7 +367,7 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
         }
 
         // RBAC Deletion Rules:
-        const isSuperuser = ['superuser', 'system_admin', 'admin'].includes(req.user.role);
+        const isSuperuser = req.user.role === 'superuser' || req.user.role === 'system_admin';
 
         if (eventToCheck.status === 'completed') {
             if (!isSuperuser) {

@@ -146,8 +146,7 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
         return <div className="p-4 text-center">Loading permissions...</div>;
     }
 
-    // Admin and superuser always have full access
-    if (userRole === 'admin' || userRole === 'superuser') {
+    if (userRole === 'superuser' || userRole === 'system_admin' || userRole === 'admin') {
         return (
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div className="flex items-center gap-3">

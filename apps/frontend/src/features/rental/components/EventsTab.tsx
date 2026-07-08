@@ -30,7 +30,7 @@ export default function EventsTab({ refreshTrigger = 0 }: EventsTabProps) {
         fetchEvents();
     }, [refreshTrigger]);
 
-    const isSuperuser = user?.role && ['superuser', 'system_admin', 'admin'].includes(user.role);
+    const isSuperuser = user?.role && (user.role === 'superuser' || user.role === 'system_admin');
 
     const canDelete = (event: Event) => {
         if (user?.role === 'technician') return false;

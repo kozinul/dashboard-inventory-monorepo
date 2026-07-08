@@ -257,7 +257,7 @@ export default function SuppliesPage() {
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">edit</span>
                                                 </button>
-                                                {['superuser', 'administrator'].includes(useAuthStore.getState().user?.role || '') && (
+                                                {['superuser', 'system_admin', 'admin'].includes(useAuthStore.getState().user?.role || '') && (
                                                     <button
                                                         onClick={() => handleDelete(item._id!)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors">
                                                         <span className="material-symbols-outlined text-[18px]">delete</span>

@@ -7,7 +7,7 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
         // Build filter based on user role and branch
         const filter: any = {};
 
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId;
             if (userBranchId) {
                 filter.$or = [
@@ -22,8 +22,8 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
                 ];
             }
 
-            // If user is not admin/superuser, filter by department too
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
+            // Filter by department for all roles except system_admin
+            if (req.user.role !== 'system_admin') {
                 const deptIds: any[] = [];
                 if ((req.user as any).departmentId) deptIds.push((req.user as any).departmentId);
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -91,7 +91,6 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
             icon,
             isInfrastructure: !!isInfrastructure,
             ...(code && { code }), // Only include code if it's truthy
-            // Set branchId based on user role
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId
@@ -115,7 +114,7 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
         // Clean up data
         const updateData: any = { ...otherData };
 
-        // Superusers can change branchId if provided
+        // Only superuser can change branchId
         if (req.user.role === 'superuser' && req.body.branchId) {
             updateData.branchId = req.body.branchId;
         }

@@ -7,8 +7,8 @@ export const createSupply = async (req: Request, res: Response, next: NextFuncti
     try {
         const supplyData = { ...req.body };
 
-        // RBAC: Auto-assign department for non-superuser
-        if (req.user && req.user.role !== 'superuser') {
+        // RBAC: Auto-assign department for non-privileged roles (system_admin can choose)
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             supplyData.departmentId = req.user.departmentId;
             if (req.user.department) {
                 supplyData.department = req.user.department;
@@ -90,8 +90,8 @@ export const getAllSupplies = async (req: Request, res: Response, next: NextFunc
         const { search, category, lowStock } = req.query;
         let query: any = {};
 
-        // RBAC: Department filtering for non-admin users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // RBAC: Department filtering (system_admin sees all departments)
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             if (req.user.departmentId) {
                 const deptIds: any[] = [req.user.departmentId];
                 if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -99,13 +99,12 @@ export const getAllSupplies = async (req: Request, res: Response, next: NextFunc
                 }
                 query.departmentId = { $in: deptIds };
             } else {
-                // No department = no access
                 return res.json([]);
             }
         }
 
         // Filter by branch
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             query.branchId = (req.user as any).branchId;
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             query.branchId = req.query.branchId;
@@ -153,7 +152,7 @@ export const getSupplyById = async (req: Request, res: Response, next: NextFunct
         }
 
         // RBAC: Check if user can access this supply
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             if (supply.departmentId?._id?.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'Access denied' });
             }
@@ -173,22 +172,20 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
         }
 
         // RBAC: Check if user can update this supply
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             if (oldSupply.departmentId?.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'You can only update supplies from your department' });
             }
-            // Prevent changing department
             if (req.body.departmentId && req.body.departmentId.toString() !== req.user.departmentId.toString()) {
                 return res.status(403).json({ message: 'You cannot transfer supplies to other departments' });
             }
         }
 
         const updateData = { ...req.body };
-        // Superusers can change branchId if provided
+        // Only superuser can change branchId
         if (req.user.role === 'superuser' && req.body.branchId) {
             updateData.branchId = req.body.branchId;
         } else {
-            // Non-superusers cannot change branchId
             delete updateData.branchId;
         }
 
@@ -259,7 +256,7 @@ export const deleteSupply = async (req: Request, res: Response, next: NextFuncti
         }
 
         // RBAC: Check if user can delete this supply
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             if (supply.departmentId?.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'You can only delete supplies from your department' });
             }

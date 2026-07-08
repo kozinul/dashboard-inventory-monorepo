@@ -53,6 +53,14 @@ coverage/
 # ESLint
 .eslintcache
 
+# Backup files
+*.bak
+*.backup
+*.bkp
+backups/
+*.gz
+*.sql
+
 # Scratch/test files
 fix_technician.js
 test_populate.ts

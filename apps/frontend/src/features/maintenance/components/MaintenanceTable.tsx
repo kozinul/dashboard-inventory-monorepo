@@ -12,7 +12,7 @@ interface MaintenanceTableProps {
 
 export function MaintenanceTable({ tasks, onEdit, onDelete, onComplete, userRole }: MaintenanceTableProps) {
     const isAdmin = ['superuser', 'system_admin', 'admin', 'manager'].includes(userRole || '');
-    const canDelete = ['superuser', 'administrator', 'admin'].includes(userRole || '');
+    const canDelete = ['superuser', 'system_admin', 'admin'].includes(userRole || '');
 
     // Filter State
     const [technicians, setTechnicians] = useState<any[]>([]);
