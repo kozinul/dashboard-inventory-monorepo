@@ -119,7 +119,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{asset.name}</h2>
-                            {asset.alias && <p className="text-indigo-500 dark:text-indigo-400 text-sm font-semibold">{asset.alias}</p>}
+                            {asset.alias && <p className="text-indigo-500 dark:text-indigo-400 text-sm font-semibold" title={`Alias: ${asset.alias}`}>{asset.alias}</p>}
                             <p className="text-primary font-mono text-sm font-bold mt-1">{asset.serial}</p>
                         </div>
                         <div className="flex gap-2">

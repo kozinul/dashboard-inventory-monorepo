@@ -29,7 +29,7 @@ export function AssetNameCell({ asset }: { asset: Asset }) {
     return (
         <div>
             <p className="text-sm font-bold dark:text-slate-100">{asset.name}</p>
-            {asset.alias && <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{asset.alias}</p>}
+            {asset.alias && <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium" title={`Alias: ${asset.alias}`}>{asset.alias}</p>}
             <p className="text-[11px] text-slate-500">{asset.model}</p>
             <p className="text-[10px] text-slate-400 font-mono mt-0.5">{asset.serial}</p>
             {parentInfo && (

@@ -189,10 +189,10 @@ export default function PanelDetailPage() {
                                         {assetsInSlot.map((asset) => (
                                             <div key={asset._id} className="flex justify-between items-center group/item">
                                                 <div>
-                                                    <Link to={`/inventory/asset-details/${asset._id}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                    <Link to={`/inventory/asset-details/${asset._id}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline" title={asset.alias ? `${asset.alias} — ${asset.name}` : asset.name}>
                                                         {asset.alias || asset.name}
                                                     </Link>
-                                                    {asset.alias && <div className="text-xs text-gray-500 dark:text-gray-400">{asset.name}</div>}
+                                                    {asset.alias && <div className="text-xs text-gray-500 dark:text-gray-400" title={`Alias: ${asset.alias}`}>{asset.name}</div>}
                                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex gap-2">
                                                         <span className="capitalize">{asset.status.replace('_', ' ')}</span>
                                                         {(asset.departmentId?.name || asset.department) && (
