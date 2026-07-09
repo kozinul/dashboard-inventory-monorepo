@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStockOpnameDetail, startStockOpname, verifyStockOpnameItem, setOpnameToReview, completeStockOpname, exportStockOpnameExcel, importStockOpnameExcel } from '@/features/inventory/api/stockOpname.api';
+import { getStockOpnameDetail, startStockOpname, verifyStockOpnameItem, setOpnameToReview, reopenStockOpname, completeStockOpname, exportStockOpnameExcel, importStockOpnameExcel } from '@/features/inventory/api/stockOpname.api';
 import { useAuthStore } from '@/store/authStore';
 import { showSuccess, showError, showConfirmDialog, showLoading, closeAlert } from '@/utils/swal';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
@@ -96,6 +96,26 @@ export default function StockOpnameDetailPage() {
         } catch (error) {
             closeAlert();
             showError('Failed to Submit', (error as any).response?.data?.message || 'Something went wrong.');
+        }
+    };
+
+    const handleReopen = async () => {
+        const result = await showConfirmDialog(
+            'Return to Ongoing?',
+            'This will allow editing the physical counts again. The data will need to be re-submitted for review.',
+            'Yes, Reopen'
+        );
+        if (!result.isConfirmed) return;
+
+        showLoading('Reopening...', 'Returning stock opname to ongoing...');
+        try {
+            await reopenStockOpname(id!);
+            closeAlert();
+            showSuccess('Reopened!', 'Stock Opname is back to ONGOING status. You can edit the counts.');
+            fetchData();
+        } catch (error) {
+            closeAlert();
+            showError('Failed to Reopen', (error as any).response?.data?.message || 'Something went wrong.');
         }
     };
 
@@ -203,10 +223,17 @@ export default function StockOpnameDetailPage() {
                             Submit for Review
                         </button>
                     )}
-                    {so.status === 'REVIEW' && canComplete && (
-                        <button onClick={handleComplete} className="px-4 py-2 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700">
-                            Approve & Complete
-                        </button>
+                    {so.status === 'REVIEW' && (
+                        <>
+                            <button onClick={handleReopen} className="px-4 py-2 bg-slate-500 text-white rounded font-bold hover:bg-slate-600">
+                                Return to Ongoing
+                            </button>
+                            {canComplete && (
+                                <button onClick={handleComplete} className="px-4 py-2 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700">
+                                    Approve & Complete
+                                </button>
+                            )}
+                        </>
                     )}
                     {so.status !== 'DRAFT' && (
                         <button onClick={handleExport} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">

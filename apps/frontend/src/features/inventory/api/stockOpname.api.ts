@@ -60,6 +60,11 @@ export const setOpnameToReview = async (id: string) => {
     return res.data;
 };
 
+export const reopenStockOpname = async (id: string) => {
+    const res = await api.put(`/stock-opname/${id}/reopen`);
+    return res.data;
+};
+
 export const completeStockOpname = async (id: string) => {
     const res = await api.put(`/stock-opname/${id}/complete`);
     return res.data;

@@ -231,6 +231,22 @@ export const setOpnameToReview = async (req: Request, res: Response, next: NextF
     }
 };
 
+// 6b. Reopen (REVIEW → ONGOING)
+export const reopenStockOpname = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const so = await StockOpname.findById(req.params.id);
+        if (!so) return res.status(404).json({ message: 'SO not found' });
+        if (so.status !== 'REVIEW') return res.status(400).json({ message: 'Only REVIEW SO can be reopened' });
+
+        so.status = 'ONGOING';
+        await so.save();
+
+        res.json({ message: 'Stock Opname returned to ONGOING status', so });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // 7. Complete & Auto-Adjust
 export const completeStockOpname = async (req: Request, res: Response, next: NextFunction) => {
     try {
