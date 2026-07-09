@@ -384,9 +384,9 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                 >
                                                     <option value="">None (Top Level)</option>
                                                     {allAssets
-                                                        .filter(a => a._id !== asset?._id && a.id !== asset?._id) // Prevent self-parenting
+                                                        .filter(a => a._id !== asset?._id && a.id !== asset?._id)
                                                         .map(a => (
-                                                            <option key={a._id} value={a._id}>{a.name} ({a.serial})</option>
+                                                            <option key={a._id} value={a._id}>{a.alias ? `${a.alias} / ` : ''}{a.name} ({a.serial})</option>
                                                         ))}
                                                 </select>
                                                 <p className="text-[10px] text-slate-400 mt-1">Assign if this asset is a component of another asset.</p>
