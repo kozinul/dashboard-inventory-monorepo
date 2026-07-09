@@ -33,6 +33,7 @@ export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }
                             const userAvatar = userObj && userObj.avatarUrl;
                             const userInitials = userName.substring(0, 2).toUpperCase();
                             const assetName = assignment.assetId?.name || 'Unknown Asset';
+                            const assetAlias = assignment.assetId?.alias;
                             const assetSerial = assignment.assetId?.serial || '-';
                             const assetImage = (assignment.assetId as any)?.image; // Cast if type mismatch
                             const locationName = (assignment.assetId as any)?.locationId?.name || 'General';
@@ -55,8 +56,9 @@ export function AssetAssignmentTable({ assignments, onReturn, onDelete, onEdit }
                                     </td>
                                     <td className="px-6 py-4">
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{assetName}</p>
-                                            <p className="text-[11px] text-slate-500 font-mono">{assetSerial}</p>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{assetName}</p>
+                                                        {assetAlias && <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{assetAlias}</p>}
+                                                        <p className="text-[11px] text-slate-500 font-mono">{assetSerial}</p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

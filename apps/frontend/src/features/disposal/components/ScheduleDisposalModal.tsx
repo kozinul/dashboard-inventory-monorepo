@@ -102,7 +102,7 @@ export function ScheduleDisposalModal({ isOpen, onClose, onSuccess }: ScheduleDi
                                             <option value="">Choose an asset...</option>
                                             {assets.map(asset => (
                                                 <option key={asset._id} value={asset._id}>
-                                                    {asset.name} ({asset.serial})
+                                                    {asset.name}{asset.alias ? ` [${asset.alias}]` : ''} ({asset.serial})
                                                 </option>
                                             ))}
                                         </select>

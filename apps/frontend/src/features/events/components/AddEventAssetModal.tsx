@@ -252,8 +252,9 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
                                                                             )}
                                                                         </div>
                                                                         <div>
-                                                                            <div className="font-bold text-gray-900 dark:text-white">{asset.name}</div>
-                                                                            <div className="text-xs text-gray-500">{asset.category} • {asset.model}</div>
+                                                            <div className="font-bold text-gray-900 dark:text-white">{asset.name}</div>
+                                                            {asset.alias && <div className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{asset.alias}</div>}
+                                                            <div className="text-xs text-gray-500">{asset.category} • {asset.model}</div>
                                                                         </div>
                                                                     </div>
                                                                 </td>

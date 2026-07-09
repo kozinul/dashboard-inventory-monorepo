@@ -21,6 +21,7 @@ export function AssetInfoCell({ task }: { task: any }) {
     return (
         <div className="flex flex-col">
             <span className="font-bold text-sm dark:text-white">{task.title || task.asset?.name || 'Unknown Asset'}</span>
+            {task.asset?.alias && <span className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{task.asset.alias}</span>}
             <span className="text-xs text-slate-500 font-medium tracking-tight">ID: {task.asset?.serial || task.asset?._id || 'N/A'}</span>
         </div>
     );

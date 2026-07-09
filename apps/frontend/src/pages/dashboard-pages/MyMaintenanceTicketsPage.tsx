@@ -301,6 +301,7 @@ export default function MyMaintenanceTicketsPage() {
                                     <td className="px-6 py-4 font-mono text-sm">{ticket.ticketNumber || '-'}</td>
                                     <td className="px-6 py-4">
                                         <div className="font-medium">{ticket.asset?.name}</div>
+                                        {ticket.asset?.alias && <div className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{ticket.asset.alias}</div>}
                                         <div className="text-xs text-slate-500">{ticket.asset?.serial}</div>
                                     </td>
                                     <td className="px-6 py-4">{ticket.title}</td>

@@ -7,6 +7,7 @@ export function AssetCell({ record }: { record: DisposalRecord }) {
             <div className="flex items-center gap-2">
                 <span className="font-bold dark:text-slate-100">{record.asset.name}</span>
             </div>
+            {record.asset.alias && <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{record.asset.alias}</p>}
             <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5 font-mono text-[10px]">
                 {record.asset.serial}
             </div>
