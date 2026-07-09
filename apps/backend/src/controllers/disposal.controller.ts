@@ -5,14 +5,14 @@ export const getDisposalRecords = async (req: Request, res: Response, next: Next
     try {
         const filter: any = {};
 
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
         }
 
-        // DEPT FILTERING: Only show disposal for assets in same department for non-auditors/admins
-        if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
+        // DEPT FILTERING: system_admin & auditor see all depts, others restricted
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin' && req.user.role !== 'auditor') {
             const { Asset } = await import('../models/asset.model.js');
             const deptIds: any[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId);
@@ -115,12 +115,12 @@ export const approveDisposal = async (req: Request, res: Response, next: NextFun
 export const getDisposalStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         }
 
         // DEPT FILTERING for stats
-        if (req.user && !['superuser', 'system_admin', 'admin', 'auditor'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin' && req.user.role !== 'auditor') {
             const { Asset } = await import('../models/asset.model.js');
             const deptIds: any[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId);

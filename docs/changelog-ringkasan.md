@@ -4,6 +4,58 @@ Daftar perubahan signifikan berdasarkan commit terakhir (Maret–Juli 2026).
 
 ---
 
+## 2026-07-09
+
+### Alias Field untuk Quick Search & Display
+
+**Tujuan:** Menambahkan field `alias` pada Asset untuk memudahkan pencarian dan display yang lebih ringkas.
+
+#### Perubahan Backend
+
+1. **`apps/backend/src/models/asset.model.ts`** — Field baru `alias: { type: String, trim: true }`
+2. **`apps/backend/src/controllers/inventory.controller.ts`** — `alias` di-include dalam search pipeline (`$or`), populate `parentAssetId` menyertakan `name serial alias`
+3. **`apps/backend/src/controllers/search.controller.ts`** — Pencarian global menyertakan field `alias`
+4. **`apps/backend/src/controllers/stockOpname.controller.ts`** — Populate `assetId` dan `supplyId` di Stock Opname detail, export, dan import sekarang menyertakan `alias`
+5. **`apps/backend/src/controllers/report.controller.ts`** — Populate `assetId` menyertakan `alias` untuk laporan mutasi
+
+#### Perubahan Frontend
+
+1. **`apps/frontend/src/services/assetService.ts`** — Interface `Asset` ditambahkan field `alias?: string`
+2. **`apps/frontend/src/features/inventory/components/AddInventoryModal.tsx`** — Input "Alias" dengan placeholder "e.g. NVR Hikvision 16 CH" dan tooltip
+3. **`apps/frontend/src/features/inventory/components/EditInventoryModal.tsx`** — Sama, dengan populate dari `asset.alias`
+4. **`apps/frontend/src/features/inventory/components/AssetTableParts.tsx`** — Alias ditampilkan di atas nama (indigo), tooltip pada alias
+5. **`apps/frontend/src/features/inventory/components/asset-details/AssetHero.tsx`** — Alias ditampilkan di samping nama, parent asset menampilkan alias (fallback ke name)
+6. **`apps/frontend/src/layouts/DashboardLayout.tsx`** — Global search menampilkan alias jika ada
+7. **Semua selection modal/dropdown** — Alias ditampilkan dengan format `alias | name`
+
+### Stock Opname Improvements
+
+1. **Grouping by Category** — Items dikelompokkan berdasarkan category, bukan alias/name
+2. **Item Display** — Format `alias / name` dalam satu baris dengan serial di bawah
+3. **Status Transitions** — DRAFT → ONGOING → REVIEW → COMPLETED, dengan action "Return to Ongoing" (REVIEW → ONGOING)
+4. **Keterangan Column** — Kolom input teks per-item untuk catatan, dengan highlight indigo saat ONGOING
+5. **Location Tracking** — Audit log untuk perubahan lokasi aset dengan format `Location: from → to`
+
+### Stock Opname History Tab
+
+**Tujuan:** Menampilkan riwayat stock opname di halaman detail asset.
+
+#### Backend
+- **`apps/backend/src/controllers/stockOpname.controller.ts`** — Endpoint baru `GET /by-asset/:assetId` untuk fetch StockOpnameItem berdasarkan assetId
+- **`apps/backend/src/routes/stockOpname.routes.ts`** — Route `/by-asset/:assetId` ditempatkan sebelum `/:id` agar tidak konflik
+
+#### Frontend
+- **`apps/frontend/src/features/inventory/api/stockOpname.api.ts`** — Fungsi baru `getStockOpnameByAsset()`
+- **`apps/frontend/src/features/inventory/components/asset-details/AssetStockOpnameTab.tsx`** — Komponen tab baru dengan tabel: Date, Opname Title, Status, Found, Checker, Notes
+- **`apps/frontend/src/pages/dashboard-pages/AssetDetailsPage.tsx`** — Tab "Stock Opname" ditambahkan ke navigasi
+
+### UI Fixes
+- **Breadcrumb** — Melewati segment statis jika segment berikutnya memiliki label dinamis
+- **Item Mutation** — Menu renamed dari "Mutasi Barang" ke "Item Mutation"
+- **Indonesian → English** — Semua hint text dan label diubah ke Bahasa Inggris
+
+---
+
 ## 2026-07-08
 
 ### Is Container — Checkbox & Total Slots di Form Add & Edit Asset

@@ -53,7 +53,7 @@ export function MaintenanceDetailContent({ ticketId, onSuccess, onDelete, isModa
     const [isUploading, setIsUploading] = useState<boolean>(false);
 
     const isTechnician = user?.role === 'technician';
-    const isAdmin = user?.role === 'superuser' || user?.role === 'admin' || user?.role === 'administrator';
+    const isAdmin = user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin' || user?.role === 'administrator';
     const isManager = user?.role === 'manager';
     const isDeptAdmin = user?.role === 'dept_admin';
     const isSupervisor = user?.role === 'supervisor';

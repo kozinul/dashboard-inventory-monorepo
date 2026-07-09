@@ -130,8 +130,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
         }
 
         // 2. RBAC & Selection: Department handling
-        // For restricted dept roles, build array of dept IDs including managedDepartments
-        const isRestrictedDept = !['superuser', 'admin', 'system_admin'].includes(req.user.role);
+        // system_admin bypasses department filter, all others are restricted
+        const isRestrictedDept = req.user.role !== 'superuser' && req.user.role !== 'system_admin';
         let activeDeptIds: any[] = [];
 
         if (isRestrictedDept) {
@@ -351,7 +351,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             let deptAssetIds: any[] = [];
             let deptSupplyIds: any[] = [];
 
-            if (req.user.role !== 'superuser' && req.user.role !== 'admin') {
+            if (req.user && req.user.role !== 'superuser') {
                 const activeDeptId = req.user.departmentId;
                 const [assets, supplies] = await Promise.all([
                     Asset.find({ departmentId: activeDeptId }).select('_id'),

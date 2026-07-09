@@ -7,6 +7,7 @@ export interface Asset {
     _id: string; // Backend uses _id
     id?: string; // Frontend often uses id, we might need to map it or use _id
     name: string;
+    alias?: string;
     model: string;
     category: string;
     serial: string;

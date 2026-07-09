@@ -119,6 +119,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{asset.name}</h2>
+                            {asset.alias && <p className="text-indigo-500 dark:text-indigo-400 text-sm font-semibold" title={`Alias: ${asset.alias}`}>{asset.alias}</p>}
                             <p className="text-primary font-mono text-sm font-bold mt-1">{asset.serial}</p>
                         </div>
                         <div className="flex gap-2">
@@ -142,6 +143,16 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                             <p className="text-sm font-medium dark:text-slate-200">{asset.category}</p>
                         </div>
                         <div>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Building</p>
+                            <p className="text-sm font-medium dark:text-slate-200">{asset.building || '-'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Floor / Room</p>
+                            <p className="text-sm font-medium dark:text-slate-200">
+                                {asset.locationDetail || '-'}
+                            </p>
+                        </div>
+                        <div>
                             <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Current Location</p>
                             <div className="flex items-center gap-1">
                                 <MapPinIcon className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -151,12 +162,6 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                                         : `${asset.department || 'General'} Warehouse`}
                                 </p>
                             </div>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Location Detail</p>
-                            <p className="text-sm font-medium dark:text-slate-200">
-                                {asset.locationDetail || '-'}
-                            </p>
                         </div>
                         <div>
                             <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Purchased Date</p>
@@ -179,7 +184,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary text-sm">precision_manufacturing</span>
                                     <a href={`/inventory/asset-details/${typeof asset.parentAssetId === 'string' ? asset.parentAssetId : asset.parentAssetId._id}`} className="text-sm font-bold text-primary hover:underline">
-                                        {typeof asset.parentAssetId === 'object' ? `${asset.parentAssetId.name} (${asset.parentAssetId.serial})` : 'View Parent Asset'}
+                                        {typeof asset.parentAssetId === 'object' ? (asset.parentAssetId.alias || asset.parentAssetId.name) : 'View Parent'}
                                     </a>
                                 </div>
                             </div>

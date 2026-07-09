@@ -22,11 +22,27 @@ export function AssetImageCell({ asset }: { asset: Asset }) {
 }
 
 export function AssetNameCell({ asset }: { asset: Asset }) {
+    const parentInfo = asset.parentAssetId
+        ? (typeof asset.parentAssetId === 'object' ? asset.parentAssetId : null)
+        : null;
+
     return (
         <div>
             <p className="text-sm font-bold dark:text-slate-100">{asset.name}</p>
+            {asset.alias && <p className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium" title={`Alias: ${asset.alias}`}>{asset.alias}</p>}
             <p className="text-[11px] text-slate-500">{asset.model}</p>
             <p className="text-[10px] text-slate-400 font-mono mt-0.5">{asset.serial}</p>
+            {parentInfo && (
+                <div className="flex items-center gap-1 mt-1">
+                    <span className="material-symbols-outlined text-[12px] text-indigo-400">precision_manufacturing</span>
+                    <Link
+                        to={`/inventory/asset-details/${parentInfo._id}`}
+                        className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium truncate max-w-[140px]"
+                    >
+                        {parentInfo.alias || parentInfo.name}
+                    </Link>
+                </div>
+            )}
         </div>
     );
 }

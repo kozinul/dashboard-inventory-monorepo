@@ -351,8 +351,8 @@ export function AssignmentModal({
                                         ) : (
                                             selectedAssets.map(asset => (
                                                 <tr key={asset._id} className="group hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                    <td className="p-3 font-medium text-gray-900 dark:text-white">{asset.name}</td>
-                                                    <td className="p-3 font-mono text-gray-500 dark:text-gray-400">{asset.serial}</td>
+                                                    <td className="p-3 font-medium text-gray-900 dark:text-white">{asset.alias || asset.name}</td>
+                                                    <td className="p-3 font-mono text-gray-500 dark:text-gray-400">{asset.alias ? asset.name : asset.serial}</td>
                                                     <td className="p-3 text-right">
                                                         <button
                                                             type="button"

@@ -102,6 +102,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             andConditions.push({
                 $or: [
                     { name: { $regex: req.query.search, $options: 'i' } },
+                    { alias: { $regex: req.query.search, $options: 'i' } },
                     { serial: { $regex: req.query.search, $options: 'i' } },
                     { model: { $regex: req.query.search, $options: 'i' } }
                 ]
@@ -117,7 +118,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             .limit(limit)
             .populate('departmentId', 'name')
             .populate('locationId', 'name')
-            .populate('parentAssetId', 'name serial');
+            .populate('parentAssetId', 'name serial alias');
 
         const totalOptions = Object.keys(filters).length === 0 ? {} : filters;
         const total = await Asset.countDocuments(totalOptions);
@@ -140,7 +141,8 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
     try {
         const asset = await Asset.findById(req.params.id)
             .populate('departmentId')
-            .populate('locationId');
+            .populate('locationId')
+            .populate('parentAssetId', 'name serial alias');
         if (!asset) {
             return res.status(404).json({ message: 'Asset not found' });
         }
@@ -462,13 +464,29 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
 
         // Record Audit Log
         if (asset) {
+            let details = `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`;
+
+            // Detect location change and include old/new location for mutation report
+            const oldLocationId = existingAsset.locationId?.toString();
+            const newLocationId = asset.locationId?.toString();
+            if (oldLocationId !== newLocationId) {
+                const { Location } = await import('../models/location.model.js');
+                const [oldLoc, newLoc] = await Promise.all([
+                    oldLocationId ? Location.findById(oldLocationId) : null,
+                    newLocationId ? Location.findById(newLocationId) : null,
+                ]);
+                const fromLoc = oldLoc?.name || existingAsset.location || 'Unknown';
+                const toLoc = newLoc?.name || asset.location || 'Unknown';
+                details += ` | Location: ${fromLoc} → ${toLoc}`;
+            }
+
             await recordAuditLog({
                 userId: req.user._id,
                 action: 'update',
                 resourceType: 'Asset',
                 resourceId: asset._id.toString(),
                 resourceName: asset.name,
-                details: `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`,
+                details,
                 branchId: (req.user as any).branchId?.toString(),
                 departmentId: asset.departmentId?.toString()
             });

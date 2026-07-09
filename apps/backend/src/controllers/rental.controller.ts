@@ -6,7 +6,8 @@ import { Request, Response, NextFunction } from 'express';
 export const createRental = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // RBAC: Check if user can rent this asset (department check)
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // superuser & system_admin bypass department check
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const asset = await Asset.findById(req.body.assetId);
             const deptIds: string[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
@@ -63,14 +64,14 @@ export const getRentals = async (req: Request, res: Response, next: NextFunction
             .sort({ rentalDate: -1 });
 
         // Filter by branch
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             rentals = rentals.filter((r: any) => r.branchId?.toString() === (req.user as any).branchId?.toString());
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             rentals = rentals.filter((r: any) => r.branchId?.toString() === req.query.branchId);
         }
 
-        // RBAC: Filter by department for non-admin users
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        // RBAC: Filter by department (system_admin sees all departments)
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const deptIds: string[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());
             if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -105,7 +106,7 @@ export const getRentalById = async (req: Request, res: Response, next: NextFunct
         }
 
         // RBAC: Check if user can access this rental
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             const asset = rental.assetId as any;
             const deptIds: string[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId.toString());

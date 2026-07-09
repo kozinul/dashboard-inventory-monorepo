@@ -60,6 +60,11 @@ export const setOpnameToReview = async (id: string) => {
     return res.data;
 };
 
+export const reopenStockOpname = async (id: string) => {
+    const res = await api.put(`/stock-opname/${id}/reopen`);
+    return res.data;
+};
+
 export const completeStockOpname = async (id: string) => {
     const res = await api.put(`/stock-opname/${id}/complete`);
     return res.data;
@@ -82,6 +87,11 @@ export const exportStockOpnameExcel = async (id: string) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+};
+
+export const getStockOpnameByAsset = async (assetId: string) => {
+    const res = await api.get(`/stock-opname/by-asset/${assetId}`);
+    return res.data;
 };
 
 export const importStockOpnameExcel = async (id: string, file: File) => {

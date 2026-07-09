@@ -49,10 +49,10 @@ export const getStockOpnames = async (req: Request, res: Response, next: NextFun
         const branchId = (req.user as any).branchId;
         const query: any = {};
         
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             query.branchId = branchId;
-            // Managers restricted to their department, unless admin
-            if (!['admin', 'system_admin'].includes(req.user.role)) {
+            // system_admin sees all departments, others restricted
+            if (req.user.role !== 'system_admin') {
                 if (req.user.departmentId) {
                     query.departmentId = req.user.departmentId;
                 }
@@ -86,12 +86,12 @@ export const getStockOpnameDetail = async (req: Request, res: Response, next: Ne
         const items = await StockOpnameItem.find({ stockOpnameId: so._id })
             .populate({
                 path: 'supplyId',
-                select: 'name partNumber category quantity locationId',
+                select: 'name partNumber category quantity locationId alias',
                 populate: { path: 'locationId', select: 'name' }
             })
             .populate({
                 path: 'assetId',
-                select: 'name serial model category status locationId',
+                select: 'name serial model category status locationId alias',
                 populate: { path: 'locationId', select: 'name' }
             })
             .populate('checkedBy', 'name')
@@ -231,6 +231,22 @@ export const setOpnameToReview = async (req: Request, res: Response, next: NextF
     }
 };
 
+// 6b. Reopen (REVIEW → ONGOING)
+export const reopenStockOpname = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const so = await StockOpname.findById(req.params.id);
+        if (!so) return res.status(404).json({ message: 'SO not found' });
+        if (so.status !== 'REVIEW') return res.status(400).json({ message: 'Only REVIEW SO can be reopened' });
+
+        so.status = 'ONGOING';
+        await so.save();
+
+        res.json({ message: 'Stock Opname returned to ONGOING status', so });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // 7. Complete & Auto-Adjust
 export const completeStockOpname = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -238,7 +254,7 @@ export const completeStockOpname = async (req: Request, res: Response, next: Nex
         if (!so) return res.status(404).json({ message: 'Stock Opname not found' });
         if (so.status !== 'REVIEW') return res.status(400).json({ message: 'Only SO under REVIEW can be completed' });
 
-        if (!['superuser', 'admin', 'system_admin', 'manager'].includes(req.user.role)) {
+        if (req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
             return res.status(403).json({ message: 'Not authorized to complete and adjust Stock Opname' });
         }
 
@@ -323,8 +339,8 @@ export const exportStockOpnameExcel = async (req: Request, res: Response, next: 
         if (!so) return res.status(404).json({ message: 'Stock Opname not found' });
 
         const items = await StockOpnameItem.find({ stockOpnameId: so._id })
-            .populate({ path: 'supplyId', select: 'name partNumber category' })
-            .populate({ path: 'assetId', select: 'name serial model' })
+            .populate({ path: 'supplyId', select: 'name partNumber category alias' })
+            .populate({ path: 'assetId', select: 'name serial model alias' })
             .lean();
 
         const rows = items.map((item: any, i) => {
@@ -403,8 +419,8 @@ export const importStockOpnameExcel = async (req: Request, res: Response, next: 
         const rows: any[] = XLSX.utils.sheet_to_json(ws);
 
         const dbItems = await StockOpnameItem.find({ stockOpnameId: so._id })
-            .populate({ path: 'supplyId', select: 'name partNumber' })
-            .populate({ path: 'assetId', select: 'name serial' });
+            .populate({ path: 'supplyId', select: 'name partNumber alias' })
+            .populate({ path: 'assetId', select: 'name serial alias' });
 
         let updated = 0;
         let failed = 0;
@@ -447,6 +463,21 @@ export const importStockOpnameExcel = async (req: Request, res: Response, next: 
         }
 
         res.json({ message: `Import completed: ${updated} updated, ${failed} failed`, updated, failed });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getStockOpnameByAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { assetId } = req.params;
+        const items = await StockOpnameItem.find({ assetId })
+            .populate('stockOpnameId', 'title status startDate endDate')
+            .populate('checkedBy', 'name')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.json(items);
     } catch (error) {
         next(error);
     }

@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStockOpnameDetail, startStockOpname, verifyStockOpnameItem, setOpnameToReview, completeStockOpname, exportStockOpnameExcel, importStockOpnameExcel } from '@/features/inventory/api/stockOpname.api';
+import { getStockOpnameDetail, startStockOpname, verifyStockOpnameItem, setOpnameToReview, reopenStockOpname, completeStockOpname, exportStockOpnameExcel, importStockOpnameExcel } from '@/features/inventory/api/stockOpname.api';
 import { useAuthStore } from '@/store/authStore';
 import { showSuccess, showError, showConfirmDialog, showLoading, closeAlert } from '@/utils/swal';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
@@ -99,6 +99,26 @@ export default function StockOpnameDetailPage() {
         }
     };
 
+    const handleReopen = async () => {
+        const result = await showConfirmDialog(
+            'Return to Ongoing?',
+            'This will allow editing the physical counts again. The data will need to be re-submitted for review.',
+            'Yes, Reopen'
+        );
+        if (!result.isConfirmed) return;
+
+        showLoading('Reopening...', 'Returning stock opname to ongoing...');
+        try {
+            await reopenStockOpname(id!);
+            closeAlert();
+            showSuccess('Reopened!', 'Stock Opname is back to ONGOING status. You can edit the counts.');
+            fetchData();
+        } catch (error) {
+            closeAlert();
+            showError('Failed to Reopen', (error as any).response?.data?.message || 'Something went wrong.');
+        }
+    };
+
     const handleComplete = async () => {
         const result = await showConfirmDialog(
             'Approve & Complete?',
@@ -152,6 +172,9 @@ export default function StockOpnameDetailPage() {
     const canComplete = ['superuser', 'admin', 'system_admin', 'manager'].includes(user?.role || '');
 
     const getItemName = (item: any) => item.supplyId?.name || item.assetId?.name || 'Unknown';
+    const getItemGroup = (item: any) => {
+        return item.supplyId?.category || item.assetId?.category || 'Unknown';
+    };
     const getItemLocation = (item: any) => {
         const locId = item.supplyId?.locationId || item.assetId?.locationId;
         if (!locId) return '';
@@ -174,9 +197,9 @@ export default function StockOpnameDetailPage() {
     };
 
     const groupedItems = items.reduce((acc: Record<string, any[]>, item) => {
-        const name = getItemName(item);
-        if (!acc[name]) acc[name] = [];
-        acc[name].push(item);
+        const group = getItemGroup(item);
+        if (!acc[group]) acc[group] = [];
+        acc[group].push(item);
         return acc;
     }, {});
 
@@ -203,10 +226,17 @@ export default function StockOpnameDetailPage() {
                             Submit for Review
                         </button>
                     )}
-                    {so.status === 'REVIEW' && canComplete && (
-                        <button onClick={handleComplete} className="px-4 py-2 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700">
-                            Approve & Complete
-                        </button>
+                    {so.status === 'REVIEW' && (
+                        <>
+                            <button onClick={handleReopen} className="px-4 py-2 bg-slate-500 text-white rounded font-bold hover:bg-slate-600">
+                                Return to Ongoing
+                            </button>
+                            {canComplete && (
+                                <button onClick={handleComplete} className="px-4 py-2 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700">
+                                    Approve & Complete
+                                </button>
+                            )}
+                        </>
                     )}
                     {so.status !== 'DRAFT' && (
                         <button onClick={handleExport} className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -234,6 +264,7 @@ export default function StockOpnameDetailPage() {
                             <th className="pb-2 text-center">Physical Qty / Found</th>
                             <th className="pb-2">Difference</th>
                             <th className="pb-2">Status</th>
+                            <th className="pb-2">Keterangan</th>
                             <th className="pb-2 text-right">Actions / Input</th>
                         </tr>
                     </thead>
@@ -257,7 +288,7 @@ export default function StockOpnameDetailPage() {
                                             <ChevronRightIcon className="h-4 w-4 text-slate-500" />
                                         )}
                                     </td>
-                                    <td colSpan={9} className="px-0 py-2 font-semibold text-sm text-slate-700 dark:text-slate-300">
+                                    <td colSpan={10} className="px-0 py-2 font-semibold text-sm text-slate-700 dark:text-slate-300">
                                         {name}
                                         <span className="ml-2 text-xs font-normal text-slate-400">
                                             {group.length} item{group.length > 1 ? 's' : ''}
@@ -269,8 +300,16 @@ export default function StockOpnameDetailPage() {
                                     <tr key={item._id} className="border-b last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                         <td></td>
                                         <td className="py-3">
-                                            {getItemName(item)}
-                                            <div className="text-xs text-slate-500">{item.supplyId ? 'PN: '+item.supplyId.partNumber : 'SN: '+item.assetId?.serial}</div>
+                                            {(() => {
+                                                const alias = item.supplyId?.alias || item.assetId?.alias;
+                                                const name = getItemName(item);
+                                                return (
+                                                    <span>
+                                                        {alias ? <>{alias} / {name}</> : name}
+                                                        <div className="text-xs text-slate-500">{item.supplyId ? 'PN: '+item.supplyId.partNumber : 'SN: '+item.assetId?.serial}</div>
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td>{item.supplyId ? 'Supply' : 'Asset'}</td>
                                         <td className="text-slate-600 dark:text-slate-400">
@@ -315,6 +354,19 @@ export default function StockOpnameDetailPage() {
                                         </td>
                                         <td>{item.supplyId ? (item.physicalQuantity - item.systemQuantity) : (item.physicalQuantity - item.systemQuantity)}</td>
                                         <td>{item.status}</td>
+                                        <td>
+                                            {so.status === 'ONGOING' ? (
+                                                <input
+                                                    type="text"
+                                                    defaultValue={item.notes || ''}
+                                                    onBlur={(e) => handleUpdateItem(item._id, { notes: e.target.value })}
+                                                    className="w-28 border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 rounded px-2 py-1 text-xs text-indigo-800 dark:text-indigo-200 placeholder-indigo-300"
+                                                    placeholder="isi keterangan"
+                                                />
+                                            ) : (
+                                                <span className="text-xs text-slate-500">{item.notes || '-'}</span>
+                                            )}
+                                        </td>
                                         <td className="text-right">
                                         </td>
                                     </tr>

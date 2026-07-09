@@ -124,7 +124,7 @@ export function ServiceModal({ isOpen, onClose, onSuccess, editData }: ServiceMo
                                 <option value="">{loading ? 'Loading Assets...' : 'Select Asset...'}</option>
                                 {assets.map(asset => (
                                     <option key={asset._id || asset.id} value={asset._id || asset.id}>
-                                        {asset.name} ({asset.serial})
+                                        {asset.name}{asset.alias ? ` [${asset.alias}]` : ''} ({asset.serial})
                                     </option>
                                 ))}
                             </select>

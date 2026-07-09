@@ -52,9 +52,9 @@ const mainNavigation = [
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
-    { name: 'Mutasi Barang', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
+    { name: 'Item Mutation', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
-    { name: 'Rental', href: '/rental', icon: BriefcaseIcon },
+    // { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
     { name: 'Data Management', href: '/data-management', icon: DocumentArrowUpIcon },
     { name: 'Activity Log', href: '/activity-log', icon: ClockIcon },
@@ -159,7 +159,10 @@ function DashboardLayout() {
 
     // Initialize branches data when layout mounts
     useEffect(() => {
-        initializeBranches();
+        const userBranch = user && user.role !== 'superuser'
+            ? (typeof user.branchId === 'object' ? (user.branchId as any)._id : user.branchId)
+            : undefined;
+        initializeBranches(userBranch);
     }, []);
 
     useEffect(() => {
@@ -230,14 +233,13 @@ function DashboardLayout() {
             'Data Management': 'data_management',
             'Tools': 'tools',
             'Stock Opname': 'stock_opname',
-            'Mutasi Barang': 'item_mutation_report'
+            'Item Mutation': 'item_mutation_report'
         };
 
         const resource = resourceMap[item.name];
 
-        // Audit Logs is always restricted to admin roles
         if (resource === 'audit_logs') {
-            return user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'admin';
+            return user?.role === 'superuser' || user?.role === 'system_admin';
         }
 
         // ============================================================
@@ -754,7 +756,7 @@ function DashboardLayout() {
                                                                 className="w-full text-left p-2 hover:bg-gray-50 rounded flex flex-col group transition-colors"
                                                             >
                                                                 <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">{asset.name}</span>
-                                                                <span className="text-xs text-gray-400">{asset.assetTag} | {asset.serialNumber}</span>
+                                                                <span className="text-xs text-gray-400" title={asset.alias ? `Alias: ${asset.alias}` : ''}>{asset.alias || asset.model} | {asset.serial}</span>
                                                             </button>
                                                         ))}
                                                     </div>

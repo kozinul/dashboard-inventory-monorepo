@@ -15,7 +15,7 @@ const fmtDate = (d: Date) => {
 
 const getBranchFilter = (req: Request) => {
     const { branchId } = req.query;
-    if (req.user.role !== 'superuser') {
+    if (req.user && req.user.role !== 'superuser') {
         return (req.user as any).branchId;
     }
     return branchId && branchId !== 'ALL' ? branchId : null;
@@ -38,9 +38,9 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
 
         // ── 1. Supply History ──
         const supplyQuery: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             supplyQuery.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 supplyQuery.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -85,9 +85,9 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
 
         // ── 2. Asset Activities (Assignments, Transfers, AuditLog) ──
         const assetFilter: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             assetFilter.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 assetFilter.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -191,6 +191,16 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 if (log.action === 'create') action = 'CREATE';
                 else if (log.action === 'delete') action = 'DELETE';
 
+                // Parse location change from details if present
+                let fromLocation: string | null = null;
+                let toLocation: string | null = null;
+                const details = log.details || '';
+                const locMatch = details.match(/Location: (.+?) → (.+?)$/);
+                if (locMatch) {
+                    fromLocation = locMatch[1];
+                    toLocation = locMatch[2];
+                }
+
                 assetRows.push({
                     _id: key,
                     createdAt: log.createdAt,
@@ -198,10 +208,10 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     itemType: 'Asset',
                     serial: (asset as any)?.serial || '-',
                     action,
-                    fromLocation: null,
-                    toLocation: null,
+                    fromLocation,
+                    toLocation,
                     userName: user?.name || 'System',
-                    notes: log.details || '',
+                    notes: details,
                     previousStock: null, quantityChange: null, newStock: null
                 });
             }
@@ -238,9 +248,9 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
         }
 
         const supplyQuery: any = {};
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             supplyQuery.branchId = (req.user as any).branchId;
-            if (!['admin', 'system_admin'].includes(req.user.role) && req.user.departmentId) {
+            if (req.user.role !== 'system_admin' && req.user.departmentId) {
                 supplyQuery.departmentId = req.user.departmentId;
             }
         } else if (branchFilter) {
@@ -250,7 +260,7 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
 
         const suppliesScope = await Supply.find(supplyQuery).select('_id');
         const supplyIds = suppliesScope.map(s => s._id);
-
+        
         const supplyHistory = supplyIds.length > 0
             ? await SupplyHistory.find({ ...dateMatch, supplyId: { $in: supplyIds } })
                 .sort({ createdAt: -1 })

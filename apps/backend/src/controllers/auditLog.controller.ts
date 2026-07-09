@@ -10,7 +10,7 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
         const filters: any = {};
 
         // RBAC: Non-admin roles are restricted to their branch/department
-        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+        const isPowerUser = req.user.role === 'superuser' || req.user.role === 'system_admin';
 
         if (!isPowerUser) {
             filters.branchId = req.user.branchId;
@@ -73,7 +73,7 @@ export const exportAuditLogs = async (req: Request, res: Response, next: NextFun
     try {
         const filters: any = {};
 
-        const isPowerUser = ['superuser', 'admin'].includes(req.user.role);
+        const isPowerUser = req.user.role === 'superuser' || req.user.role === 'system_admin';
 
         if (!isPowerUser) {
             filters.branchId = req.user.branchId;

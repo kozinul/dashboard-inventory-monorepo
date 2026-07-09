@@ -12,6 +12,8 @@ import { AssetDocuments } from "../../features/inventory/components/asset-detail
 import { AssetMaintenanceTab } from "../../features/inventory/components/asset-details/AssetMaintenanceTab";
 import { AssetActivityLogTab } from "../../features/inventory/components/asset-details/AssetActivityLogTab";
 import { AssetRentalRatesTab } from "../../features/inventory/components/asset-details/AssetRentalRatesTab";
+import { AssetConnectedDevicesTab } from "../../features/inventory/components/asset-details/AssetConnectedDevicesTab";
+import { AssetStockOpnameTab } from "../../features/inventory/components/asset-details/AssetStockOpnameTab";
 import { assetService, Asset } from "../../services/assetService";
 import axios from '@/lib/axios';
 
@@ -27,7 +29,7 @@ export default function AssetDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'technical_info' | 'purchasing' | 'documents' | 'rental_rates' | 'assignments' | 'rental_history' | 'external_services' | 'maintenance' | 'activity_log'>('technical_info');
+    const [activeTab, setActiveTab] = useState<'technical_info' | 'purchasing' | 'documents' | 'rental_rates' | 'assignments' | 'rental_history' | 'external_services' | 'maintenance' | 'activity_log' | 'connected_devices' | 'stock_opname'>('technical_info');
 
     const { setBreadcrumb } = useBreadcrumb();
     const location = useLocation();
@@ -173,7 +175,9 @@ export default function AssetDetailsPage() {
                             { id: 'rental_history', label: 'Rental History' },
                             { id: 'external_services', label: 'External Services' },
                             { id: 'maintenance', label: 'Maintenance' },
+                            { id: 'stock_opname', label: 'Stock Opname' },
                             { id: 'activity_log', label: 'Activity Log' },
+                            { id: 'connected_devices', label: 'Connected Devices' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -199,7 +203,9 @@ export default function AssetDetailsPage() {
                     {activeTab === 'external_services' && <AssetServiceTab asset={asset} />}
 
                     {activeTab === 'maintenance' && <AssetMaintenanceTab asset={asset} />}
+                    {activeTab === 'stock_opname' && <AssetStockOpnameTab asset={asset} />}
                     {activeTab === 'activity_log' && <AssetActivityLogTab asset={asset} />}
+                    {activeTab === 'connected_devices' && <AssetConnectedDevicesTab asset={asset} />}
 
                 </div>
             </div>

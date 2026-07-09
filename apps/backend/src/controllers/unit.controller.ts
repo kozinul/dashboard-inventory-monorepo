@@ -27,7 +27,7 @@ export const getAllUnits = async (req: Request, res: Response, next: NextFunctio
         // Build filter based on user role and branch
         const filter: any = {};
 
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId;
             if (userBranchId) {
                 filter.$or = [
@@ -68,11 +68,10 @@ export const updateUnit = async (req: Request, res: Response, next: NextFunction
     try {
         const updateData = { ...req.body };
 
-        // Superusers can change branchId if provided
+        // Only superuser can change branchId
         if (req.user.role === 'superuser' && req.body.branchId) {
             updateData.branchId = req.body.branchId;
         } else {
-            // Non-superusers cannot change branchId
             delete updateData.branchId;
         }
 

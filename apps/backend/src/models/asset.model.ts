@@ -7,6 +7,10 @@ const assetSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    alias: {
+        type: String,
+        trim: true
+    },
     model: {
         type: String,
         required: true,

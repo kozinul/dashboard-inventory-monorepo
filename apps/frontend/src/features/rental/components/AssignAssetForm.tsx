@@ -95,7 +95,7 @@ export function AssignAssetForm() {
                         <option value="">Select an asset...</option>
                         {assets.map(asset => (
                             <option key={asset._id} value={asset._id}>
-                                {asset.name} ({asset.serial || 'No Serial'})
+                                {asset.name}{asset.alias ? ` [${asset.alias}]` : ''} ({asset.serial || 'No Serial'})
                             </option>
                         ))}
                     </select>

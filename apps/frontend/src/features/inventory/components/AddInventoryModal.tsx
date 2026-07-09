@@ -17,6 +17,7 @@ interface AddInventoryModalProps {
 
 interface InventoryFormInputs {
     name: string;
+    alias: string;
     model: string;
     category: string;
     serial: string;
@@ -147,6 +148,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
 
             const assetData: any = {
                 name: data.name,
+                alias: data.alias || undefined,
                 model: data.model,
                 category: data.category,
                 technicalSpecifications: templateSpecs,
@@ -267,6 +269,17 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.name && <span className="text-xs text-red-500 mt-1">{errors.name.message}</span>}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Alias (Optional)</label>
+                                                <input
+                                                    {...register('alias')}
+                                                    type="text"
+                                                    placeholder="e.g. NVR Hikvision 16 CH"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                />
+                                                <p className="text-[10px] text-slate-400 mt-1">Short name / alias for quick search.</p>
                                             </div>
 
                                             <div>

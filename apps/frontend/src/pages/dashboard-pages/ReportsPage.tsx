@@ -39,6 +39,7 @@ export default function ReportsPage() {
     const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
     const isSuperUser = user?.role === 'superuser';
+    const isSystemAdmin = user?.role === 'system_admin';
     const isAdmin = user?.role === 'admin';
     const isTechnician = user?.role === 'technician';
     const isManager = user?.role === 'manager';
@@ -57,9 +58,9 @@ export default function ReportsPage() {
         departmentService.getAll().then(setDepartments);
         categoryService.getAll().then(setCategories);
         locationService.getAll().then(setLocations);
-    }, [isSuperUser, isAdmin, isManager, isTechnician, user]);
+    }, [isSuperUser, isSystemAdmin, isAdmin, isManager, isTechnician, user]);
 
-    const filteredDepartments = (isSuperUser || isAdmin || isTechnician || isManager) && branchId
+    const filteredDepartments = (isSuperUser || isSystemAdmin || isAdmin || isTechnician || isManager) && branchId
         ? departments.filter(d => d.branchId === branchId)
         : departments;
 
@@ -177,7 +178,7 @@ export default function ReportsPage() {
                         </div>
                     )}
 
-                    {(isAdmin || isTechnician || isManager) && (
+                    {(isSystemAdmin || isAdmin || isTechnician || isManager) && (
                         <div className="space-y-1.5 opacity-60">
                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Branch</label>
                             <select

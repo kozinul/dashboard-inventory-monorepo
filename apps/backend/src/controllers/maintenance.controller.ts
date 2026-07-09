@@ -24,8 +24,7 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
             filter['suppliesUsed.supply'] = req.query.supply;
         }
 
-        // Filter by branch
-        if (req.user.role !== 'superuser') {
+        if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
@@ -35,7 +34,7 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
         const userRole = req.user.role;
         const userId = req.user._id;
 
-        if (userRole === 'manager' || userRole === 'dept_admin' || userRole === 'supervisor') {
+        if (userRole === 'manager' || userRole === 'dept_admin' || userRole === 'supervisor' || userRole === 'admin') {
             const manager = await User.findById(userId);
             if ((manager && manager.departmentId) || (manager && manager.managedDepartments && manager.managedDepartments.length > 0)) {
                 // Collect all department IDs (Home + Managed)
@@ -80,7 +79,7 @@ export const getMaintenanceRecords = async (req: Request, res: Response, next: N
                 // Manager/Admin/Supervisor with no department sees nothing (or empty list)
                 return res.json([]);
             }
-        } else if (userRole !== 'superuser' && userRole !== 'admin' && userRole !== 'system_admin') {
+        } else if (userRole !== 'superuser' && userRole !== 'system_admin') {
             // Technicians and regular users
             filter.technician = { $exists: true, $ne: null };
             // Ensure they don't see internal tickets
@@ -219,7 +218,7 @@ export const createMaintenanceTicket = async (req: Request, res: Response, next:
         const userRole = req.user.role;
         const { asset: assetId, locationTarget: locationTargetId } = req.body;
 
-        const isPrivileged = userRole === 'superuser' || userRole === 'admin';
+        const isPrivileged = userRole === 'superuser' || userRole === 'admin' || userRole === 'system_admin';
 
         if (!isPrivileged) {
             if (locationTargetId) {
@@ -366,7 +365,6 @@ export const createMaintenanceRecord = async (req: Request, res: Response, next:
             requestedAt: new Date(),
             isInternalDepartment: !!req.body.locationTarget,
             assignedDepartment: req.body.locationTarget ? (req.user.departmentId || req.body.assignedDepartment) : req.body.assignedDepartment,
-            // Set branchId based on user role
             branchId: req.user.role === 'superuser'
                 ? (req.body.branchId || (req.user as any).branchId)
                 : (req.user as any).branchId,
@@ -464,7 +462,7 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        if (req.user.role !== 'admin' && req.user.role !== 'superuser' && record.technician?.toString() !== technicianId.toString()) {
+        if (!['admin', 'superuser', 'system_admin'].includes(req.user.role) && record.technician?.toString() !== technicianId.toString()) {
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
 
@@ -973,7 +971,7 @@ export const removeSupplyFromTicket = async (req: Request, res: Response, next: 
         }
 
         // Allow manager/admin/assigned technician
-        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || (req.user.departmentId && req.user.role === 'manager');
+        const isManager = ['admin', 'superuser', 'system_admin'].includes(req.user.role) || (req.user.departmentId && req.user.role === 'manager');
         if (record.technician?.toString() !== technicianId.toString() && !isManager) {
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
@@ -1071,7 +1069,7 @@ export const deleteMaintenanceNote = async (req: Request, res: Response, next: N
 
         // Check ownership (only creator or admin can delete)
         const note = record.notes[noteIndex];
-        if (note.addedBy?.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+        if (note.addedBy?.toString() !== userId.toString() && !['admin', 'superuser', 'system_admin'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Not authorized to delete this note' });
         }
 
@@ -1108,7 +1106,7 @@ export const updateMaintenanceNote = async (req: Request, res: Response, next: N
             return res.status(404).json({ message: 'Note not found' });
         }
 
-        if (note.addedBy?.toString() !== userId.toString() && req.user.role !== 'admin' && req.user.role !== 'superuser') {
+        if (note.addedBy?.toString() !== userId.toString() && !['admin', 'superuser', 'system_admin'].includes(req.user.role)) {
             return res.status(403).json({ message: 'Not authorized to update this note' });
         }
 
@@ -1163,9 +1161,9 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
 
         // 2. Department Tickets breakdown
         // Allow anyone with a department to see their department's tickets stats (Manager, Supervisor, User, etc.)
-        if (user.role === 'admin' || user.role === 'superuser' || user.departmentId || (user.managedDepartments && user.managedDepartments.length > 0)) {
+        if (user.role === 'superuser' || user.role === 'system_admin' || user.departmentId || (user.managedDepartments && user.managedDepartments.length > 0)) {
             const deptFilter: any = {};
-            if (user.role !== 'admin' && user.role !== 'superuser') {
+            if (user.role !== 'superuser' && user.role !== 'system_admin') {
                 const departmentIds = [];
                 if (user.departmentId) departmentIds.push(user.departmentId);
                 if (user.managedDepartments && user.managedDepartments.length > 0) {
@@ -1194,7 +1192,7 @@ export const getNavCounts = async (req: Request, res: Response, next: NextFuncti
         }
 
         // 3. Assigned Tickets breakdown (for technicians)
-        if (user.role === 'technician' || user.role === 'admin' || user.role === 'superuser') {
+        if (user.role === 'technician' || ['admin', 'superuser', 'system_admin'].includes(user.role)) {
             const assignedFilter: any = {};
             if (user.role === 'technician') {
                 assignedFilter.technician = userId;
@@ -1244,7 +1242,7 @@ export const updateTicketWork = async (req: Request, res: Response, next: NextFu
         }
 
         // Allow manager/admin to update as well, or just the assigned technician
-        const isManager = req.user.role === 'admin' || req.user.role === 'superuser' || (req.user.departmentId && req.user.role === 'manager');
+        const isManager = ['admin', 'superuser', 'system_admin'].includes(req.user.role) || (req.user.departmentId && req.user.role === 'manager');
         if (record.technician?.toString() !== technicianId.toString() && !isManager) {
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }

@@ -19,7 +19,7 @@ export const updateTransfer = async (req: Request, res: Response, next: NextFunc
         }
 
         // RBAC: Only admin or the requester can update
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             if (transfer.requestedBy.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ message: 'You can only update your own transfer requests' });
             }
@@ -65,8 +65,7 @@ export const createTransfer = async (req: Request, res: Response, next: NextFunc
         // If no target branch specified, it's intra-branch (same branch)
         const targetBranchId = toBranchId || originBranchId;
 
-        // Check permission: User must be in origin branch/dept or admin
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             // Check Department ownership
             if (asset.departmentId?.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'You can only transfer assets from your own department' });
@@ -114,8 +113,7 @@ export const getTransfers = async (req: Request, res: Response, next: NextFuncti
     try {
         const filters: any = {};
 
-        // RBAC: Non-admin users only see transfers involving their department/branch
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             const deptIds: any[] = [];
             if (req.user.departmentId) deptIds.push(req.user.departmentId);
             if ((req.user as any).managedDepartments && (req.user as any).managedDepartments.length > 0) {
@@ -169,8 +167,7 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
             return res.status(400).json({ message: 'Only transfers in transit can be completed (received)' });
         }
 
-        // RBAC: Only admin or user from the target department AND target branch can approve
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             if (transfer.toDepartmentId.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'Only users from the receiving department can receive transfers' });
             }
@@ -235,8 +232,7 @@ export const sendTransfer = async (req: Request, res: Response, next: NextFuncti
             return res.status(400).json({ message: 'Only pending transfers can be sent for approval' });
         }
 
-        // RBAC: Only admin or the requester can send
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             if (transfer.requestedBy.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ message: 'You can only send your own transfer requests' });
             }
@@ -274,8 +270,7 @@ export const approveTransferByManager = async (req: Request, res: Response, next
             return res.status(400).json({ message: 'Only transfers waiting for manager approval can be approved by manager' });
         }
 
-        // RBAC: Only admin or Manager from the source department AND source branch can approve
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             // Check if user has manager role
             if (!['manager'].includes(req.user.role)) {
                 return res.status(403).json({ message: 'Only managers can approve transfer requests' });
@@ -322,8 +317,7 @@ export const rejectTransfer = async (req: Request, res: Response, next: NextFunc
             return res.status(400).json({ message: 'Only pending or waiting approval transfers can be rejected' });
         }
 
-        // RBAC: Only admin or user from the target department can reject
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             if (transfer.toDepartmentId.toString() !== req.user.departmentId?.toString()) {
                 return res.status(403).json({ message: 'Only users from the receiving department (or admins) can reject transfers' });
             }
@@ -365,8 +359,7 @@ export const deleteTransfer = async (req: Request, res: Response, next: NextFunc
             return res.status(400).json({ message: 'Only pending transfers can be deleted' });
         }
 
-        // RBAC: Only admin or the requester can delete
-        if (req.user && !['superuser', 'admin'].includes(req.user.role)) {
+        if (req.user && req.user.role !== 'superuser') {
             if (transfer.requestedBy.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ message: 'You can only delete your own transfer requests' });
             }

@@ -11,7 +11,7 @@ interface AppState {
 
     setActiveBranch: (id: string | 'ALL') => void;
     setLoading: (loading: boolean) => void;
-    initialize: () => Promise<void>;
+    initialize: (userOverrideBranchId?: string) => Promise<void>;
     reset: () => void;
 }
 
@@ -33,7 +33,7 @@ export const useAppStore = create<AppState>()(
             },
             setLoading: (loading) => set({ isLoading: loading }),
 
-            initialize: async () => {
+            initialize: async (userOverrideBranchId?: string) => {
                 const { isInitialized } = get();
 
                 set({ isLoading: true });
@@ -42,10 +42,12 @@ export const useAppStore = create<AppState>()(
                     let newActiveId = get().activeBranchId;
                     const headOffice = branches.find(b => b.isHeadOffice);
 
-                    // If not initialized OR currently ALL, default to Head Office
-                    // This satisfies "always show head office on new login" 
+                    // If not initialized OR currently ALL, choose active branch
                     if (!isInitialized || newActiveId === 'ALL') {
-                        if (headOffice) {
+                        if (userOverrideBranchId) {
+                            // For non-admin users, default to their own branch
+                            newActiveId = userOverrideBranchId;
+                        } else if (headOffice) {
                             newActiveId = headOffice._id;
                         } else if (branches.length > 0) {
                             newActiveId = branches[0]?._id || 'ALL';

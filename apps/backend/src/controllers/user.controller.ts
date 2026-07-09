@@ -8,7 +8,7 @@ export const getTechnicians = async (req: Request, res: Response, next: NextFunc
         const filter: any = {
             role: { $in: ["technician", "dept_admin", "manager", "superuser", "admin"] }
         };
-        if (req.user && req.user.role !== "superuser") {
+        if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         }
         const users = await User.find(filter).select("_id name department role branchId email").populate("branchId");
@@ -22,7 +22,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
     try {
         const filter: any = {};
 
-        // RBAC: Non-superusers only see users from their branch
+        // RBAC: Non-superuser users only see users from their branch
         if (req.user && req.user.role !== 'superuser') {
             filter.branchId = (req.user as any).branchId;
         }
@@ -42,7 +42,7 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
             throw new Error('User not found');
         }
 
-        // RBAC: Non-superusers can only view users from their branch
+        // RBAC: Non-superuser users can only view users from their branch
         if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
             const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();
@@ -111,7 +111,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be edited');
         }
 
-        // RBAC: Non-superusers can only edit users from their branch
+        // RBAC: Non-superuser users can only edit users from their branch
         if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
             const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();
@@ -142,7 +142,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
                 }
             }
 
-            // Non-superusers cannot change branchId
+            // Non-admin users cannot change branchId
             delete req.body.branchId;
         }
 
@@ -203,7 +203,7 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             throw new Error('Superuser cannot be deleted');
         }
 
-        // RBAC: Non-superusers can only delete users from their branch
+        // RBAC: Non-superuser users can only delete users from their branch
         if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId?.toString() || (req.user as any).branchId;
             const targetUserBranchId = user.branchId?._id?.toString() || user.branchId?.toString();

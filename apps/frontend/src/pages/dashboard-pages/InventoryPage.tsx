@@ -91,6 +91,7 @@ export default function InventoryPage() {
         const searchLower = searchQuery.toLowerCase();
         const matchSearch = !searchQuery || 
                             (a.name?.toLowerCase().includes(searchLower)) ||
+                            (a.alias?.toLowerCase().includes(searchLower)) ||
                             (a.serial?.toLowerCase().includes(searchLower)) ||
                             (a.category?.toLowerCase().includes(searchLower)) ||
                             (a.building?.toLowerCase().includes(searchLower)) ||
@@ -200,7 +201,7 @@ export default function InventoryPage() {
 
     const { user } = useAuthStore.getState();
     const hasInventoryPermission = user?.permissions?.find(p => p.resource === 'inventory')?.actions.create || false;
-    const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'manager' || user?.role === 'technician' || user?.role === 'supervisor' || hasInventoryPermission;
+    const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'manager' || user?.role === 'technician' || user?.role === 'supervisor' || hasInventoryPermission;
 
     return (
         <div className="space-y-8">
