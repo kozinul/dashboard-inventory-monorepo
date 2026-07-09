@@ -299,7 +299,11 @@ export default function StockOpnameDetailPage() {
                                     <tr key={item._id} className="border-b last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                         <td></td>
                                         <td className="py-3">
-                                            {getItemName(item)}
+                                            {(() => {
+                                                const alias = item.supplyId?.alias || item.assetId?.alias;
+                                                const name = getItemName(item);
+                                                return alias ? `${alias} / ${name}` : name;
+                                            })()}
                                             <div className="text-xs text-slate-500">{item.supplyId ? 'PN: '+item.supplyId.partNumber : 'SN: '+item.assetId?.serial}</div>
                                         </td>
                                         <td>{item.supplyId ? 'Supply' : 'Asset'}</td>
