@@ -172,6 +172,13 @@ export default function StockOpnameDetailPage() {
     const canComplete = ['superuser', 'admin', 'system_admin', 'manager'].includes(user?.role || '');
 
     const getItemName = (item: any) => item.supplyId?.name || item.assetId?.name || 'Unknown';
+    const getItemGroup = (item: any) => {
+        const alias = item.supplyId?.alias || item.assetId?.alias;
+        if (alias) return alias;
+        const name = getItemName(item);
+        const firstWord = name.split(/[\s-]+/)[0];
+        return firstWord || 'Unknown';
+    };
     const getItemLocation = (item: any) => {
         const locId = item.supplyId?.locationId || item.assetId?.locationId;
         if (!locId) return '';
@@ -194,9 +201,9 @@ export default function StockOpnameDetailPage() {
     };
 
     const groupedItems = items.reduce((acc: Record<string, any[]>, item) => {
-        const name = getItemName(item);
-        if (!acc[name]) acc[name] = [];
-        acc[name].push(item);
+        const group = getItemGroup(item);
+        if (!acc[group]) acc[group] = [];
+        acc[group].push(item);
         return acc;
     }, {});
 
