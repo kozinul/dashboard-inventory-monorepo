@@ -302,7 +302,9 @@ export default function StockOpnameDetailPage() {
                                             {(() => {
                                                 const alias = item.supplyId?.alias || item.assetId?.alias;
                                                 const name = getItemName(item);
-                                                return alias ? `${alias} / ${name}` : name;
+                                                return alias
+                                                    ? <><span className="text-[11px] text-indigo-500 dark:text-indigo-400 font-medium">{alias}</span><br /><span>{name}</span></>
+                                                    : <span>{name}</span>;
                                             })()}
                                             <div className="text-xs text-slate-500">{item.supplyId ? 'PN: '+item.supplyId.partNumber : 'SN: '+item.assetId?.serial}</div>
                                         </td>
