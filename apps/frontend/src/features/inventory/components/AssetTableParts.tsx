@@ -39,7 +39,7 @@ export function AssetNameCell({ asset }: { asset: Asset }) {
                         to={`/inventory/asset-details/${parentInfo._id}`}
                         className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium truncate max-w-[140px]"
                     >
-                        {parentInfo.name}
+                        {parentInfo.alias || parentInfo.name}
                     </Link>
                 </div>
             )}
