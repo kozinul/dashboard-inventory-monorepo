@@ -360,8 +360,8 @@ export default function StockOpnameDetailPage() {
                                                     type="text"
                                                     defaultValue={item.notes || ''}
                                                     onBlur={(e) => handleUpdateItem(item._id, { notes: e.target.value })}
-                                                    className="w-28 border rounded px-2 py-1 text-xs"
-                                                    placeholder="..."
+                                                    className="w-28 border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 rounded px-2 py-1 text-xs text-indigo-800 dark:text-indigo-200 placeholder-indigo-300"
+                                                    placeholder="isi keterangan"
                                                 />
                                             ) : (
                                                 <span className="text-xs text-slate-500">{item.notes || '-'}</span>
