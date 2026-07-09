@@ -86,12 +86,12 @@ export const getStockOpnameDetail = async (req: Request, res: Response, next: Ne
         const items = await StockOpnameItem.find({ stockOpnameId: so._id })
             .populate({
                 path: 'supplyId',
-                select: 'name partNumber category quantity locationId',
+                select: 'name partNumber category quantity locationId alias',
                 populate: { path: 'locationId', select: 'name' }
             })
             .populate({
                 path: 'assetId',
-                select: 'name serial model category status locationId',
+                select: 'name serial model category status locationId alias',
                 populate: { path: 'locationId', select: 'name' }
             })
             .populate('checkedBy', 'name')
@@ -339,8 +339,8 @@ export const exportStockOpnameExcel = async (req: Request, res: Response, next: 
         if (!so) return res.status(404).json({ message: 'Stock Opname not found' });
 
         const items = await StockOpnameItem.find({ stockOpnameId: so._id })
-            .populate({ path: 'supplyId', select: 'name partNumber category' })
-            .populate({ path: 'assetId', select: 'name serial model' })
+            .populate({ path: 'supplyId', select: 'name partNumber category alias' })
+            .populate({ path: 'assetId', select: 'name serial model alias' })
             .lean();
 
         const rows = items.map((item: any, i) => {
@@ -419,8 +419,8 @@ export const importStockOpnameExcel = async (req: Request, res: Response, next: 
         const rows: any[] = XLSX.utils.sheet_to_json(ws);
 
         const dbItems = await StockOpnameItem.find({ stockOpnameId: so._id })
-            .populate({ path: 'supplyId', select: 'name partNumber' })
-            .populate({ path: 'assetId', select: 'name serial' });
+            .populate({ path: 'supplyId', select: 'name partNumber alias' })
+            .populate({ path: 'assetId', select: 'name serial alias' });
 
         let updated = 0;
         let failed = 0;
