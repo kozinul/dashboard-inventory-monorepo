@@ -102,6 +102,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             andConditions.push({
                 $or: [
                     { name: { $regex: req.query.search, $options: 'i' } },
+                    { alias: { $regex: req.query.search, $options: 'i' } },
                     { serial: { $regex: req.query.search, $options: 'i' } },
                     { model: { $regex: req.query.search, $options: 'i' } }
                 ]

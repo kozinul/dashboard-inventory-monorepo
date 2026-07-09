@@ -17,6 +17,7 @@ interface EditInventoryModalProps {
 
 interface InventoryFormInputs {
     name: string;
+    alias: string;
     model: string;
     category: string;
     serial: string;
@@ -102,6 +103,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
             // Prepare full form data for a synchronized reset
             const formData: InventoryFormInputs = {
                 name: asset.name,
+                alias: asset.alias || '',
                 model: asset.model,
                 category: asset.category,
                 serial: asset.serial,
@@ -177,6 +179,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
 
             const payload: any = {
                 ...data,
+                alias: data.alias || undefined,
                 departmentId: (data.departmentId || null) as any, // Convert empty string to null for Mongoose
                 locationId: locationId as any,
                 locationDetail: data.locationDetail,
@@ -289,6 +292,17 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 {errors.name && <span className="text-xs text-red-500 mt-1">{errors.name.message}</span>}
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Alias (Optional)</label>
+                                                <input
+                                                    {...register('alias')}
+                                                    type="text"
+                                                    placeholder="e.g. NVR Mezzanine"
+                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                />
+                                                <p className="text-[10px] text-slate-400 mt-1">Nama pendek/alias untuk memudahkan pencarian.</p>
                                             </div>
 
                                             <div>

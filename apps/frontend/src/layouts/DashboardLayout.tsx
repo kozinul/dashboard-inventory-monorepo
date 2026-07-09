@@ -756,7 +756,7 @@ function DashboardLayout() {
                                                                 className="w-full text-left p-2 hover:bg-gray-50 rounded flex flex-col group transition-colors"
                                                             >
                                                                 <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">{asset.name}</span>
-                                                                <span className="text-xs text-gray-400">{asset.assetTag} | {asset.serialNumber}</span>
+                                                                <span className="text-xs text-gray-400">{asset.alias || asset.model} | {asset.serial}</span>
                                                             </button>
                                                         ))}
                                                     </div>

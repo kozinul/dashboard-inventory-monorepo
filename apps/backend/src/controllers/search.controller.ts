@@ -37,11 +37,12 @@ export const globalSearch = async (req: Request, res: Response, next: NextFuncti
             ...baseFilter,
             $or: [
                 { name: searchRegex },
-                { assetTag: searchRegex },
-                { serialNumber: searchRegex }
+                { alias: searchRegex },
+                { serial: searchRegex },
+                { model: searchRegex }
             ]
         };
-        const assets = await Asset.find(assetFilter).limit(limit).select('name assetTag serialNumber');
+        const assets = await Asset.find(assetFilter).limit(limit).select('name alias serial model');
 
         // 2. Search Users
         const userFilter = {

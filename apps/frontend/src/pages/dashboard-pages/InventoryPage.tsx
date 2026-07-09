@@ -91,6 +91,7 @@ export default function InventoryPage() {
         const searchLower = searchQuery.toLowerCase();
         const matchSearch = !searchQuery || 
                             (a.name?.toLowerCase().includes(searchLower)) ||
+                            (a.alias?.toLowerCase().includes(searchLower)) ||
                             (a.serial?.toLowerCase().includes(searchLower)) ||
                             (a.category?.toLowerCase().includes(searchLower)) ||
                             (a.building?.toLowerCase().includes(searchLower)) ||
