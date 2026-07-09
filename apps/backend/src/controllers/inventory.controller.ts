@@ -118,7 +118,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             .limit(limit)
             .populate('departmentId', 'name')
             .populate('locationId', 'name')
-            .populate('parentAssetId', 'name serial');
+            .populate('parentAssetId', 'name serial alias');
 
         const totalOptions = Object.keys(filters).length === 0 ? {} : filters;
         const total = await Asset.countDocuments(totalOptions);
@@ -141,7 +141,8 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
     try {
         const asset = await Asset.findById(req.params.id)
             .populate('departmentId')
-            .populate('locationId');
+            .populate('locationId')
+            .populate('parentAssetId', 'name serial alias');
         if (!asset) {
             return res.status(404).json({ message: 'Asset not found' });
         }

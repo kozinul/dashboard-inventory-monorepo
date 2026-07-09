@@ -184,7 +184,7 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary text-sm">precision_manufacturing</span>
                                     <a href={`/inventory/asset-details/${typeof asset.parentAssetId === 'string' ? asset.parentAssetId : asset.parentAssetId._id}`} className="text-sm font-bold text-primary hover:underline">
-                                        {typeof asset.parentAssetId === 'object' ? (asset.parentAssetId.alias || asset.parentAssetId.name) : 'View Parent Asset'}
+                                        {typeof asset.parentAssetId === 'object' ? (asset.parentAssetId.alias || asset.parentAssetId.name) : 'Loading...'}
                                     </a>
                                 </div>
                             </div>
