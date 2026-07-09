@@ -467,3 +467,18 @@ export const importStockOpnameExcel = async (req: Request, res: Response, next: 
         next(error);
     }
 };
+
+export const getStockOpnameByAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { assetId } = req.params;
+        const items = await StockOpnameItem.find({ assetId })
+            .populate('stockOpnameId', 'title status startDate endDate')
+            .populate('checkedBy', 'name')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        res.json(items);
+    } catch (error) {
+        next(error);
+    }
+};

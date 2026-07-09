@@ -89,6 +89,11 @@ export const exportStockOpnameExcel = async (id: string) => {
     window.URL.revokeObjectURL(url);
 };
 
+export const getStockOpnameByAsset = async (assetId: string) => {
+    const res = await api.get(`/stock-opname/by-asset/${assetId}`);
+    return res.data;
+};
+
 export const importStockOpnameExcel = async (id: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
