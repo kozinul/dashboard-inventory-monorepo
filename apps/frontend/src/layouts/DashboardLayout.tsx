@@ -52,7 +52,7 @@ const mainNavigation = [
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
-    { name: 'Mutasi Barang', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
+    { name: 'Item Mutation', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     // { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
@@ -233,7 +233,7 @@ function DashboardLayout() {
             'Data Management': 'data_management',
             'Tools': 'tools',
             'Stock Opname': 'stock_opname',
-            'Mutasi Barang': 'item_mutation_report'
+            'Item Mutation': 'item_mutation_report'
         };
 
         const resource = resourceMap[item.name];
