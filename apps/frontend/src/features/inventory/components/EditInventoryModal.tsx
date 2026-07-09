@@ -299,7 +299,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                 <input
                                                     {...register('alias')}
                                                     type="text"
-                                                    placeholder="e.g. NVR Mezzanine"
+                                                    placeholder="e.g. NVR Hikvision 16 CH"
                                                     className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
                                                 />
                                                 <p className="text-[10px] text-slate-400 mt-1">Short name / alias for quick search.</p>
