@@ -46,19 +46,26 @@ export function Breadcrumbs() {
                     const to = `/${pathnames.slice(0, index + 1).join('/')}`;
                     const isLast = index === pathnames.length - 1;
 
-                    // Handle dynamic IDs or unknown routes reasonably
-                    // If it looks like an ID (long string with numbers/dashes), maybe shorten or show "Details"
-                    // For now, check map or title case it
+                    // Check if next segment has a custom label (e.g., asset name)
+                    const nextTo = index < pathnames.length - 1
+                        ? `/${pathnames.slice(0, index + 2).join('/')}`
+                        : null;
+                    const nextHasCustomLabel = nextTo && getBreadcrumb(nextTo);
+
+                    // Skip intermediate static route segment when next has custom label
+                    // e.g., "Asset Details" is skipped when the asset name follows
+                    if (nextHasCustomLabel && !isLast && routeNameMap[value]) {
+                        return null;
+                    }
+
                     let name = routeNameMap[value];
                     const customLabel = getBreadcrumb(to);
 
                     if (customLabel) {
                         name = customLabel;
                     } else if (!name) {
-                        // Simple fallback: capitalize or keep as is if it looks like an ID
-                        // Check if valid Mongo ID or UUID (rough check)
                         if (value.length > 20 || /\d/.test(value)) {
-                            name = "Details"; // or keep value if debugging
+                            name = "Details";
                         } else {
                             name = value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ');
                         }
