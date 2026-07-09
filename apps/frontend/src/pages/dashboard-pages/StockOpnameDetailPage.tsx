@@ -264,6 +264,7 @@ export default function StockOpnameDetailPage() {
                             <th className="pb-2 text-center">Physical Qty / Found</th>
                             <th className="pb-2">Difference</th>
                             <th className="pb-2">Status</th>
+                            <th className="pb-2">Keterangan</th>
                             <th className="pb-2 text-right">Actions / Input</th>
                         </tr>
                     </thead>
@@ -287,7 +288,7 @@ export default function StockOpnameDetailPage() {
                                             <ChevronRightIcon className="h-4 w-4 text-slate-500" />
                                         )}
                                     </td>
-                                    <td colSpan={9} className="px-0 py-2 font-semibold text-sm text-slate-700 dark:text-slate-300">
+                                    <td colSpan={10} className="px-0 py-2 font-semibold text-sm text-slate-700 dark:text-slate-300">
                                         {name}
                                         <span className="ml-2 text-xs font-normal text-slate-400">
                                             {group.length} item{group.length > 1 ? 's' : ''}
@@ -353,6 +354,19 @@ export default function StockOpnameDetailPage() {
                                         </td>
                                         <td>{item.supplyId ? (item.physicalQuantity - item.systemQuantity) : (item.physicalQuantity - item.systemQuantity)}</td>
                                         <td>{item.status}</td>
+                                        <td>
+                                            {so.status === 'ONGOING' ? (
+                                                <input
+                                                    type="text"
+                                                    defaultValue={item.notes || ''}
+                                                    onBlur={(e) => handleUpdateItem(item._id, { notes: e.target.value })}
+                                                    className="w-28 border rounded px-2 py-1 text-xs"
+                                                    placeholder="..."
+                                                />
+                                            ) : (
+                                                <span className="text-xs text-slate-500">{item.notes || '-'}</span>
+                                            )}
+                                        </td>
                                         <td className="text-right">
                                         </td>
                                     </tr>
