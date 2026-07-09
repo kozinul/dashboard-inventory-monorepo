@@ -173,11 +173,7 @@ export default function StockOpnameDetailPage() {
 
     const getItemName = (item: any) => item.supplyId?.name || item.assetId?.name || 'Unknown';
     const getItemGroup = (item: any) => {
-        const alias = item.supplyId?.alias || item.assetId?.alias;
-        if (alias) return alias;
-        const name = getItemName(item);
-        const firstWord = name.split(/[\s-]+/)[0];
-        return firstWord || 'Unknown';
+        return item.supplyId?.category || item.assetId?.category || 'Unknown';
     };
     const getItemLocation = (item: any) => {
         const locId = item.supplyId?.locationId || item.assetId?.locationId;
