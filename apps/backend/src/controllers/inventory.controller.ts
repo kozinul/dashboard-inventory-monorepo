@@ -464,13 +464,29 @@ export const updateAsset = async (req: Request, res: Response, next: NextFunctio
 
         // Record Audit Log
         if (asset) {
+            let details = `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`;
+
+            // Detect location change and include old/new location for mutation report
+            const oldLocationId = existingAsset.locationId?.toString();
+            const newLocationId = asset.locationId?.toString();
+            if (oldLocationId !== newLocationId) {
+                const { Location } = await import('../models/location.model.js');
+                const [oldLoc, newLoc] = await Promise.all([
+                    oldLocationId ? Location.findById(oldLocationId) : null,
+                    newLocationId ? Location.findById(newLocationId) : null,
+                ]);
+                const fromLoc = oldLoc?.name || existingAsset.location || 'Unknown';
+                const toLoc = newLoc?.name || asset.location || 'Unknown';
+                details += ` | Location: ${fromLoc} → ${toLoc}`;
+            }
+
             await recordAuditLog({
                 userId: req.user._id,
                 action: 'update',
                 resourceType: 'Asset',
                 resourceId: asset._id.toString(),
                 resourceName: asset.name,
-                details: `Updated asset: ${asset.name}. Changes: ${Object.keys(req.body).join(', ')}`,
+                details,
                 branchId: (req.user as any).branchId?.toString(),
                 departmentId: asset.departmentId?.toString()
             });

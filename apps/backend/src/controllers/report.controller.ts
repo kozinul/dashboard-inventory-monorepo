@@ -191,6 +191,16 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 if (log.action === 'create') action = 'CREATE';
                 else if (log.action === 'delete') action = 'DELETE';
 
+                // Parse location change from details if present
+                let fromLocation: string | null = null;
+                let toLocation: string | null = null;
+                const details = log.details || '';
+                const locMatch = details.match(/Location: (.+?) → (.+?)$/);
+                if (locMatch) {
+                    fromLocation = locMatch[1];
+                    toLocation = locMatch[2];
+                }
+
                 assetRows.push({
                     _id: key,
                     createdAt: log.createdAt,
@@ -198,10 +208,10 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     itemType: 'Asset',
                     serial: (asset as any)?.serial || '-',
                     action,
-                    fromLocation: null,
-                    toLocation: null,
+                    fromLocation,
+                    toLocation,
                     userName: user?.name || 'System',
-                    notes: log.details || '',
+                    notes: details,
                     previousStock: null, quantityChange: null, newStock: null
                 });
             }
