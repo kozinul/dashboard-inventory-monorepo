@@ -8,12 +8,13 @@ export const getLocations = async (req: Request, res: Response, next: NextFuncti
 
         if (req.user && req.user.role !== 'superuser') {
             const userBranchId = (req.user as any).branchId;
-            if (userBranchId) {
-                filter.$or = [
-                    { branchId: userBranchId },
-                    { branchId: null },
-                    { branchId: { $exists: false } }
-                ];
+            const queryBranchId = req.query.branchId as string | undefined;
+
+            // Use query param branchId if provided, otherwise fall back to JWT branch
+            const effectiveBranchId = (queryBranchId && queryBranchId !== 'ALL') ? queryBranchId : userBranchId;
+
+            if (effectiveBranchId) {
+                filter.branchId = effectiveBranchId;
 
                 // system_admin sees all departments, others filtered
                 if (req.user.role !== 'system_admin') {
@@ -34,11 +35,6 @@ export const getLocations = async (req: Request, res: Response, next: NextFuncti
                         ];
                     }
                 }
-            } else {
-                filter.$or = [
-                    { branchId: null },
-                    { branchId: { $exists: false } }
-                ];
             }
         } else if (req.query.branchId && req.query.branchId !== 'ALL') {
             filter.branchId = req.query.branchId;
