@@ -186,6 +186,7 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                 >
                                                     <span className="material-symbols-outlined text-slate-400 text-lg">videocam</span>
                                                     <div className="min-w-0">
+                                                        {c.alias && <p className="text-xs font-semibold text-indigo-500 truncate">{c.alias}</p>}
                                                         <p className="font-medium truncate">{c.name}</p>
                                                         <p className="text-xs text-slate-400 font-mono truncate">{c.serial}</p>
                                                     </div>
@@ -236,15 +237,14 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                     return (
                                         <tr key={childId} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                             <td className="px-4 py-3">
+                                                {child.alias && <p className="text-xs font-semibold text-indigo-500 truncate max-w-[200px]">{child.alias}</p>}
                                                 <Link
                                                     to={`/inventory/asset-details/${childId}`}
                                                     className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                                                 >
                                                     {child.name}
                                                 </Link>
-                                                {child.model && (
-                                                    <p className="text-xs text-slate-400 font-mono truncate max-w-[200px]">{child.model}</p>
-                                                )}
+                                                <p className="text-xs text-slate-400 font-mono truncate max-w-[200px]">{child.serial}</p>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 font-mono">{child.serial}</td>
                                             <td className="px-4 py-3">
@@ -326,6 +326,7 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                 })()}
                                             </div>
                                             <div className="min-w-0">
+                                                {slot.device.alias && <p className="text-xs font-semibold text-indigo-500 truncate">{slot.device.alias}</p>}
                                                 <Link to={`/inventory/asset-details/${slot.device._id || slot.device.id}`} className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline truncate block">
                                                     {slot.device.name}
                                                 </Link>
@@ -367,7 +368,7 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                         <option value="">Select device...</option>
                                                         {unslottedChildren.map(c => (
                                                             <option key={c._id || c.id} value={c._id || c.id}>
-                                                                {c.name} ({c.serial})
+                                                                {c.alias ? `${c.alias} - ` : ''}{c.name} ({c.serial})
                                                             </option>
                                                         ))}
                                                     </select>
