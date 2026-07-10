@@ -264,7 +264,7 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
                 </button>
             </div>
 
-            {locations.length === 0 && (
+            {visibleLocations.length === 0 && (
                 <div className="text-xs text-text-secondary text-center py-4 italic">
                     No locations found. Add one to start.
                 </div>

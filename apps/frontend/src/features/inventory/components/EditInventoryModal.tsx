@@ -7,6 +7,7 @@ import { categoryService, Category } from '../../../services/categoryService';
 import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
 import { locationService, BoxLocation } from '../../../services/locationService';
+import { useAppStore } from '../../../store/appStore';
 
 interface EditInventoryModalProps {
     isOpen: boolean;
@@ -57,6 +58,8 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+
+    const { activeBranchId } = useAppStore();
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<InventoryFormInputs>();
 
@@ -351,6 +354,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                 >
                                                     <option value="">Auto (Gudang/Warehouse)</option>
                                                     {locations
+                                                        .filter(loc => (activeBranchId === 'ALL' || loc.branchId === activeBranchId))
                                                         .filter(loc => !selectedDepartmentId || loc.departmentId?._id === selectedDepartmentId || loc.departmentId === selectedDepartmentId || !loc.departmentId)
                                                         .map(loc => {
                                                             const parentName = loc.parentId && typeof loc.parentId === 'object' ? (loc.parentId as any).name : null;
@@ -385,6 +389,7 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     <option value="">None (Top Level)</option>
                                                     {allAssets
                                                         .filter(a => a._id !== asset?._id && a.id !== asset?._id)
+                                                        .filter(a => !a.parentAssetId)
                                                         .map(a => (
                                                             <option key={a._id} value={a._id}>{a.alias ? `${a.alias} / ` : ''}{a.name} ({a.serial})</option>
                                                         ))}

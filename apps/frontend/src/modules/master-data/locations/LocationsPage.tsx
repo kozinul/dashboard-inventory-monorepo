@@ -2,7 +2,6 @@ import { MagnifyingGlassIcon, FunnelIcon, PlusIcon, ChevronRightIcon } from '@he
 import { Link } from 'react-router-dom';
 import { LocationHierarchy } from './components/LocationHierarchy';
 import { LocationGrid } from './components/LocationGrid';
-import { LocationStats } from './components/LocationStats';
 import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { BoxLocation, locationService, CreateLocationDto } from '@/services/locationService';
@@ -149,8 +148,6 @@ export function LocationsPage() {
                             onViewDetails={setDetailLocation}
                         />
 
-                        {/* Stats */}
-                        <LocationStats />
                     </div>
                 </main>
             </div>

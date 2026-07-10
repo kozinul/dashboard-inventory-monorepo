@@ -8,6 +8,7 @@ import { uploadService } from '../../../services/uploadService';
 import { vendorService, Vendor } from '../../../services/vendorService';
 import { locationService, BoxLocation } from '../../../services/locationService';
 import { useAuthStore } from '../../../store/authStore';
+import { useAppStore } from '../../../store/appStore';
 
 interface AddInventoryModalProps {
     isOpen: boolean;
@@ -56,6 +57,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const { user } = useAuthStore();
+    const { activeBranchId } = useAppStore();
     const isNonAdmin = user && user.role !== 'superuser';
 
     // Watch departmentId to filter categories
@@ -329,6 +331,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                 >
                                                     <option value="">Auto (Gudang/Warehouse)</option>
                                                     {locations
+                                                        .filter(loc => (activeBranchId === 'ALL' || loc.branchId === activeBranchId))
                                                         .filter(loc => !selectedDepartmentId || loc.departmentId?._id === selectedDepartmentId || loc.departmentId === selectedDepartmentId || !loc.departmentId)
                                                         .map(loc => {
                                                             const parentName = loc.parentId && typeof loc.parentId === 'object' ? (loc.parentId as any).name : null;
