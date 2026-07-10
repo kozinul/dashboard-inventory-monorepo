@@ -224,7 +224,7 @@ export const createAsset = async (req: Request, res: Response, next: NextFunctio
                 if (!req.body.department && req.user.department) {
                     req.body.department = req.user.department;
                 }
-            } else if (req.user.role !== 'system_admin' && !['manager', 'technician', 'supervisor'].includes(req.user.role)) {
+            } else if (req.user.role !== 'system_admin' && !['admin', 'dept_admin', 'manager', 'technician', 'supervisor'].includes(req.user.role)) {
                 // Restricted roles can only create in their own department
                 if (req.body.departmentId !== req.user.departmentId) {
                     return res.status(403).json({ message: 'You can only create assets in your department' });

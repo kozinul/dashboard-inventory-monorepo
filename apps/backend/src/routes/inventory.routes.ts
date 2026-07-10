@@ -25,8 +25,8 @@ router.get('/stats', getInventoryStats);
 router.get('/items/available', getAvailableAssetsForEvent);
 router.get('/', getAssets);
 router.get('/items', getAssets);
-router.post('/', createAsset);
-router.post('/items', createAsset);
+router.post('/', checkPermission('inventory', 'create'), createAsset);
+router.post('/items', checkPermission('inventory', 'create'), createAsset);
 
 // Clone
 router.post('/:id/clone', cloneAsset);
