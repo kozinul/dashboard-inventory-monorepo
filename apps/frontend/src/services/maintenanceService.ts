@@ -9,6 +9,7 @@ export interface MaintenanceTicket {
         _id: string;
         name: string;
         serial?: string;
+        alias?: string;
         department?: string;
         departmentId?: string;
         branchId?: string | { _id: string; name: string };

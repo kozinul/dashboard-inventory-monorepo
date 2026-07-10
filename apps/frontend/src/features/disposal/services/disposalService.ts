@@ -6,6 +6,7 @@ export interface DisposalRecord {
         _id: string;
         name: string;
         serial: string;
+        alias?: string;
     };
     requestedBy: {
         _id: string;

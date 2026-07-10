@@ -15,7 +15,7 @@ export function AssetStockOpnameTab({ asset }: AssetStockOpnameTabProps) {
         if (!asset?._id && !asset?.id) return;
         setLoading(true);
         try {
-            const assetId = asset._id || asset.id;
+            const assetId = (asset._id || asset.id)!;
             const data = await getStockOpnameByAsset(assetId);
             setRecords(Array.isArray(data) ? data : []);
         } catch (error) {

@@ -343,7 +343,7 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                 slot.device.status === 'maintenance' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
                                                 'bg-slate-500/10 text-slate-600 border-slate-500/20'
                                             }`}>{slot.device.status}</span>
-                                            <button onClick={() => handleRemove(slot.device._id || slot.device.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors">
+                                            <button onClick={() => handleRemove((slot.device?._id || slot.device?.id)!)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors">
                                                 <span className="material-symbols-outlined text-lg">remove_circle</span>
                                             </button>
                                         </div>
@@ -372,20 +372,7 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                         ))}
                                                     </select>
                                                 ) : (
-                                                    <div className="flex items-center gap-1">
-                                                        <button
-                                                            onClick={() => { setSlotAssigning(null); setActiveSlot(slot.slotNumber); setIsModalOpen(true); }}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg border text-indigo-600 dark:text-indigo-400 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
-                                                        >
-                                                            Browse All
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setSlotAssigning(null)}
-                                                            className="text-xs px-2 py-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
+                                                    <span className="text-xs text-slate-400 italic">No devices to assign</span>
                                                 )}
                                             </div>
                                         ) : unslottedChildren.length > 0 ? (

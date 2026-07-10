@@ -9,6 +9,7 @@ import { AssetSelectionModal } from '@/features/inventory/components/AssetSelect
 interface Asset {
     _id: string;
     name: string;
+    alias?: string;
     slotNumber?: number;
     status: string;
     departmentId?: { name: string };
