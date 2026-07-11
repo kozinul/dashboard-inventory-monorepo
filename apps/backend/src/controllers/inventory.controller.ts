@@ -186,7 +186,7 @@ export const getAssetById = async (req: Request, res: Response, next: NextFuncti
         }
 
         // Fetch children (assets contained in this asset)
-        const children = await Asset.find({ parentAssetId: asset._id }).select('name serial model category status slotNumber images location building locationDetail parentAssetId');
+        const children = await Asset.find({ parentAssetId: asset._id }).select('name alias serial model category status slotNumber images location building locationDetail parentAssetId');
 
         const assetObj = asset.toJSON();
         (assetObj as any).children = children;
