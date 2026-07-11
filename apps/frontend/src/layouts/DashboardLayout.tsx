@@ -21,7 +21,8 @@ import {
     ServerIcon,
     ClockIcon,
     ClipboardDocumentCheckIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    CalendarDaysIcon
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
@@ -54,7 +55,7 @@ const mainNavigation = [
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
     { name: 'Item Mutation', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
-    // { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara
+    { name: 'Rental', href: '/rental', icon: CalendarDaysIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
     { name: 'Data Management', href: '/data-management', icon: DocumentArrowUpIcon },
     { name: 'Activity Log', href: '/activity-log', icon: ClockIcon },
