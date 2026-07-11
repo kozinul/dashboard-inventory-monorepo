@@ -124,10 +124,11 @@ export default function ItemMutationReportPage() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {moment(m.createdAt).format('DD MMM YYYY HH:mm')}
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                                        {m.itemName}
+                                    <td className="px-6 py-4">
+                                        {m.alias && <div className="text-xs font-bold text-primary dark:text-primary uppercase tracking-wide">{m.alias}</div>}
+                                        <div className="font-medium text-slate-900 dark:text-white">{m.itemName}</div>
                                         <div className="text-xs text-slate-500 font-normal">
-                                            {m.alias ? `${m.alias} · ` : ''}{m.partNumber || m.serial || ''}
+                                            {m.partNumber || m.serial || ''}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
