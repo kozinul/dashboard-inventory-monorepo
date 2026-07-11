@@ -4,6 +4,28 @@ Daftar perubahan signifikan berdasarkan commit terakhir (Maret–Juli 2026).
 
 ---
 
+## 2026-07-11
+
+### Vendor Management — Fix Filter per Branch
+
+**Tujuan:** Memperbaiki Vendor Management page yang tidak menampilkan data untuk user non-superuser.
+
+#### Root Cause
+Client-side filter di `VendorManagementPage.tsx:22` (`data.filter(v => v.branchId === activeBranchId)` ) memfilter vendor dengan `branchId: null` (vendor global/visible-to-all) saat `activeBranchId` diset ke branch tertentu.
+
+#### Perubahan
+1. **`apps/frontend/src/services/vendorService.ts`** — `getAll()` sekarang menerima parameter opsional `branchId`
+2. **`apps/frontend/src/pages/master-data/VendorManagementPage.tsx`** — Pass `branchId` ke backend API, client-side filter dihapus. Backend non-superuser menggunakan `$or` logic (`{ branchId: userBranch }` OR `{ branchId: null }`)
+
+### Rental Menu — Diaktifkan di Sidebar
+
+**Tujuan:** Menampilkan menu Rental & Event Management di sidebar.
+
+#### Perubahan
+1. **`apps/frontend/src/layouts/DashboardLayout.tsx:57`** — Uncomment menu item, ganti icon ke `CalendarDaysIcon`. Sebelumnya: `// { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara`
+
+---
+
 ## 2026-07-09
 
 ### Alias Field untuk Quick Search & Display
