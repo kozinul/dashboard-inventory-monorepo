@@ -100,7 +100,6 @@ export default function ItemMutationReportPage() {
                             <tr>
                                 <th className="px-6 py-4">Date</th>
                                 <th className="px-6 py-4">Item</th>
-                                <th className="px-6 py-4">Alias</th>
                                 <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Action</th>
                                 <th className="px-6 py-4">From Location</th>
@@ -112,11 +111,11 @@ export default function ItemMutationReportPage() {
                         <tbody className="divide-y divide-slate-200 dark:divide-border-dark">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={9} className="px-6 py-8 text-center">Loading...</td>
+                                    <td colSpan={8} className="px-6 py-8 text-center">Loading...</td>
                                 </tr>
                             ) : mutations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan={8} className="px-6 py-8 text-center text-slate-500">
                                         No mutations found in this period.
                                     </td>
                                 </tr>
@@ -128,11 +127,8 @@ export default function ItemMutationReportPage() {
                                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
                                         {m.itemName}
                                         <div className="text-xs text-slate-500 font-normal">
-                                            {m.partNumber || m.serial || ''}
+                                            {m.alias ? `${m.alias} · ` : ''}{m.partNumber || m.serial || ''}
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                                        {m.alias || '-'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-0.5 text-xs font-bold rounded ${
