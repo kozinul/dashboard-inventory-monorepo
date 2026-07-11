@@ -315,34 +315,39 @@ export const getCategorySummary = async (req: Request, res: Response, next: Next
             { $match: match },
             {
                 $group: {
-                    _id: { category: '$category', status: '$status' },
+                    _id: { category: '$category', name: '$name', status: '$status' },
                     count: { $sum: 1 },
                 },
             },
             {
                 $group: {
-                    _id: '$_id.category',
+                    _id: { category: '$_id.category', name: '$_id.name' },
                     statuses: { $push: { status: '$_id.status', count: '$count' } },
                     total: { $sum: '$count' },
                 },
             },
-            { $sort: { _id: 1 } },
+            { $sort: { '_id.category': 1, '_id.name': 1 } },
         ];
 
         const results = await Asset.aggregate(pipeline);
 
-        // Collect all unique statuses across all categories
+        // Collect all unique statuses across all items
         const allStatuses = [...new Set(results.flatMap(r => r.statuses.map((s: any) => s.status)))];
 
-        // Build response: each item has category name + count per status + total
-        const summary = results.map(r => {
-            const row: any = { category: r._id, total: r.total };
+        // Group by category, each containing an array of items (unique asset names)
+        const grouped: Record<string, any> = {};
+        for (const r of results) {
+            const cat = r._id.category || 'Uncategorized';
+            if (!grouped[cat]) grouped[cat] = { category: cat, items: [] };
+            const item: any = { name: r._id.name, total: r.total };
             for (const status of allStatuses) {
                 const found = r.statuses.find((s: any) => s.status === status);
-                row[status] = found ? found.count : 0;
+                item[status] = found ? found.count : 0;
             }
-            return row;
-        });
+            grouped[cat].items.push(item);
+        }
+
+        const summary = Object.values(grouped);
 
         res.json({ data: summary, statuses: allStatuses });
     } catch (error) {

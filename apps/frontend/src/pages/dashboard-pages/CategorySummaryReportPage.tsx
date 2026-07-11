@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { getCategorySummary } from '@/features/reports/api/reports.api';
 
@@ -38,8 +38,6 @@ export default function CategorySummaryReportPage() {
         return map[status] || 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
     };
 
-    const grandTotal = data.reduce((sum, row) => sum + row.total, 0);
-
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -63,7 +61,7 @@ export default function CategorySummaryReportPage() {
                     <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
                         <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-semibold">
                             <tr>
-                                <th className="px-6 py-4">Category</th>
+                                <th className="px-6 py-4">Category / Asset Name</th>
                                 {statuses.map(s => (
                                     <th key={s} className="px-4 py-4 text-center capitalize">{s.replace('_', ' ')}</th>
                                 ))}
@@ -81,36 +79,39 @@ export default function CategorySummaryReportPage() {
                                         No assets found.
                                     </td>
                                 </tr>
-                            ) : data.map((row) => (
-                                <tr key={row.category} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white max-w-[300px]">
-                                        {row.category}
-                                    </td>
-                                    {statuses.map(s => (
-                                        <td key={s} className="px-4 py-4 text-center">
-                                            <span className={`inline-block px-2.5 py-1 text-xs font-bold rounded-full ${row[s] > 0 ? getStatusColor(s) : ''}`}>
-                                                {row[s] || 0}
-                                            </span>
+                            ) : data.map((group) => (
+                                <Fragment key={group.category}>
+                                    <tr className="bg-slate-100 dark:bg-slate-700/30 font-semibold text-slate-900 dark:text-white">
+                                        <td className="px-6 py-3">{group.category}</td>
+                                        {statuses.map(s => (
+                                            <td key={s} className="px-4 py-3 text-center">
+                                                {group.items.reduce((sum: number, item: any) => sum + (item[s] || 0), 0)}
+                                            </td>
+                                        ))}
+                                        <td className="px-4 py-3 text-center font-bold">
+                                            {group.items.reduce((sum: number, item: any) => sum + item.total, 0)}
                                         </td>
+                                    </tr>
+                                    {group.items.map((item: any) => (
+                                        <tr key={item.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="px-6 py-3 pl-12 text-slate-700 dark:text-slate-300">
+                                                {item.name}
+                                            </td>
+                                            {statuses.map(s => (
+                                                <td key={s} className="px-4 py-3 text-center">
+                                                    <span className={`inline-block px-2.5 py-1 text-xs font-bold rounded-full ${item[s] > 0 ? getStatusColor(s) : ''}`}>
+                                                        {item[s] || 0}
+                                                    </span>
+                                                </td>
+                                            ))}
+                                            <td className="px-4 py-3 text-center font-bold text-slate-900 dark:text-white">
+                                                {item.total}
+                                            </td>
+                                        </tr>
                                     ))}
-                                    <td className="px-4 py-4 text-center font-bold text-slate-900 dark:text-white">
-                                        {row.total}
-                                    </td>
-                                </tr>
+                                </Fragment>
                             ))}
                         </tbody>
-                        <tfoot className="bg-slate-50 dark:bg-slate-800/50 font-semibold text-slate-900 dark:text-white">
-                            <tr>
-                                <td className="px-6 py-4">Grand Total</td>
-                                {statuses.map(s => {
-                                    const colTotal = data.reduce((sum, row) => sum + (row[s] || 0), 0);
-                                    return (
-                                        <td key={s} className="px-4 py-4 text-center">{colTotal}</td>
-                                    );
-                                })}
-                                <td className="px-4 py-4 text-center">{grandTotal}</td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
