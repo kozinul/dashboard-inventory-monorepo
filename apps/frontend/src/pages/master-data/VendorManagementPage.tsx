@@ -15,12 +15,8 @@ export default function VendorManagementPage() {
     const fetchVendors = async () => {
         try {
             setLoading(true);
-            const data = await vendorService.getAll();
-            // Filter by branch
-            const filteredData = activeBranchId === 'ALL'
-                ? data
-                : data.filter(v => v.branchId === activeBranchId);
-            setVendors(filteredData);
+            const data = await vendorService.getAll(activeBranchId === 'ALL' ? undefined : activeBranchId);
+            setVendors(data);
         } catch (error) {
             console.error("Failed to fetch vendors", error);
         } finally {

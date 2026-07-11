@@ -16,8 +16,10 @@ export interface Vendor {
 }
 
 export const vendorService = {
-    getAll: async (): Promise<Vendor[]> => {
-        const response = await axios.get(API_URL);
+    getAll: async (branchId?: string): Promise<Vendor[]> => {
+        const response = await axios.get(API_URL, {
+            params: branchId ? { branchId } : {}
+        });
         return response.data;
     },
 
