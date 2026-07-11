@@ -6,17 +6,19 @@ import { departmentService, Department } from '@/services/departmentService';
 import { categoryService, Category } from '@/services/categoryService';
 import { locationService, BoxLocation } from '@/services/locationService';
 import { useAuthStore } from '@/store/authStore';
+import CategorySummaryReportPage from './CategorySummaryReportPage';
 
 const REPORT_TYPES = [
     { id: 'asset', title: 'Asset Inventory', desc: 'Hardware, laptops, and equipment tracking', icon: 'inventory_2', color: 'bg-blue-500' },
     { id: 'supply', title: 'Supplies & Stock', desc: 'Consumables, office supplies, and spare parts', icon: 'layers', color: 'bg-emerald-500' },
     { id: 'maintenance', title: 'Maintenance History', desc: 'Recent repairs, tickets, and service history', icon: 'build', color: 'bg-orange-500' },
+    { id: 'category-summary', title: 'Category Summary', desc: 'Asset counts grouped by category and condition', icon: 'bar_chart', color: 'bg-teal-500' },
     { id: 'rental', title: 'Rental Reports', desc: 'Equipment lending and return records', icon: 'event_available', color: 'bg-purple-500' },
 ];
 
 export default function ReportsPage() {
     const { user } = useAuthStore();
-    const [reportType, setReportType] = useState<ExportOptions['type']>('asset');
+    const [reportType, setReportType] = useState<ExportOptions['type'] | 'category-summary'>('asset');
     const [branchId, setBranchId] = useState('');
     const [departmentId, setDepartmentId] = useState('');
     const [status, setStatus] = useState('');
@@ -68,7 +70,7 @@ export default function ReportsPage() {
         setIsLoadingPreview(true);
         try {
             const result = await importExportService.previewData({
-                type: reportType,
+                type: reportType as ExportOptions['type'],
                 branchId: branchId || undefined,
                 departmentId: departmentId || undefined,
                 status: status || undefined,
@@ -96,7 +98,7 @@ export default function ReportsPage() {
     const handleExport = async (format: 'excel' | 'pdf') => {
         try {
             await importExportService.exportData({
-                type: reportType,
+                type: reportType as ExportOptions['type'],
                 format,
                 branchId: branchId || undefined,
                 departmentId: departmentId || undefined,
@@ -132,8 +134,8 @@ export default function ReportsPage() {
                 {REPORT_TYPES.map((type) => (
                     <button
                         key={type.id}
-                        onClick={() => {
-                            setReportType(type.id as any);
+                                                        onClick={() => {
+                                                            setReportType(type.id as ExportOptions['type'] | 'category-summary');
                             setPreviewData([]);
                         }}
                         className={`relative group h-full text-left p-5 rounded-3xl border-2 transition-all duration-300 ${reportType === type.id
@@ -156,7 +158,10 @@ export default function ReportsPage() {
                 ))}
             </div>
 
-            {/* Filters Section */}
+            {reportType === 'category-summary' ? (
+                <CategorySummaryReportPage />
+            ) : (
+                <>
             <div className="bg-white dark:bg-card-dark p-6 rounded-3xl border border-slate-200 dark:border-border-dark shadow-sm space-y-6">
                 <div className="flex items-center gap-2 mb-2">
                     <span className="h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20"></span>
@@ -441,6 +446,8 @@ export default function ReportsPage() {
                     isLoading={isLoadingPreview}
                 />
             </div>
+                </>
+            )}
 
         </div>
     );

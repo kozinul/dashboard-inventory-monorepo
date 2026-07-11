@@ -48,7 +48,6 @@ import ToolsPage from '../pages/master-data/ToolsPage';
 import StockOpnamePage from '../pages/dashboard-pages/StockOpnamePage';
 import StockOpnameDetailPage from '../pages/dashboard-pages/StockOpnameDetailPage';
 import ItemMutationReportPage from '../pages/dashboard-pages/ItemMutationReportPage';
-import CategorySummaryReportPage from '../pages/dashboard-pages/CategorySummaryReportPage';
 
 // Auth Imports
 import LoginPage from '../pages/LoginPage';
@@ -154,10 +153,6 @@ export const router = createBrowserRouter([
                             {
                                 path: 'reports/mutasi-barang',
                                 element: <ItemMutationReportPage />,
-                            },
-                            {
-                                path: 'reports/category-summary',
-                                element: <CategorySummaryReportPage />,
                             },
                             {
                                 path: 'rental',

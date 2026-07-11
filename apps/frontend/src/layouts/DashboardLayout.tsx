@@ -53,7 +53,6 @@ const mainNavigation = [
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
     { name: 'Item Mutation', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
-    { name: 'Category Summary', href: '/reports/category-summary', icon: ChartBarIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     // { name: 'Rental', href: '/rental', icon: BriefcaseIcon }, // Sembunyikan sementara
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },
