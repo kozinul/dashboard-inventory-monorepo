@@ -135,10 +135,12 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
     const [editingLocation, setEditingLocation] = useState<BoxLocation | null>(null);
     const [parentLocation, setParentLocation] = useState<BoxLocation | null>(null);
 
+    const { activeBranchId } = useAppStore();
+
     const fetchLocations = async () => {
         try {
             setLoading(true);
-            const data = await locationService.getAll();
+            const data = await locationService.getAll(activeBranchId !== 'ALL' ? activeBranchId : undefined);
             setLocations(data);
         } catch (error) {
             console.error("Failed to load locations", error);
@@ -151,7 +153,7 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
         fetchLocations();
         window.addEventListener('location-update', fetchLocations);
         return () => window.removeEventListener('location-update', fetchLocations);
-    }, []);
+    }, [activeBranchId]);
 
     const handleAddRoot = () => {
         setEditingLocation(null);
@@ -236,16 +238,9 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
         }
     };
 
-    const { activeBranchId } = useAppStore();
-
-    // Filter locations by branch if not ALL
-    const visibleLocations = activeBranchId === 'ALL'
-        ? locations
-        : locations.filter(l => l.branchId === activeBranchId);
-
     // Get root nodes
-    const rootNodes = visibleLocations.filter(l => !l.parentId);
-    const getChildren = (parentId: string) => visibleLocations.filter(l => {
+    const rootNodes = locations.filter(l => !l.parentId);
+    const getChildren = (parentId: string) => locations.filter(l => {
         const lParentId = typeof l.parentId === 'object' && l.parentId !== null ? l.parentId._id : l.parentId;
         return lParentId === parentId;
     });
@@ -264,7 +259,7 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
                 </button>
             </div>
 
-            {visibleLocations.length === 0 && (
+            {locations.length === 0 && (
                 <div className="text-xs text-text-secondary text-center py-4 italic">
                     No locations found. Add one to start.
                 </div>
@@ -275,7 +270,7 @@ export function LocationHierarchy({ selectedId, onSelect }: LocationHierarchyPro
                     key={node._id}
                     location={node}
                     childrenLocations={getChildren(node._id)}
-                    allLocations={visibleLocations}
+                    allLocations={locations}
                     level={0}
                     selectedId={selectedId}
                     onSelect={onSelect}

@@ -149,10 +149,12 @@ export function LocationGrid({ parentLocation, viewMode = 'grid', onViewDetails 
 
     const parentId = parentLocation ? parentLocation._id : null;
 
+    const { activeBranchId } = useAppStore();
+
     const fetchLocations = async () => {
         try {
             setLoading(true);
-            const data = await locationService.getAll();
+            const data = await locationService.getAll(activeBranchId !== 'ALL' ? activeBranchId : undefined);
             setLocations(data);
         } catch (error) {
             console.error("Failed to load locations", error);
@@ -165,12 +167,9 @@ export function LocationGrid({ parentLocation, viewMode = 'grid', onViewDetails 
         fetchLocations();
         window.addEventListener('location-update', fetchLocations);
         return () => window.removeEventListener('location-update', fetchLocations);
-    }, []);
-
-    const { activeBranchId } = useAppStore();
+    }, [activeBranchId]);
 
     const filteredLocations = locations
-        .filter(l => activeBranchId === 'ALL' || l.branchId === activeBranchId)
         .filter(l => {
             const locParentId = typeof l.parentId === 'object' && l.parentId !== null ? l.parentId._id : l.parentId;
             return locParentId === parentId;

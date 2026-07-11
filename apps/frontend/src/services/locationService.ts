@@ -32,8 +32,9 @@ export interface CreateLocationDto {
 export interface UpdateLocationDto extends Partial<CreateLocationDto> { }
 
 export const locationService = {
-    getAll: async (): Promise<BoxLocation[]> => {
-        const response = await axios.get<BoxLocation[]>(API_URL);
+    getAll: async (branchId?: string): Promise<BoxLocation[]> => {
+        const params = branchId ? { branchId } : undefined;
+        const response = await axios.get<BoxLocation[]>(API_URL, { params });
         return response.data;
     },
 
