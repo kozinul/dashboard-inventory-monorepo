@@ -70,6 +70,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 _id: h._id,
                 createdAt: h.createdAt,
                 itemName: supply?.name || 'Unknown',
+                alias: null,
                 itemType: 'Supply',
                 partNumber: supply?.partNumber || '-',
                 action: h.action,
@@ -96,7 +97,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
         }
         if (departmentId) assetFilter.departmentId = departmentId;
 
-        const assetsScope = await Asset.find(assetFilter).select('_id name serial');
+        const assetsScope = await Asset.find(assetFilter).select('_id name serial alias');
         const assetIds = assetsScope.map(a => a._id);
         const assetRows: any[] = [];
         const seenKeys = new Set<string>();
@@ -111,7 +112,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 isDeleted: { $ne: true }
             })
                 .sort({ createdAt: -1 })
-                .populate('assetId', 'name serial')
+                .populate('assetId', 'name serial alias')
                 .populate('userId', 'name')
                 .populate('locationId', 'name');
 
@@ -124,6 +125,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     _id: key,
                     createdAt: a.createdAt,
                     itemName: ass?.name || 'Unknown Asset',
+                    alias: ass?.alias || null,
                     itemType: 'Asset',
                     serial: ass?.serial || '-',
                     action: a.status === 'returned' ? 'RETURN' : 'ASSIGN',
@@ -141,7 +143,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 assetId: { $in: assetIds }
             })
                 .sort({ createdAt: -1 })
-                .populate('assetId', 'name serial')
+                .populate('assetId', 'name serial alias')
                 .populate('requestedBy', 'name')
                 .populate('fromDepartmentId', 'name')
                 .populate('toDepartmentId', 'name')
@@ -158,6 +160,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     _id: key,
                     createdAt: t.createdAt || t.transferDate,
                     itemName: ass?.name || 'Unknown Asset',
+                    alias: ass?.alias || null,
                     itemType: 'Asset',
                     serial: ass?.serial || '-',
                     action: 'TRANSFER',
@@ -206,6 +209,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     _id: key,
                     createdAt: log.createdAt,
                     itemName: log.resourceName || asset?.name || 'Unknown Asset',
+                    alias: (asset as any)?.alias || null,
                     itemType: 'Asset',
                     serial: (asset as any)?.serial || '-',
                     action,
