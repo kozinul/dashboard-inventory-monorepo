@@ -1,5 +1,10 @@
 import api from '@/lib/axios';
 
+export const getCategorySummary = async (params?: any) => {
+    const res = await api.get('/reports/category-summary', { params });
+    return res.data;
+};
+
 export const getSupplyMutationReport = async (params?: any) => {
     const res = await api.get('/reports/supply-mutation', { params });
     return res.data;

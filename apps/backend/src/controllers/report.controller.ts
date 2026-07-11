@@ -304,3 +304,48 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
         next(error);
     }
 };
+
+export const getCategorySummary = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const branchFilter = getBranchFilter(req);
+        const match: any = {};
+        if (branchFilter) match.branchId = branchFilter;
+
+        const pipeline: any[] = [
+            { $match: match },
+            {
+                $group: {
+                    _id: { category: '$category', status: '$status' },
+                    count: { $sum: 1 },
+                },
+            },
+            {
+                $group: {
+                    _id: '$_id.category',
+                    statuses: { $push: { status: '$_id.status', count: '$count' } },
+                    total: { $sum: '$count' },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ];
+
+        const results = await Asset.aggregate(pipeline);
+
+        // Collect all unique statuses across all categories
+        const allStatuses = [...new Set(results.flatMap(r => r.statuses.map((s: any) => s.status)))];
+
+        // Build response: each item has category name + count per status + total
+        const summary = results.map(r => {
+            const row: any = { category: r._id, total: r.total };
+            for (const status of allStatuses) {
+                const found = r.statuses.find((s: any) => s.status === status);
+                row[status] = found ? found.count : 0;
+            }
+            return row;
+        });
+
+        res.json({ data: summary, statuses: allStatuses });
+    } catch (error) {
+        next(error);
+    }
+};
