@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Supply } from '../models/supply.model.js';
 import { Assignment } from '../models/assignment.model.js';
@@ -309,7 +310,9 @@ export const getCategorySummary = async (req: Request, res: Response, next: Next
     try {
         const branchFilter = getBranchFilter(req);
         const match: any = {};
-        if (branchFilter) match.branchId = branchFilter;
+        if (branchFilter) {
+            match.branchId = new mongoose.Types.ObjectId(branchFilter as string);
+        }
 
         const pipeline: any[] = [
             { $match: match },
