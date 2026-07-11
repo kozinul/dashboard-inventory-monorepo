@@ -835,12 +835,53 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         asset.slotNumber = null;    // Mongoose compliant for Number
         asset.status = 'storage'; // Auto-update status to Storage / Warehouse
 
-        // Keep original location, don't move to warehouse
+        // Find Department Warehouse to move asset back to
+        {
+            const { Location } = await import('../models/location.model.js');
+            let warehouse = null;
+
+            // Try 1: Match department + branch
+            if (asset.departmentId) {
+                warehouse = await Location.findOne({
+                    departmentId: asset.departmentId,
+                    isWarehouse: true,
+                    branchId: asset.branchId
+                });
+            }
+
+            // Try 2: Match branch only
+            if (!warehouse && asset.branchId) {
+                warehouse = await Location.findOne({
+                    branchId: asset.branchId,
+                    isWarehouse: true
+                });
+            }
+
+            // Try 3: Any warehouse
+            if (!warehouse) {
+                warehouse = await Location.findOne({ isWarehouse: true });
+            }
+
+            // Try 4: Match by type/name
+            if (!warehouse) {
+                warehouse = await Location.findOne({
+                    $or: [
+                        { type: { $regex: /warehouse|gudang/i } },
+                        { name: { $regex: /warehouse|gudang/i } }
+                    ]
+                });
+            }
+
+            if (warehouse) {
+                asset.locationId = warehouse._id;
+                asset.location = warehouse.name;
+            }
+        }
 
         // Log Activity
         asset.activityLog.push({
             action: 'dismantled',
-            details: `Dismantled from ${parentName}`,
+            details: `Dismantled from ${parentName} and returned to warehouse`,
             performedBy: userId,
             date: new Date()
         });
@@ -854,7 +895,7 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
             resourceType: 'Asset',
             resourceId: asset._id.toString(),
             resourceName: asset.name,
-            details: `Dismantled asset from ${parentName}`,
+            details: `Dismantled asset from ${parentName} and returned to warehouse`,
             branchId: (req.user as any).branchId?.toString(),
             departmentId: asset.departmentId?.toString()
         });
