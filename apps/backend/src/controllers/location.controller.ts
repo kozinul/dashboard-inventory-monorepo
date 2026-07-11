@@ -27,9 +27,20 @@ export const getLocations = async (req: Request, res: Response, next: NextFuncti
                         filter.$and = [
                             {
                                 $or: [
-                                    { departmentId: { $in: deptIds } },
-                                    { departmentId: null },
-                                    { departmentId: { $exists: false } }
+                                    // Department-specific types (Rack, Panel, Panel Box) — strict
+                                    {
+                                        type: { $in: ['Rack', 'Panel', 'Panel Box'] },
+                                        departmentId: { $in: deptIds }
+                                    },
+                                    // Infrastructure types (Building, Floor, Room, etc.) — allow unassigned
+                                    {
+                                        type: { $nin: ['Rack', 'Panel', 'Panel Box'] },
+                                        $or: [
+                                            { departmentId: { $in: deptIds } },
+                                            { departmentId: null },
+                                            { departmentId: { $exists: false } }
+                                        ]
+                                    }
                                 ]
                             }
                         ];
