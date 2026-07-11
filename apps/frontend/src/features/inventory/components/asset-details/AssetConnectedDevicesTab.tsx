@@ -223,7 +223,6 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                             <thead className="bg-slate-50 dark:bg-slate-900/50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Asset</th>
-                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Serial</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Category</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
@@ -246,7 +245,6 @@ export function AssetConnectedDevicesTab({ asset }: AssetConnectedDevicesTabProp
                                                 </Link>
                                                 <p className="text-xs text-slate-400 font-mono truncate max-w-[200px]">{child.serial}</p>
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300 font-mono">{child.serial}</td>
                                             <td className="px-4 py-3">
                                                 <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
                                                     {child.category}
