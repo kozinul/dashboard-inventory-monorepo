@@ -73,7 +73,9 @@ export const createSupply = async (req: Request, res: Response, next: NextFuncti
             action: 'CREATE',
             quantityChange: supply.quantity,
             newStock: supply.quantity,
-            notes: 'Initial stock'
+            userId: req.user?._id,
+            notes: `Stok awal: ${supply.quantity} ${supply.unit || 'unit'}`,
+            referenceType: 'Manual'
         });
 
         res.status(201).json(supply);
@@ -211,9 +213,11 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
                     quantityChange: diff,
                     previousStock: oldSupply.quantity,
                     newStock: supply.quantity,
+                    userId: req.user?._id,
                     fromLocation: oldLocId || undefined,
                     toLocation: newLocId || undefined,
-                    notes: req.body.reason || 'Stock update'
+                    notes: req.body.reason || (diff > 0 ? `Restock manual: +${diff} ${supply.unit || 'unit'}` : `Penggunaan manual: ${diff} ${supply.unit || 'unit'}`),
+                    referenceType: 'Manual'
                 });
             } else if (locationChanged) {
                 // Location-only change
@@ -223,9 +227,11 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
                     quantityChange: 0,
                     previousStock: oldSupply.quantity,
                     newStock: supply.quantity,
+                    userId: req.user?._id,
                     fromLocation: oldLocId || undefined,
                     toLocation: newLocId || undefined,
-                    notes: req.body.reason || 'Item moved'
+                    notes: req.body.reason || 'Pemindahan lokasi',
+                    referenceType: 'Manual'
                 });
             } else {
                 // Generic update
@@ -235,7 +241,9 @@ export const updateSupply = async (req: Request, res: Response, next: NextFuncti
                     quantityChange: 0,
                     previousStock: oldSupply.quantity,
                     newStock: supply.quantity,
-                    notes: 'Details updated'
+                    userId: req.user?._id,
+                    notes: 'Perubahan detail item',
+                    referenceType: 'Manual'
                 });
             }
         }
@@ -269,7 +277,8 @@ export const deleteSupply = async (req: Request, res: Response, next: NextFuncti
             previousStock: supply.quantity,
             newStock: 0,
             userId: req.user?._id,
-            notes: 'Item deleted'
+            notes: `Item dihapus dari sistem`,
+            referenceType: 'Manual'
         });
 
         await Supply.findByIdAndDelete(req.params.id);

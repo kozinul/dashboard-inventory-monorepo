@@ -272,27 +272,27 @@ function DashboardLayout() {
 
         // Manager permissions
         if (user?.role === 'manager' || user?.role === 'dept_admin') {
-            return ['dashboard', 'inventory', 'panels', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal'].includes(resource || '');
+            return ['dashboard', 'inventory', 'panels', 'incoming', 'transfer', 'maintenance', 'services', 'history', 'reports', 'my_tickets', 'dept_tickets', 'assignments', 'users', 'settings', 'my_assets', 'rental', 'events', 'categories', 'locations', 'vendors', 'disposal', 'item_mutation_report'].includes(resource || '');
         }
 
         // Supervisor permissions
         if (user?.role === 'supervisor') {
-            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'my_assets', 'reports', 'history', 'assignments', 'users'].includes(resource || '');
+            return ['dashboard', 'inventory', 'maintenance', 'my_tickets', 'dept_tickets', 'my_assets', 'reports', 'history', 'assignments', 'users', 'item_mutation_report'].includes(resource || '');
         }
 
         // Technician permissions
         if (user?.role === 'technician') {
-            return ['dashboard', 'inventory', 'panels', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'disposal', 'assignments', 'reports', 'transfer'].includes(resource || '');
+            return ['dashboard', 'inventory', 'panels', 'maintenance', 'my_tickets', 'assigned_tickets', 'my_assets', 'rental', 'events', 'disposal', 'assignments', 'reports', 'transfer', 'item_mutation_report'].includes(resource || '');
         }
 
         // Standard User permissions
         if (user?.role === 'user') {
-            return ['dashboard', 'my_tickets', 'my_assets', 'history', 'data_management', 'dept_tickets'].includes(resource || '');
+            return ['dashboard', 'my_tickets', 'my_assets', 'rental', 'events', 'history', 'data_management', 'dept_tickets'].includes(resource || '');
         }
 
         // Auditor permissions
         if (user?.role === 'auditor') {
-            return ['dashboard', 'inventory', 'history', 'reports', 'disposal'].includes(resource || '');
+            return ['dashboard', 'inventory', 'history', 'reports', 'disposal', 'item_mutation_report'].includes(resource || '');
         }
 
         // Fallback or explicit deny if no role matches above

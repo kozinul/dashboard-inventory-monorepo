@@ -275,7 +275,9 @@ export const completeStockOpname = async (req: Request, res: Response, next: Nex
                         previousStock: previous,
                         newStock: supply.quantity,
                         userId: req.user._id,
-                        notes: `SO Adjustment: ${so.title} (${item.notes || 'No note'})`
+                        notes: `Stock Opname: ${so.title} (${item.notes || 'Tanpa catatan'})`,
+                        referenceType: 'StockOpname',
+                        referenceId: so._id
                     });
                 }
             } else if (item.assetId && !item.isAssetFound) {

@@ -8,6 +8,18 @@
 
 ## Completed Tasks
 
+### 2026-07-12
+- **Item Mutation Report — Keterangan column added** — New column showing supply history notes; colSpan updated to 9.
+- **Item Mutation Report — auto-apply filters** — useEffect now depends on `itemTypeFilter`, `startDate`, `endDate` (no manual "Filter" click needed).
+- **Item Mutation Report — AssetHistory integration** — Backend now queries `AssetHistory` alongside `AuditLog` for asset mutations; `referenceType` included in all rows.
+- **SupplyHistory — referenceType & referenceId added** — New schema fields: `referenceType` (Event/Manual/Import/StockOpname) + `referenceId`.
+- **AssetHistory model created** — Unified asset movement log with actions: CREATE, UPDATE, DELETE, ASSIGN, RETURN, TRANSFER, EVENT_BOOK, EVENT_RELEASE, ADJUST, MOVE, STATUS_CHANGE.
+- **Supply deduction/restock in event controller** — Deduct on planning→scheduled; restock on cancelled only (consumables not restocked on completion); restock on deleteEvent for scheduled/ongoing.
+- **All SupplyHistory.create calls updated** — Added `userId`, `referenceType`, Indonesian notes across supply, event, stockOpname, importExport controllers.
+- **RBAC fixes** — `item_mutation_report` removed from `user` role defaults; added to fallback arrays for manager, supervisor, technician, auditor in DashboardLayout.tsx.
+- **DB RBAC overrides updated** — Added `item_mutation_report` and `stock_opname` to technician and supervisor role overrides in MongoDB.
+- **Excel export updated** — Added "Keterangan" and "Sumber" columns to item mutation Excel export.
+
 ### 2026-07-11
 - **Vendor Management fix** — Client-side filter `data.filter(v => v.branchId === activeBranchId)` removed; now passes `branchId` query param to backend API. Non-superuser backend uses `$or` (`{branchId: userBranch} OR {branchId: null}`) so global vendors with null branchId appear.
 - **Rental menu activated** — Uncommented `{ name: 'Rental', href: '/rental', icon: CalendarDaysIcon }` in DashboardLayout.tsx sidebar navigation.

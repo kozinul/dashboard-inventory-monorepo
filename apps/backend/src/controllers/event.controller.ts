@@ -3,6 +3,7 @@ import Event from '../models/event.model.js';
 import { Supply } from '../models/supply.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 
 const checkAssetAvailability = async (assetIds: string[], startTime: Date, endTime: Date, excludeEventId?: string) => {
@@ -73,7 +74,19 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
         // Update Asset Status to 'event' if assets are assigned
         if (event.rentedAssets && event.rentedAssets.length > 0) {
             for (const item of event.rentedAssets) {
+                const asset = await Asset.findById(item.assetId);
+                const oldStatus = asset?.status || 'active';
                 await Asset.findByIdAndUpdate(item.assetId, { status: 'event' });
+                await AssetHistory.create({
+                    assetId: item.assetId,
+                    action: 'EVENT_BOOK',
+                    userId: req.user._id,
+                    fromStatus: oldStatus,
+                    toStatus: 'event',
+                    notes: `Direservasi untuk event: ${event.name}`,
+                    referenceType: 'Event',
+                    referenceId: event._id
+                });
             }
         }
 
@@ -192,6 +205,59 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
 
         // Handle Dynamic Supply Updates for Booked/Ongoing events
         const isLive = ['scheduled', 'ongoing'].includes(newStatus || oldStatus);
+
+        // Initial supply deduction when transitioning FROM planning TO scheduled/ongoing
+        const isTransitioningToLive = newStatus && ['scheduled', 'ongoing'].includes(newStatus) && oldStatus === 'planning';
+        if (isTransitioningToLive) {
+            const suppliesToDeduct = currentEvent.planningSupplies || [];
+            for (const item of suppliesToDeduct) {
+                const supply = await Supply.findById(item.supplyId);
+                if (supply) {
+                    const oldStock = supply.quantity;
+                    supply.quantity -= item.quantity;
+                    await supply.save();
+
+                    await SupplyHistory.create({
+                        supplyId: supply._id,
+                        action: 'USE',
+                        quantityChange: -item.quantity,
+                        previousStock: oldStock,
+                        newStock: supply.quantity,
+                        userId: req.user?._id,
+                        notes: `Dipakai untuk event: ${currentEvent.name}`,
+                        referenceType: 'Event',
+                        referenceId: currentEvent._id
+                    });
+                }
+            }
+        }
+
+        // Supply restock when transitioning TO cancelled only (consumables are not restocked on completion)
+        const isCancelled = newStatus && newStatus === 'cancelled' && ['scheduled', 'ongoing'].includes(oldStatus);
+        if (isCancelled) {
+            const suppliesToRestock = currentEvent.planningSupplies || [];
+            for (const item of suppliesToRestock) {
+                const supply = await Supply.findById(item.supplyId);
+                if (supply) {
+                    const oldStock = supply.quantity;
+                    supply.quantity += item.quantity;
+                    await supply.save();
+
+                    await SupplyHistory.create({
+                        supplyId: supply._id,
+                        action: 'RESTOCK',
+                        quantityChange: item.quantity,
+                        previousStock: oldStock,
+                        newStock: supply.quantity,
+                        userId: req.user?._id,
+                        notes: `Pengembalian dari event dibatalkan: ${currentEvent.name}`,
+                        referenceType: 'Event',
+                        referenceId: currentEvent._id
+                    });
+                }
+            }
+        }
+
         if (isLive && req.body.planningSupplies) {
             const oldSupplies = currentEvent.planningSupplies || [];
             const newSupplies = req.body.planningSupplies;
@@ -220,7 +286,12 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                             quantityChange: -diff,
                             previousStock: oldStock,
                             newStock: supply.quantity,
-                            notes: `Updated in event: ${currentEvent.name}`
+                            userId: req.user?._id,
+                            notes: diff > 0
+                                ? `Penambahan supply untuk event: ${currentEvent.name}`
+                                : `Pengurangan supply dari event: ${currentEvent.name}`,
+                            referenceType: 'Event',
+                            referenceId: currentEvent._id
                         });
                     }
                 }
@@ -243,7 +314,10 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                             quantityChange: item.quantity,
                             previousStock: oldStock,
                             newStock: supply.quantity,
-                            notes: `Removed from event: ${currentEvent.name}`
+                            userId: req.user?._id,
+                            notes: `Supply dihapus dari event: ${currentEvent.name}`,
+                            referenceType: 'Event',
+                            referenceId: currentEvent._id
                         });
                     }
                 }
@@ -274,6 +348,18 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             const assetsToRelease = currentEvent.rentedAssets || [];
             for (const item of assetsToRelease) {
                 await Asset.findByIdAndUpdate(item.assetId, { status: 'active' });
+                await AssetHistory.create({
+                    assetId: item.assetId,
+                    action: newStatus === 'completed' ? 'EVENT_RELEASE' : 'EVENT_RELEASE',
+                    userId: req.user._id,
+                    fromStatus: 'event',
+                    toStatus: 'active',
+                    notes: newStatus === 'completed'
+                        ? `Event selesai: ${currentEvent.name}`
+                        : `Event dibatalkan: ${currentEvent.name}`,
+                    referenceType: 'Event',
+                    referenceId: currentEvent._id
+                });
             }
         } else if (!isNowCompletedOrCancelled && wasCompletedOrCancelled && newStatus) {
             // Event is moving from completed/cancelled back to planning/ongoing/scheduled
@@ -281,6 +367,16 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
             for (const item of assetsToBook) {
                 const id = typeof item.assetId === 'object' ? item.assetId._id?.toString() || item.assetId.toString() : item.assetId.toString();
                 await Asset.findByIdAndUpdate(id, { status: 'event' });
+                await AssetHistory.create({
+                    assetId: id,
+                    action: 'EVENT_BOOK',
+                    userId: req.user._id,
+                    fromStatus: 'active',
+                    toStatus: 'event',
+                    notes: `Direservasi ulang untuk event: ${currentEvent.name}`,
+                    referenceType: 'Event',
+                    referenceId: currentEvent._id
+                });
             }
         } else if (!isNowCompletedOrCancelled && req.body.rentedAssets) {
             // Event is active and we are modifying assets
@@ -292,9 +388,33 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
 
             if (addedAssets.length > 0) {
                 await Asset.updateMany({ _id: { $in: addedAssets } }, { $set: { status: 'event' } });
+                for (const assetId of addedAssets) {
+                    await AssetHistory.create({
+                        assetId,
+                        action: 'EVENT_BOOK',
+                        userId: req.user._id,
+                        fromStatus: 'active',
+                        toStatus: 'event',
+                        notes: `Ditambahkan ke event: ${currentEvent.name}`,
+                        referenceType: 'Event',
+                        referenceId: currentEvent._id
+                    });
+                }
             }
             if (removedAssets.length > 0) {
                 await Asset.updateMany({ _id: { $in: removedAssets } }, { $set: { status: 'active' } });
+                for (const assetId of removedAssets) {
+                    await AssetHistory.create({
+                        assetId,
+                        action: 'EVENT_RELEASE',
+                        userId: req.user._id,
+                        fromStatus: 'event',
+                        toStatus: 'active',
+                        notes: `Dihapus dari event: ${currentEvent.name}`,
+                        referenceType: 'Event',
+                        referenceId: currentEvent._id
+                    });
+                }
             }
         }
 
@@ -384,13 +504,44 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
             }
         }
 
-        // Also check supplies? The requirement specifically mentioned assets ("tidak ada asset disana").
-        // But logical to check supplies too or just let them go. I'll stick to assets as requested.
-
         // Reset Asset Status if event is deleted
         if (eventToCheck.rentedAssets && eventToCheck.rentedAssets.length > 0) {
             for (const item of eventToCheck.rentedAssets) {
                 await Asset.findByIdAndUpdate(item.assetId, { status: 'active' });
+                await AssetHistory.create({
+                    assetId: item.assetId,
+                    action: 'EVENT_RELEASE',
+                    userId: req.user._id,
+                    fromStatus: 'event',
+                    toStatus: 'active',
+                    notes: `Event dihapus: ${eventToCheck.name}`,
+                    referenceType: 'Event',
+                    referenceId: eventToCheck._id
+                });
+            }
+        }
+
+        // Restock Supplies if event is deleted while scheduled/ongoing (supplies reserved but not consumed)
+        if (['scheduled', 'ongoing'].includes(eventToCheck.status) && eventToCheck.planningSupplies && eventToCheck.planningSupplies.length > 0) {
+            for (const item of eventToCheck.planningSupplies) {
+                const supply = await Supply.findById(item.supplyId);
+                if (supply) {
+                    const oldStock = supply.quantity;
+                    supply.quantity += item.quantity;
+                    await supply.save();
+
+                    await SupplyHistory.create({
+                        supplyId: supply._id,
+                        action: 'RESTOCK',
+                        quantityChange: item.quantity,
+                        previousStock: oldStock,
+                        newStock: supply.quantity,
+                        userId: req.user?._id,
+                        notes: `Pengembalian dari event dihapus (${eventToCheck.status}): ${eventToCheck.name}`,
+                        referenceType: 'Event',
+                        referenceId: eventToCheck._id
+                    });
+                }
             }
         }
 

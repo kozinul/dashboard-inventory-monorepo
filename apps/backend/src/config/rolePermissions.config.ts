@@ -189,11 +189,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'my_tickets', actions: viewCreateEdit() },
         { resource: 'dept_tickets', actions: viewCreateEdit() },
         { resource: 'my_assets', actions: viewOnly() },
+        { resource: 'rental', actions: viewOnly() },
+        { resource: 'events', actions: viewOnly() },
         { resource: 'history', actions: viewOnly() },
-        { resource: 'data_management', actions: fullAccess() }, // Users often upload self-service import/exports
+        { resource: 'data_management', actions: fullAccess() },
         { resource: 'master_data', actions: viewOnly() },
         { resource: 'stock_opname', actions: viewOnly() },
-        { resource: 'item_mutation_report', actions: viewOnly() },
     ],
 
     technician: [
@@ -208,6 +209,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
         { resource: 'services', actions: viewCreateEdit() },
         { resource: 'my_assets', actions: viewOnly() },
         { resource: 'rental', actions: viewOnly() },
+        { resource: 'events', actions: viewOnly() },
         { resource: 'reports', actions: viewOnly() },
         { resource: 'disposal', actions: viewOnly() },
         { resource: 'assignments', actions: viewCreateEdit() },

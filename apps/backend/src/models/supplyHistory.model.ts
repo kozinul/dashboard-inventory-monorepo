@@ -41,6 +41,15 @@ const supplyHistorySchema = new mongoose.Schema({
     notes: {
         type: String,
         trim: true
+    },
+    referenceType: {
+        type: String,
+        enum: ['Event', 'Manual', 'Import', 'StockOpname', null],
+        required: false
+    },
+    referenceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false
     }
 }, {
     timestamps: true

@@ -1189,7 +1189,9 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                             quantityChange: supply.quantity - previousStock,
                             previousStock: previousStock,
                             newStock: supply.quantity,
-                            notes: 'Updated via Excel Import'
+                            userId: req.user?._id,
+                            notes: `Update via Excel Import`,
+                            referenceType: 'Import'
                         });
                     } else {
                         // Create new
@@ -1201,7 +1203,9 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                             action: 'CREATE',
                             quantityChange: supply.quantity,
                             newStock: supply.quantity,
-                            notes: 'Imported from Excel'
+                            userId: req.user?._id,
+                            notes: `Import dari Excel`,
+                            referenceType: 'Import'
                         });
                     }
 
@@ -1399,7 +1403,9 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                             quantityChange: supply.quantity - previousStock,
                             previousStock: previousStock,
                             newStock: supply.quantity,
-                            notes: 'Updated via Excel Import UI'
+                            userId: req.user?._id,
+                            notes: `Update via Import UI`,
+                            referenceType: 'Import'
                         });
                     } else {
                         // Create new
@@ -1411,7 +1417,9 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                             action: 'CREATE',
                             quantityChange: supply.quantity,
                             newStock: supply.quantity,
-                            notes: 'Imported from Excel UI'
+                            userId: req.user?._id,
+                            notes: `Import dari Excel UI`,
+                            referenceType: 'Import'
                         });
                     }
 

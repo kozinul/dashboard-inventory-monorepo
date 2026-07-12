@@ -5,6 +5,7 @@ import { Supply } from '../models/supply.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { Transfer } from '../models/transfer.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { AuditLog } from '../models/auditLog.model.js';
 import * as XLSX from 'xlsx';
 
@@ -79,6 +80,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 userName: user?.name || 'System',
                 userId: h.userId?._id || null,
                 notes: h.notes || '',
+                referenceType: h.referenceType || null,
                 previousStock: h.previousStock,
                 quantityChange: h.quantityChange,
                 newStock: h.newStock
@@ -132,7 +134,10 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     fromLocation: null,
                     toLocation: loc?.name || null,
                     userName: (a.userId as any)?.name || a.assignedTo || 'System',
-                    notes: a.notes || `Assigned to ${a.assignedTo || (a.userId as any)?.name || 'user'}`,
+                    notes: a.notes || (a.status === 'returned'
+                        ? `Dikembalikan dari ${a.assignedTo || (a.userId as any)?.name || 'user'}`
+                        : `Ditugaskan ke ${a.assignedTo || (a.userId as any)?.name || 'user'}`),
+                    referenceType: 'Assignment',
                     previousStock: null, quantityChange: null, newStock: null
                 });
             }
@@ -167,12 +172,45 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     fromLocation: from,
                     toLocation: to,
                     userName: (t.requestedBy as any)?.name || 'System',
-                    notes: t.notes || `Transfer from ${from} to ${to}`,
+                    notes: t.notes || `Transfer dari ${from} ke ${to}`,
+                    referenceType: 'Transfer',
                     previousStock: null, quantityChange: null, newStock: null
                 });
             }
 
-            // ── 2c. AuditLog for other Asset activities ──
+            // ── 2c. AssetHistory (unified asset movement log) ──
+            const assetHistoryRecords = await AssetHistory.find({
+                ...dateMatch,
+                assetId: { $in: assetIds }
+            })
+                .sort({ createdAt: -1 })
+                .populate('assetId', 'name serial alias')
+                .populate('userId', 'name');
+
+            for (const ah of assetHistoryRecords) {
+                const ass = ah.assetId as any;
+                const key = `ahistory_${ah._id}`;
+                if (seenKeys.has(key)) continue;
+                seenKeys.add(key);
+
+                assetRows.push({
+                    _id: key,
+                    createdAt: ah.createdAt,
+                    itemName: ass?.name || 'Unknown Asset',
+                    alias: ass?.alias || null,
+                    itemType: 'Asset',
+                    serial: ass?.serial || '-',
+                    action: ah.action,
+                    fromLocation: null,
+                    toLocation: null,
+                    userName: (ah.userId as any)?.name || 'System',
+                    notes: ah.notes || '',
+                    referenceType: ah.referenceType || null,
+                    previousStock: null, quantityChange: null, newStock: null
+                });
+            }
+
+            // ── 2d. AuditLog for legacy Asset activities (pre-AssetHistory) ──
             const auditActions = ['create', 'update', 'delete'];
             const auditLogs = await AuditLog.find({
                 ...dateMatch,
@@ -217,6 +255,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     toLocation,
                     userName: user?.name || 'System',
                     notes: details,
+                    referenceType: null,
                     previousStock: null, quantityChange: null, newStock: null
                 });
             }
@@ -292,7 +331,8 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
                 'Previous Stock': h.previousStock ?? '-',
                 Change: h.quantityChange ?? '-',
                 'New Stock': h.newStock ?? '-',
-                Notes: h.notes || ''
+                'Keterangan': h.notes || '',
+                'Sumber': h.referenceType || '-'
             };
         });
 

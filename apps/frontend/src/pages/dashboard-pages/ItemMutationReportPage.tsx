@@ -32,7 +32,7 @@ export default function ItemMutationReportPage() {
 
     useEffect(() => {
         fetchData();
-    }, [activeBranchId]);
+    }, [activeBranchId, itemTypeFilter, startDate, endDate]);
 
     const getActionStyle = (action: string) => {
         switch (action) {
@@ -102,6 +102,7 @@ export default function ItemMutationReportPage() {
                                 <th className="px-6 py-4">Item</th>
                                 <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Action</th>
+                                <th className="px-6 py-4">Keterangan</th>
                                 <th className="px-6 py-4">From Location</th>
                                 <th className="px-6 py-4">To Location</th>
                                 <th className="px-6 py-4">User</th>
@@ -111,11 +112,11 @@ export default function ItemMutationReportPage() {
                         <tbody className="divide-y divide-slate-200 dark:divide-border-dark">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-8 text-center">Loading...</td>
+                                    <td colSpan={9} className="px-6 py-8 text-center">Loading...</td>
                                 </tr>
                             ) : mutations.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan={9} className="px-6 py-8 text-center text-slate-500">
                                         No mutations found in this period.
                                     </td>
                                 </tr>
@@ -144,6 +145,9 @@ export default function ItemMutationReportPage() {
                                         <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${getActionStyle(m.action)}`}>
                                             {m.action}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate" title={m.notes || ''}>
+                                        {m.notes || '-'}
                                     </td>
                                     <td className="px-6 py-4 text-slate-500 max-w-[160px] truncate" title={m.fromLocation || ''}>
                                         {m.fromLocation || '-'}
