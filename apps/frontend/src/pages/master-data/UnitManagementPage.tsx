@@ -92,7 +92,7 @@ export default function UnitManagementPage() {
     const filteredUnits = units.filter(unit => {
         const matchesSearch = unit.name.toLowerCase().includes(search.toLowerCase()) ||
             unit.symbol.toLowerCase().includes(search.toLowerCase());
-        const matchesBranch = activeBranchId === 'ALL' || (unit.branchId === activeBranchId);
+        const matchesBranch = activeBranchId === 'ALL' || !unit.branchId || (unit.branchId === activeBranchId);
         return matchesSearch && matchesBranch;
     });
 

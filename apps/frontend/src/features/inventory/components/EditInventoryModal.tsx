@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { assetService, Asset } from '../../../services/assetService';
@@ -51,8 +51,16 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const [departments, setDepartments] = useState<Department[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [vendors, setVendors] = useState<Vendor[]>([]);
-    const [allAssets, setAllAssets] = useState<Asset[]>([]); // For parent selection
     const [locations, setLocations] = useState<BoxLocation[]>([]);
+
+    // Parent Asset Search State
+    const [parentSearchQuery, setParentSearchQuery] = useState('');
+    const [parentSearchResults, setParentSearchResults] = useState<Asset[]>([]);
+    const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false);
+    const [selectedParentAsset, setSelectedParentAsset] = useState<Asset | null>(null);
+    const parentSearchRef = useRef<HTMLDivElement>(null);
+    const parentInputRef = useRef<HTMLInputElement>(null);
+    const parentDebounceRef = useRef<ReturnType<typeof setTimeout>>();
 
     // File Upload State
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -81,13 +89,11 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 departmentService.getAll(),
                 categoryService.getAll(),
                 vendorService.getAll(),
-                assetService.getAll(),
                 locationService.getAll()
-            ]).then(([depts, cats, vends, allAss, locs]) => {
+            ]).then(([depts, cats, vends, locs]) => {
                 setDepartments(depts);
                 setCategories(cats);
                 setVendors(vends.filter(v => v.status === 'active'));
-                setAllAssets(allAss.data);
                 setLocations(locs.filter(l => l.status === 'Active'));
                 setIsDataLoaded(true);
             }).catch(err => {
@@ -142,11 +148,75 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                     }, 50);
                 }, 50);
 
+                // Load selected parent asset info for display
+                if (parentId) {
+                    const parentData = asset.parentAssetId && typeof asset.parentAssetId === 'object'
+                        ? asset.parentAssetId as any
+                        : null;
+                    if (parentData) {
+                        setSelectedParentAsset(parentData);
+                    } else {
+                        // Fetch parent details if not populated
+                        assetService.getById(parentId).then(p => setSelectedParentAsset(p)).catch(() => {});
+                    }
+                }
+
             }, 50);
 
             return () => clearTimeout(timer);
         }
     }, [isOpen, isDataLoaded, asset, reset, setValue]);
+
+    // Parent Asset Search with debounce
+    const searchParentAssets = useCallback(async (query: string) => {
+        if (query.length < 2) {
+            setParentSearchResults([]);
+            return;
+        }
+        try {
+            const result = await assetService.getAll({
+                search: query,
+                limit: 20,
+                unassigned: true
+            });
+            setParentSearchResults(result.data || []);
+        } catch (err) {
+            console.error('Parent asset search failed:', err);
+            setParentSearchResults([]);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (parentDebounceRef.current) clearTimeout(parentDebounceRef.current);
+        parentDebounceRef.current = setTimeout(() => {
+            searchParentAssets(parentSearchQuery);
+        }, 300);
+        return () => { if (parentDebounceRef.current) clearTimeout(parentDebounceRef.current); };
+    }, [parentSearchQuery, searchParentAssets]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (parentSearchRef.current && !parentSearchRef.current.contains(e.target as Node)) {
+                setIsParentDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleSelectParent = (asset: Asset) => {
+        setSelectedParentAsset(asset);
+        setValue('parentAssetId', asset._id);
+        setIsParentDropdownOpen(false);
+        setParentSearchQuery('');
+        setParentSearchResults([]);
+    };
+
+    const handleRemoveParent = () => {
+        setSelectedParentAsset(null);
+        setValue('parentAssetId', '');
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -237,6 +307,10 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
     const handleClose = () => {
         reset();
         setInvoiceFile(null);
+        setSelectedParentAsset(null);
+        setParentSearchQuery('');
+        setParentSearchResults([]);
+        setIsParentDropdownOpen(false);
         onClose();
     };
 
@@ -380,20 +454,97 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
 
                                         {/* Status & Department */}
                                         <div className="space-y-4">
-                                            <div>
+                                            <div className="relative" ref={parentSearchRef}>
                                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parent Asset (Optional)</label>
-                                                <select
-                                                    {...register('parentAssetId')}
-                                                    className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
-                                                >
-                                                    <option value="">None (Top Level)</option>
-                                                    {allAssets
-                                                        .filter(a => a._id !== asset?._id && a.id !== asset?._id)
-                                                        .filter(a => !a.parentAssetId)
-                                                        .map(a => (
-                                                            <option key={a._id} value={a._id}>{a.alias ? `${a.alias} / ` : ''}{a.name} ({a.serial})</option>
-                                                        ))}
-                                                </select>
+                                                {selectedParentAsset ? (
+                                                    <div className="flex items-center gap-2 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2">
+                                                        <span className="material-symbols-outlined text-sm text-slate-400">link</span>
+                                                        <span className="text-sm text-slate-900 dark:text-white truncate flex-1">
+                                                            <span className="font-semibold text-primary">{selectedParentAsset.alias || selectedParentAsset.name}</span>
+                                                            {selectedParentAsset.alias && <span className="text-slate-400 mx-1">/</span>}
+                                                            {selectedParentAsset.alias && <span className="text-slate-500">{selectedParentAsset.name}</span>}
+                                                            <span className="text-slate-400 ml-1">({selectedParentAsset.serial})</span>
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleRemoveParent}
+                                                            className="text-slate-400 hover:text-rose-500 transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[16px]">close</span>
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                                <span className="material-symbols-outlined text-[16px]">search</span>
+                                                            </span>
+                                                            <input
+                                                                ref={parentInputRef}
+                                                                type="text"
+                                                                placeholder="Search by name, alias, or serial..."
+                                                                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm pl-9 pr-3 py-2 focus:ring-primary focus:border-primary"
+                                                                value={parentSearchQuery}
+                                                                onChange={(e) => {
+                                                                    setParentSearchQuery(e.target.value);
+                                                                    setIsParentDropdownOpen(true);
+                                                                }}
+                                                                onFocus={() => {
+                                                                    if (parentSearchQuery.length >= 2) setIsParentDropdownOpen(true);
+                                                                }}
+                                                            />
+                                                            {parentSearchQuery && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setParentSearchQuery('');
+                                                                        setParentSearchResults([]);
+                                                                        setIsParentDropdownOpen(false);
+                                                                    }}
+                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {isParentDropdownOpen && parentSearchQuery.length >= 2 && (
+                                                            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                                {parentSearchResults.length === 0 ? (
+                                                                    <div className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-center">
+                                                                        No assets found
+                                                                    </div>
+                                                                ) : (
+                                                                    parentSearchResults.map(a => (
+                                                                        <div
+                                                                            key={a._id}
+                                                                            onClick={() => handleSelectParent(a)}
+                                                                            className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-slate-100 dark:border-slate-700 last:border-b-0 transition-colors"
+                                                                        >
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="material-symbols-outlined text-[14px] text-slate-400">inventory_2</span>
+                                                                                <span className="text-sm font-semibold text-primary">{a.alias || a.name}</span>
+                                                                                {a.alias && (
+                                                                                    <>
+                                                                                        <span className="text-slate-400">/</span>
+                                                                                        <span className="text-sm text-slate-500">{a.name}</span>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex items-center gap-3 mt-1 ml-[22px]">
+                                                                                <span className="text-xs text-slate-400 font-mono">{a.serial}</span>
+                                                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                                                                    a.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                                                    : a.status === 'storage' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                                                                }`}>{a.status}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                                 <p className="text-[10px] text-slate-400 mt-1">Assign if this asset is a component of another asset.</p>
                                             </div>
 

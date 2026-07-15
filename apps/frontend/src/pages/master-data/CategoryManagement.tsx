@@ -160,8 +160,8 @@ export default function CategoryManagement() {
         const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesDept = selectedDept ? cat.authorizedDepartments.some(d => d._id === selectedDept) : true;
 
-        // Filter by Branch (if not ALL)
-        const matchesBranch = activeBranchId === 'ALL' || (cat.branchId === activeBranchId);
+        // Filter by Branch (if not ALL) — categories without branchId are treated as global
+        const matchesBranch = activeBranchId === 'ALL' || !cat.branchId || (cat.branchId === activeBranchId);
 
         return matchesSearch && matchesDept && matchesBranch;
     });
