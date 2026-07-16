@@ -7,6 +7,7 @@ export const AssetStatusSchema = z.enum([
     'retired',
     'assigned',
     'request maintenance',
+    'pending_delete',
     'disposed',
     'in_use',
     'rented',

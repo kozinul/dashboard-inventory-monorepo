@@ -3,6 +3,8 @@ import { Asset } from '../models/asset.model.js';
 import Event from '../models/event.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { recordAuditLog } from '../utils/logger.js';
+import { Notification } from '../models/notification.model.js';
+import mongoose from 'mongoose';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -901,6 +903,168 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         });
 
         res.status(200).json({ success: true, data: asset });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const requestDeleteAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const asset = await Asset.findById(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found' });
+        }
+
+        if (asset.status === 'pending_delete') {
+            return res.status(400).json({ message: 'Asset already has a pending delete request' });
+        }
+
+        const previousStatus = asset.status;
+        asset.status = 'pending_delete' as any;
+        (asset as any).deleteRequestedBy = req.user._id;
+        (asset as any).deleteRequestNote = req.body.note || '';
+
+        asset.activityLog.push({
+            action: 'delete_requested',
+            details: `Delete requested${req.body.note ? `: ${req.body.note}` : ''}`,
+            performedBy: req.user._id,
+            date: new Date()
+        } as any);
+
+        await asset.save();
+
+        // Notify all admin/superuser/system_admin users
+        const { User } = await import('../models/user.model.js');
+        const adminUsers = await User.find({ role: { $in: ['admin', 'superuser', 'system_admin'] }, _id: { $ne: req.user._id } }).select('_id');
+        if (adminUsers.length > 0) {
+            await Notification.insertMany(adminUsers.map((admin: any) => ({
+                userId: admin._id,
+                type: 'delete_request',
+                title: 'Delete Request',
+                message: `${req.user.name} requested deletion of "${asset.name}"${req.body.note ? `: ${req.body.note}` : ''}`,
+                assetId: asset._id,
+                assetName: asset.name,
+                fromUserId: req.user._id,
+                fromUserName: req.user.name
+            })));
+        }
+
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'update',
+            resourceType: 'Asset',
+            resourceId: asset._id.toString(),
+            resourceName: asset.name,
+            details: `Delete requested for asset: ${asset.name} (${asset.serial}). Previous status: ${previousStatus}`,
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: asset.departmentId?.toString()
+        });
+
+        res.json(asset);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const approveDeleteAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const asset = await Asset.findById(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found' });
+        }
+
+        if (asset.status !== 'pending_delete') {
+            return res.status(400).json({ message: 'Asset is not pending deletion' });
+        }
+
+        const requestedById = (asset as any).deleteRequestedBy?._id || (asset as any).deleteRequestedBy;
+        const requestedByName = (asset as any).deleteRequestedBy
+            ? ((asset as any).deleteRequestedBy.name || 'Unknown')
+            : 'Unknown';
+
+        await Asset.findByIdAndDelete(req.params.id);
+
+        // Notify the user who requested the delete
+        if (requestedById) {
+            await Notification.create({
+                userId: requestedById,
+                type: 'delete_approved',
+                title: 'Delete Request Approved',
+                message: `Your delete request for "${asset.name}" has been approved and the asset has been deleted.`,
+                assetName: asset.name,
+                fromUserId: req.user._id,
+                fromUserName: req.user.name
+            });
+        }
+
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'delete',
+            resourceType: 'Asset',
+            resourceId: asset._id.toString(),
+            resourceName: asset.name,
+            details: `Deleted asset: ${asset.name} (${asset.serial}). Approved by ${req.user.name}. Originally requested by ${requestedByName}`,
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: asset.departmentId?.toString()
+        });
+
+        res.json({ message: 'Asset deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const rejectDeleteAsset = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const asset = await Asset.findById(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found' });
+        }
+
+        if (asset.status !== 'pending_delete') {
+            return res.status(400).json({ message: 'Asset is not pending deletion' });
+        }
+
+        asset.status = 'active' as any;
+        (asset as any).deleteRequestedBy = undefined;
+        (asset as any).deleteRequestNote = undefined;
+
+        asset.activityLog.push({
+            action: 'delete_rejected',
+            details: `Delete request rejected by ${req.user.name}${req.body.reason ? `: ${req.body.reason}` : ''}`,
+            performedBy: req.user._id,
+            date: new Date()
+        } as any);
+
+        await asset.save();
+
+        // Notify the user who requested the delete
+        const requestedById = (asset as any).deleteRequestedBy?._id || (asset as any).deleteRequestedBy;
+        if (requestedById) {
+            await Notification.create({
+                userId: requestedById,
+                type: 'delete_rejected',
+                title: 'Delete Request Rejected',
+                message: `Your delete request for "${asset.name}" has been rejected${req.body.reason ? `: ${req.body.reason}` : ''}.`,
+                assetId: asset._id,
+                assetName: asset.name,
+                fromUserId: req.user._id,
+                fromUserName: req.user.name
+            });
+        }
+
+        await recordAuditLog({
+            userId: req.user._id,
+            action: 'update',
+            resourceType: 'Asset',
+            resourceId: asset._id.toString(),
+            resourceName: asset.name,
+            details: `Delete request rejected for asset: ${asset.name} (${asset.serial}). Status reverted to active`,
+            branchId: (req.user as any).branchId?.toString(),
+            departmentId: asset.departmentId?.toString()
+        });
+
+        res.json(asset);
     } catch (error) {
         next(error);
     }

@@ -112,6 +112,9 @@ app.use('/api/v1/stock-opname', stockOpnameRoutes);
 import reportRoutes from './routes/report.routes.js';
 app.use('/api/v1/reports', reportRoutes);
 
+import notificationRoutes from './routes/notification.routes.js';
+app.use('/api/v1/notifications', notificationRoutes);
+
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

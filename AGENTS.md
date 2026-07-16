@@ -2,11 +2,21 @@
 
 ## Current State
 - **User:** bndhit (admin, BND Hotel, IT department)
+- **User:** agung (technician, Bali Nusa Dua Convention Center, IT department)
 - **Branch:** BND Hotel (`6a3488a78e9c8aa5102a85ca`)
 - **Backend:** Docker container (localhost:3000)
 - **Frontend:** Docker container (port 80)
 
 ## Completed Tasks
+
+### 2026-07-16
+- **Category page empty fix** — Added `!cat.branchId` to frontend branch filter in `CategoryManagement.tsx` so global categories (no branchId) appear.
+- **Units page empty fix** — Added `!unit.branchId` to frontend branch filter in `UnitManagementPage.tsx` so global units appear.
+- **Parent Asset searchable selector** — Replaced `<select>` dropdown with searchable input + debounced dropdown in `EditInventoryModal.tsx`; alias displayed first (bold); removable chip for selected parent.
+- **Global search supplies fix** — Updated `search.controller.ts` supply search to handle null `branchId` via `$or`; added `partNumber` to search fields.
+- **Request Delete feature (technician only)** — New `pending_delete` asset status; technician can request delete with optional reason via modal; admin/superuser/system_admin can approve (hard delete) or reject (revert to active).
+- **Notification system** — Backend `Notification` model + controller + routes; frontend bell icon dropdown with unread badge, polling every 30s, mark as read / mark all read.
+- **Request Delete modal** — SweetAlert2 textarea modal for optional reason input when requesting delete.
 
 ### 2026-07-12
 - **Item Mutation Report — Keterangan column added** — New column showing supply history notes; colSpan updated to 9.

@@ -24,7 +24,7 @@ interface InventoryFormInputs {
     serial: string;
     departmentId: string;
     // ...
-    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use';
     parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
     isContainer: boolean;

@@ -97,6 +97,7 @@ export function AssetStatusBadge({ status }: { status: string }) {
         retired: "bg-slate-500/10 text-slate-500 border-slate-500/20",
         assigned: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
         "request maintenance": "bg-rose-500/10 text-rose-500 border-rose-500/20",
+        "pending_delete": "bg-red-500/10 text-red-500 border-red-500/20",
         disposed: "bg-gray-500/10 text-gray-500 border-gray-500/20",
         in_use: "bg-orange-500/10 text-orange-500 border-orange-500/20",
         rented: "bg-purple-500/10 text-purple-500 border-purple-500/20",
@@ -115,7 +116,18 @@ export function AssetStatusBadge({ status }: { status: string }) {
     );
 }
 
-export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetId: string, onEdit?: (id: string) => void, onDelete?: (id: string) => void, onClone?: (id: string) => void }) {
+export function AssetRowActions({ assetId, onEdit, onDelete, onClone, onRequestDelete, onApproveDelete, onRejectDelete, status }: {
+    assetId: string,
+    onEdit?: (id: string) => void,
+    onDelete?: (id: string) => void,
+    onClone?: (id: string) => void,
+    onRequestDelete?: (id: string) => void,
+    onApproveDelete?: (id: string) => void,
+    onRejectDelete?: (id: string) => void,
+    status?: string
+}) {
+    const isPendingDelete = status === 'pending_delete';
+
     return (
         <div className="flex items-center gap-1 justify-end">
             <Link
@@ -124,7 +136,7 @@ export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetI
             >
                 <span className="material-symbols-outlined !text-[18px]">visibility</span>
             </Link>
-            {onEdit && (
+            {onEdit && !isPendingDelete && (
                 <button
                     onClick={() => onEdit(assetId)}
                     className="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded transition-colors"
@@ -132,7 +144,7 @@ export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetI
                     <span className="material-symbols-outlined !text-[18px]">edit</span>
                 </button>
             )}
-            {onClone && (
+            {onClone && !isPendingDelete && (
                 <button
                     onClick={() => onClone(assetId)}
                     className="p-1.5 text-slate-400 hover:text-green-500 hover:bg-green-500/10 rounded transition-colors"
@@ -141,12 +153,39 @@ export function AssetRowActions({ assetId, onEdit, onDelete, onClone }: { assetI
                     <span className="material-symbols-outlined !text-[18px]">content_copy</span>
                 </button>
             )}
-            {onDelete && (
+            {isPendingDelete && onApproveDelete && (
+                <button
+                    onClick={() => onApproveDelete(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                    title="Approve Delete"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">check</span>
+                </button>
+            )}
+            {isPendingDelete && onRejectDelete && (
+                <button
+                    onClick={() => onRejectDelete(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 rounded transition-colors"
+                    title="Reject Delete"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">undo</span>
+                </button>
+            )}
+            {!isPendingDelete && onDelete && (
                 <button
                     onClick={() => onDelete(assetId)}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                 >
                     <span className="material-symbols-outlined !text-[18px]">delete</span>
+                </button>
+            )}
+            {!isPendingDelete && onRequestDelete && (
+                <button
+                    onClick={() => onRequestDelete(assetId)}
+                    className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-500/10 rounded transition-colors"
+                    title="Request Delete"
+                >
+                    <span className="material-symbols-outlined !text-[18px]">delete_sweep</span>
                 </button>
             )}
         </div>

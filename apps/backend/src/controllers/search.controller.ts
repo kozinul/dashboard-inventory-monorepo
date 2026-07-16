@@ -65,14 +65,23 @@ export const globalSearch = async (req: Request, res: Response, next: NextFuncti
         };
         const locations = await Location.find(locationFilter).limit(limit).select('name code type');
 
-        // 4. Search Supplies
-        const supplyFilter = {
-            ...baseFilter,
+        // 4. Search Supplies (handle null branchId separately)
+        const supplyFilter: any = {
             $or: [
-                { name: searchRegex }
+                { name: searchRegex },
+                { partNumber: searchRegex }
             ]
         };
-        const supplies = await Supply.find(supplyFilter).limit(limit).select('name code');
+        if (req.user && req.user.role !== 'superuser') {
+            supplyFilter.$and = [
+                { $or: [
+                    { branchId: req.user.branchId },
+                    { branchId: null },
+                    { branchId: { $exists: false } }
+                ]}
+            ];
+        }
+        const supplies = await Supply.find(supplyFilter).limit(limit).select('name partNumber');
 
         res.json({
             assets,

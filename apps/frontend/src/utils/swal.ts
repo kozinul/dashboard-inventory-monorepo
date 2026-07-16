@@ -156,6 +156,26 @@ export const showInputDialog = async (
     });
 };
 
+export const showOptionalInputDialog = async (
+    title: string,
+    inputPlaceholder = '',
+    inputType: 'text' | 'textarea' | 'email' = 'text',
+    inputValue = ''
+) => {
+    return MySwal.fire({
+        title,
+        input: inputType,
+        inputPlaceholder,
+        inputValue,
+        showCancelButton: true,
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Submit',
+        cancelButtonText: 'Cancel',
+        ...getThemeConfig(),
+    });
+};
+
 export const showSelectDialog = async (
     title: string,
     options: Record<string, string>,

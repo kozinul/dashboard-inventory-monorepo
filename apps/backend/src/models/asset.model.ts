@@ -149,7 +149,18 @@ const assetSchema = new mongoose.Schema({
         details: String,
         performedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         date: { type: Date, default: Date.now }
-    }]
+    }],
+    // Deletion Request Fields
+    deleteRequestedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
+    deleteRequestNote: {
+        type: String,
+        required: false,
+        trim: true
+    }
 }, {
     timestamps: true
 });

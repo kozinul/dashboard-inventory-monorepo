@@ -10,7 +10,10 @@ import {
     getAvailableAssetsForEvent,
     installAsset,
     dismantleAsset,
-    bulkDeleteAssets
+    bulkDeleteAssets,
+    requestDeleteAsset,
+    approveDeleteAsset,
+    rejectDeleteAsset
 } from '../controllers/inventory.controller.js';
 import { checkPermission } from '../middleware/permission.middleware.js';
 import { cloneAsset, bulkCloneAssets } from '../controllers/assetTemplate.controller.js';
@@ -46,6 +49,14 @@ router.get('/items/:id', getAssetById);
 router.patch('/:id', checkPermission('inventory', 'edit'), updateAsset);
 router.put('/:id', checkPermission('inventory', 'edit'), updateAsset);
 router.put('/items/:id', checkPermission('inventory', 'edit'), updateAsset);
+
+// Delete Request Routes (any authenticated user can request; only delete-privileged users can approve/reject)
+router.put('/items/:id/request-delete', requestDeleteAsset);
+router.put('/:id/request-delete', requestDeleteAsset);
+router.put('/items/:id/approve-delete', checkPermission('inventory', 'delete'), approveDeleteAsset);
+router.put('/:id/approve-delete', checkPermission('inventory', 'delete'), approveDeleteAsset);
+router.put('/items/:id/reject-delete', checkPermission('inventory', 'delete'), rejectDeleteAsset);
+router.put('/:id/reject-delete', checkPermission('inventory', 'delete'), rejectDeleteAsset);
 
 // Bulk Delete (Must be before specific ID routes that use DELETE)
 router.post('/items/bulk-delete', checkPermission('inventory', 'delete'), bulkDeleteAssets);

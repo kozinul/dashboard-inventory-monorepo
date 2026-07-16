@@ -20,7 +20,7 @@ export interface Asset {
     departmentId?: string;
     department?: string;
     branchId?: string | { _id: string; name: string };
-    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'disposed' | 'in_use';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use';
     isContainer?: boolean;
     totalSlots?: number;
     requiresExternalService?: boolean;
@@ -77,6 +77,8 @@ export interface Asset {
         performedBy?: string | { _id: string; name: string };
         date: string;
     }[];
+    deleteRequestedBy?: string | { _id: string; name: string };
+    deleteRequestNote?: string;
 }
 
 export const assetService = {
@@ -117,6 +119,21 @@ export const assetService = {
 
     getStats: async () => {
         const response = await axios.get<any>(`${API_URL}/stats`);
+        return response.data;
+    },
+
+    requestDelete: async (id: string, note?: string) => {
+        const response = await axios.put<Asset>(`${API_URL}/items/${id}/request-delete`, { note });
+        return response.data;
+    },
+
+    approveDelete: async (id: string) => {
+        const response = await axios.put<Asset>(`${API_URL}/items/${id}/approve-delete`);
+        return response.data;
+    },
+
+    rejectDelete: async (id: string) => {
+        const response = await axios.put<Asset>(`${API_URL}/items/${id}/reject-delete`);
         return response.data;
     }
 };

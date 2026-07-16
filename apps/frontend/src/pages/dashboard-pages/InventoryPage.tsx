@@ -8,7 +8,7 @@ import { AddInventoryModal } from '@/features/inventory/components/AddInventoryM
 import { EditInventoryModal } from '@/features/inventory/components/EditInventoryModal';
 import { CloneAssetModal } from '@/features/inventory/components/CloneAssetModal';
 import { assetService, Asset } from '@/services/assetService';
-import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
+import { showSuccessToast, showErrorToast, showConfirmDialog, showOptionalInputDialog } from '@/utils/swal';
 
 
 
@@ -201,7 +201,71 @@ export default function InventoryPage() {
 
     const { user } = useAuthStore.getState();
     const hasInventoryPermission = user?.permissions?.find(p => p.resource === 'inventory')?.actions.create || false;
+    const hasDeletePermission = user?.permissions?.find(p => p.resource === 'inventory')?.actions.delete || false;
     const canEdit = user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'system_admin' || user?.role === 'manager' || user?.role === 'technician' || user?.role === 'supervisor' || hasInventoryPermission;
+    const canDelete = hasDeletePermission || user?.role === 'admin' || user?.role === 'superuser' || user?.role === 'system_admin';
+    const canRequestDelete = user?.role === 'technician' && !canDelete;
+
+    const handleRequestDelete = async (id: string) => {
+        const asset = assets.find(a => (a.id || a._id) === id);
+        const result = await showOptionalInputDialog(
+            `Request Delete: "${asset?.name || 'this asset'}"`,
+            'Alasan penghapusan (opsional)',
+            'textarea',
+            ''
+        );
+        if (result.isConfirmed) {
+            try {
+                await assetService.requestDelete(id, result.value || '');
+                fetchData();
+                showSuccessToast('Delete request sent successfully!');
+            } catch (error: any) {
+                console.error("Failed to request delete:", error);
+                showErrorToast(error.response?.data?.message || 'Failed to request delete.');
+            }
+        }
+    };
+
+    const handleApproveDelete = async (id: string) => {
+        const asset = assets.find(a => (a.id || a._id) === id);
+        const result = await showConfirmDialog(
+            'Approve Deletion?',
+            `Permanently delete "${asset?.name || 'this asset'}"? This action cannot be undone.`,
+            'Yes, Delete',
+            'delete'
+        );
+        if (result.isConfirmed) {
+            try {
+                await assetService.approveDelete(id);
+                fetchData();
+                showSuccessToast('Asset deleted successfully!');
+                setSelectedAssetIds(prev => prev.filter(selectedId => selectedId !== id));
+            } catch (error: any) {
+                console.error("Failed to approve delete:", error);
+                showErrorToast(error.response?.data?.message || 'Failed to approve deletion.');
+            }
+        }
+    };
+
+    const handleRejectDelete = async (id: string) => {
+        const asset = assets.find(a => (a.id || a._id) === id);
+        const result = await showConfirmDialog(
+            'Reject Delete Request?',
+            `Reject the deletion request for "${asset?.name || 'this asset'}"? The asset will be restored to active status.`,
+            'Reject Request',
+            'info'
+        );
+        if (result.isConfirmed) {
+            try {
+                await assetService.rejectDelete(id);
+                fetchData();
+                showSuccessToast('Delete request rejected.');
+            } catch (error: any) {
+                console.error("Failed to reject delete:", error);
+                showErrorToast(error.response?.data?.message || 'Failed to reject deletion request.');
+            }
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -321,8 +385,11 @@ export default function InventoryPage() {
                     onPageChange={setPage}
                     onLimitChange={setLimit}
                     onEdit={canEdit ? openEditModal : undefined}
-                    onDelete={canEdit ? handleDeleteAsset : undefined}
+                    onDelete={canDelete ? handleDeleteAsset : undefined}
                     onClone={canEdit ? openCloneModal : undefined}
+                    onRequestDelete={canRequestDelete ? handleRequestDelete : undefined}
+                    onApproveDelete={canDelete ? handleApproveDelete : undefined}
+                    onRejectDelete={canDelete ? handleRejectDelete : undefined}
                     selectedIds={selectedAssetIds}
                     onSelectionChange={canEdit ? setSelectedAssetIds : undefined}
                 />

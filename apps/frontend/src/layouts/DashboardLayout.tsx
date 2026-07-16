@@ -36,6 +36,7 @@ import { useAuthStore } from '@/store/authStore'
 
 import { useAppStore } from '@/store/appStore'
 import { useMaintenanceStore } from '@/store/maintenanceStore'
+import { useNotificationStore } from '@/store/notificationStore'
 import { Listbox } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
@@ -109,6 +110,7 @@ function DashboardLayout() {
     const { activeBranchId, branches, setActiveBranch, isLoading: isBranchLoading, isSwitching, initialize: initializeBranches } = useAppStore()
     const activeBranch = branches.find(b => b._id === activeBranchId);
     const { counts, startPolling } = useMaintenanceStore();
+    const { unreadCount, notifications, fetchNotifications, markAsRead, markAllAsRead, isOpen: isNotifOpen, setIsOpen: setNotifOpen } = useNotificationStore();
     const navigate = useNavigate();
 
     // Search state
@@ -172,6 +174,13 @@ function DashboardLayout() {
             return stopPolling;
         }
     }, [user, startPolling]);
+
+    useEffect(() => {
+        if (user) {
+            const stopNotifPolling = useNotificationStore.getState().startPolling(30000);
+            return stopNotifPolling;
+        }
+    }, [user]);
 
     // Helper to inject badges
     const getBadge = (name: string) => {
@@ -815,10 +824,78 @@ function DashboardLayout() {
                                 )}
                             </div>
                             <div className="flex items-center gap-x-4 lg:gap-x-6">
-                                <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
-                                    <span className="sr-only">View notifications</span>
-                                    <BellIcon className="h-6 w-6" aria-hidden="true" />
-                                </button>
+                                {/* Notification Bell */}
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setNotifOpen(!isNotifOpen);
+                                            if (!isNotifOpen) fetchNotifications();
+                                        }}
+                                        className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative"
+                                    >
+                                        <span className="sr-only">View notifications</span>
+                                        <BellIcon className="h-6 w-6" aria-hidden="true" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {isNotifOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                                            <div className="absolute right-0 z-50 mt-2 w-80 sm:w-96 max-h-[70vh] bg-white rounded-xl shadow-lg ring-1 ring-gray-900/5 overflow-hidden">
+                                                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                                                    <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                                                    {unreadCount > 0 && (
+                                                        <button
+                                                            onClick={() => markAllAsRead()}
+                                                            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                                                        >
+                                                            Mark all read
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="overflow-y-auto max-h-[50vh] divide-y divide-gray-50">
+                                                    {notifications.length === 0 ? (
+                                                        <div className="p-6 text-center text-sm text-gray-400">
+                                                            No notifications yet
+                                                        </div>
+                                                    ) : (
+                                                        notifications.map(n => (
+                                                            <button
+                                                                key={n._id}
+                                                                onClick={() => {
+                                                                    markAsRead(n._id);
+                                                                    setNotifOpen(false);
+                                                                    if (n.assetId) navigate(`/inventory/asset-details/${n.assetId}`);
+                                                                }}
+                                                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${!n.isRead ? 'bg-indigo-50/50' : ''}`}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className={`flex-shrink-0 mt-0.5 w-2 h-2 rounded-full ${!n.isRead ? 'bg-indigo-500' : 'bg-transparent'}`} />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className={`text-sm ${!n.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                                                                            {n.title}
+                                                                        </p>
+                                                                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                                                            {n.message}
+                                                                        </p>
+                                                                        <p className="text-[10px] text-gray-400 mt-1">
+                                                                            {new Date(n.createdAt).toLocaleString('id-ID')}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
 
                                 {/* Separator */}
                                 <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />

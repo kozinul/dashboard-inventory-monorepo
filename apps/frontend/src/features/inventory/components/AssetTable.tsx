@@ -6,6 +6,9 @@ interface AssetTableProps {
     onEdit?: (id: string) => void;
     onDelete?: (id: string) => void;
     onClone?: (id: string) => void;
+    onRequestDelete?: (id: string) => void;
+    onApproveDelete?: (id: string) => void;
+    onRejectDelete?: (id: string) => void;
     onSelect?: (asset: Asset) => void;
     actionLabel?: string;
     selectedIds?: string[];
@@ -19,7 +22,7 @@ interface AssetTableProps {
 }
 
 export function AssetTable({
-    assets, onEdit, onDelete, onClone, onSelect, actionLabel = 'Select',
+    assets, onEdit, onDelete, onClone, onRequestDelete, onApproveDelete, onRejectDelete, onSelect, actionLabel = 'Select',
     selectedIds = [], onSelectionChange,
     page = 1, totalPages = 1, totalItems = 0, limit = 10,
     onPageChange, onLimitChange
@@ -132,6 +135,10 @@ export function AssetTable({
                                                 onEdit={onEdit}
                                                 onDelete={onDelete}
                                                 onClone={onClone}
+                                                onRequestDelete={onRequestDelete}
+                                                onApproveDelete={onApproveDelete}
+                                                onRejectDelete={onRejectDelete}
+                                                status={asset.status}
                                             />
                                         )}
                                     </td>
