@@ -114,13 +114,19 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
         if (andConditions.length > 0) {
             filters.$and = andConditions;
         }
-        const assets = await Asset.find(filters)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate('departmentId', 'name')
-            .populate('locationId', 'name')
-            .populate('parentAssetId', 'name serial alias');
+        const assets = await Asset.aggregate([
+            { $match: filters },
+            { $addFields: { _sortPriority: { $cond: [{ $eq: ['$status', 'pending_delete'] }, 0, 1] } } },
+            { $sort: { _sortPriority: 1, createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            { $lookup: { from: 'departments', localField: 'departmentId', foreignField: '_id', as: 'departmentId', pipeline: [{ $project: { name: 1 } }] } },
+            { $lookup: { from: 'locations', localField: 'locationId', foreignField: '_id', as: 'locationId', pipeline: [{ $project: { name: 1 } }] } },
+            { $lookup: { from: 'assets', localField: 'parentAssetId', foreignField: '_id', as: 'parentAssetId', pipeline: [{ $project: { name: 1, serial: 1, alias: 1 } }] } },
+            { $unwind: { path: '$departmentId', preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: '$locationId', preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: '$parentAssetId', preserveNullAndEmptyArrays: true } },
+        ]);
 
         const totalOptions = Object.keys(filters).length === 0 ? {} : filters;
         const total = await Asset.countDocuments(totalOptions);
@@ -933,20 +939,32 @@ export const requestDeleteAsset = async (req: Request, res: Response, next: Next
 
         await asset.save();
 
-        // Notify all admin/superuser/system_admin users
+        // Notify all admin/superuser/system_admin/manager/supervisor users
         const { User } = await import('../models/user.model.js');
-        const adminUsers = await User.find({ role: { $in: ['admin', 'superuser', 'system_admin'] }, _id: { $ne: req.user._id } }).select('_id');
-        if (adminUsers.length > 0) {
-            await Notification.insertMany(adminUsers.map((admin: any) => ({
+        const adminUsers = await User.find({ role: { $in: ['admin', 'superuser', 'system_admin', 'manager', 'supervisor'] }, _id: { $ne: req.user._id } }).select('_id');
+        const notificationRecipients = adminUsers.map((admin: any) => ({
                 userId: admin._id,
-                type: 'delete_request',
+                type: 'delete_request' as const,
                 title: 'Delete Request',
                 message: `${req.user.name} requested deletion of "${asset.name}"${req.body.note ? `: ${req.body.note}` : ''}`,
                 assetId: asset._id,
                 assetName: asset.name,
                 fromUserId: req.user._id,
                 fromUserName: req.user.name
-            })));
+            }));
+        // Also notify the requester as confirmation
+        notificationRecipients.push({
+            userId: req.user._id,
+            type: 'delete_request' as const,
+            title: 'Delete Request Submitted',
+            message: `Your delete request for "${asset.name}" has been sent for review${req.body.note ? `: ${req.body.note}` : ''}.`,
+            assetId: asset._id,
+            assetName: asset.name,
+            fromUserId: req.user._id,
+            fromUserName: req.user.name
+        });
+        if (notificationRecipients.length > 0) {
+            await Notification.insertMany(notificationRecipients);
         }
 
         await recordAuditLog({
