@@ -211,7 +211,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
             }
 
             // ── 2d. AuditLog for legacy Asset activities (pre-AssetHistory) ──
-            const auditActions = ['create', 'update', 'delete'];
+            const auditActions = ['create', 'update', 'delete', 'install', 'dismantle'];
             const auditLogs = await AuditLog.find({
                 ...dateMatch,
                 resourceType: 'Asset',
@@ -232,6 +232,8 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 let action = 'UPDATE';
                 if (log.action === 'create') action = 'CREATE';
                 else if (log.action === 'delete') action = 'DELETE';
+                else if (log.action === 'install') action = 'INSTALL';
+                else if (log.action === 'dismantle') action = 'DISMANTLE';
 
                 // Parse location change from details if present
                 let fromLocation: string | null = null;

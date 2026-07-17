@@ -4,6 +4,7 @@ import Event from '../models/event.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 import { Notification } from '../models/notification.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import mongoose from 'mongoose';
 
 export const getAssets = async (req: Request, res: Response, next: NextFunction) => {
@@ -41,7 +42,7 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
             }
         }
 
-        if (req.query.locationId) filters.locationId = req.query.locationId;
+        if (req.query.locationId) filters.locationId = new mongoose.Types.ObjectId(req.query.locationId as string);
 
         // RBAC / Branch & Department Filtering
         if (req.user && req.user.role !== 'superuser') {
@@ -801,6 +802,18 @@ export const installAsset = async (req: Request, res: Response, next: NextFuncti
 
         await asset.save();
 
+        // Record Asset History
+        await AssetHistory.create({
+            assetId: asset._id,
+            action: 'INSTALL',
+            userId,
+            toLocation: asset.locationId || null,
+            fromStatus: 'active',
+            toStatus: 'in_use',
+            notes: `Installed in ${parentName}${slotDetail}`,
+            referenceType: 'Manual'
+        });
+
         // Record Audit Log
         await recordAuditLog({
             userId: userId,
@@ -895,6 +908,19 @@ export const dismantleAsset = async (req: Request, res: Response, next: NextFunc
         });
 
         await asset.save();
+
+        // Record Asset History
+        await AssetHistory.create({
+            assetId: asset._id,
+            action: 'DISMANTLE',
+            userId,
+            fromLocation: previousParentId || null,
+            toLocation: asset.locationId || null,
+            fromStatus: 'in_use',
+            toStatus: 'storage',
+            notes: `Dismantled from ${parentName} and returned to warehouse`,
+            referenceType: 'Manual'
+        });
 
         // Record Audit Log
         await recordAuditLog({

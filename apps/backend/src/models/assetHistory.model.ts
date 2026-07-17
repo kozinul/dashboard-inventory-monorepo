@@ -8,7 +8,7 @@ const assetHistorySchema = new mongoose.Schema({
     },
     action: {
         type: String,
-        enum: ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'RETURN', 'TRANSFER', 'EVENT_BOOK', 'EVENT_RELEASE', 'ADJUST', 'MOVE', 'STATUS_CHANGE'],
+        enum: ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'RETURN', 'TRANSFER', 'EVENT_BOOK', 'EVENT_RELEASE', 'ADJUST', 'MOVE', 'STATUS_CHANGE', 'INSTALL', 'DISMANTLE'],
         required: true
     },
     userId: {
