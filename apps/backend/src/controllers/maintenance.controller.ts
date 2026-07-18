@@ -6,6 +6,7 @@ import { User } from '../models/user.model.js';
 import { Supply } from '../models/supply.model.js';
 import { Category } from '../models/category.model.js';
 import { recordAuditLog } from '../utils/logger.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 
 // Get all maintenance records (for admin/managers)
 export const getMaintenanceRecords = async (req: Request, res: Response, next: NextFunction) => {
@@ -436,8 +437,21 @@ export const acceptTicket = async (req: Request, res: Response, next: NextFuncti
         await record.save();
 
         // Update asset status
+        const assetBeforeAccept = await Asset.findById(record.asset);
+        const previousStatus = assetBeforeAccept?.status || 'request maintenance';
         await Asset.findByIdAndUpdate(record.asset, { status: 'maintenance' });
         await Assignment.updateMany({ assetId: record.asset, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
+
+        await AssetHistory.create({
+            assetId: record.asset,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: previousStatus,
+            toStatus: 'maintenance',
+            notes: `Maintenance ticket accepted: ${record.title || record.ticketNumber}`,
+            referenceType: 'Maintenance',
+            referenceId: record._id
+        });
 
         const populated = await MaintenanceRecord.findById(record._id)
             .populate('asset', 'name serial')
@@ -648,6 +662,17 @@ export const rejectTicket = async (req: Request, res: Response, next: NextFuncti
             const hasAssignment = assignment || await Assignment.findOne({ assetId, status: 'assigned', isDeleted: { $ne: true } });
             const finalStatus = hasAssignment ? 'assigned' : 'active';
             await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
+
+            await AssetHistory.create({
+                assetId: record.asset,
+                action: 'STATUS_CHANGE',
+                userId: req.user?._id,
+                fromStatus: 'maintenance',
+                toStatus: finalStatus,
+                notes: `Maintenance rejected: ${record.title || record.ticketNumber}`,
+                referenceType: 'Maintenance',
+                referenceId: record._id
+            });
         }
 
         await record.save();
@@ -752,6 +777,17 @@ export const completeTicket = async (req: Request, res: Response, next: NextFunc
             }
         });
 
+        await AssetHistory.create({
+            assetId: record.asset,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: 'maintenance',
+            toStatus: finalStatus,
+            notes: `Maintenance completed: ${record.title || record.ticketNumber}`,
+            referenceType: 'Maintenance',
+            referenceId: record._id
+        });
+
         // Record Audit Log
         if (record && record.asset) {
             await recordAuditLog({
@@ -811,7 +847,16 @@ export const cancelTicket = async (req: Request, res: Response, next: NextFuncti
         const finalStatus = assignment ? 'assigned' : 'active';
         await Asset.findByIdAndUpdate(assetId, { status: finalStatus });
 
-        // Record Audit Log
+        await AssetHistory.create({
+            assetId: record.asset,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: 'maintenance',
+            toStatus: finalStatus,
+            notes: `Maintenance cancelled: ${record.title || record.ticketNumber}`,
+            referenceType: 'Maintenance',
+            referenceId: record._id
+        });
         if (record && record.asset) {
             await recordAuditLog({
                 userId: userId.toString(),
@@ -862,9 +907,21 @@ export const sendTicket = async (req: Request, res: Response, next: NextFunction
 
         // Update asset status now that ticket is officially submitted
         const assetId = typeof record.asset === 'object' ? (record.asset as any)._id : record.asset;
+        const previousStatus = (record.asset as any)?.status || 'active';
         await Asset.findByIdAndUpdate(assetId, { status: 'request maintenance' });
         // Sync Assignment: assigned -> returned
         await Assignment.updateMany({ assetId, status: { $in: ['assigned', 'maintenance'] }, isDeleted: { $ne: true } }, { status: 'returned', returnedDate: new Date() });
+
+        await AssetHistory.create({
+            assetId: record.asset,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: previousStatus,
+            toStatus: 'request maintenance',
+            notes: `Maintenance ticket submitted: ${record.title || record.ticketNumber}`,
+            referenceType: 'Maintenance',
+            referenceId: record._id
+        });
 
         // Record Audit Log
         if (record && record.asset) {

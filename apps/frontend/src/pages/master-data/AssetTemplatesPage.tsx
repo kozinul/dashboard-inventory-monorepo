@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
+import { formatIDR } from '@/utils/currency';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { assetTemplateService, AssetTemplate, GenerateAssetsPayload } from '../../services/assetTemplateService';
@@ -312,7 +313,7 @@ export default function AssetTemplatesPage() {
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-slate-500">Default Value</span>
-                                        <span className="text-white font-medium">Rp {template.defaultValue.toLocaleString('id-ID')}</span>
+                                        <span className="text-white font-medium">{formatIDR(template.defaultValue)}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-slate-500">Serial Prefix</span>

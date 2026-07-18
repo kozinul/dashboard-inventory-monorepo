@@ -9,6 +9,7 @@ import { Category } from '../models/category.model.js';
 import { Unit } from '../models/unit.model.js';
 import { Vendor } from '../models/vendor.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { MaintenanceRecord } from '../models/maintenance.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import Rental, { IRental } from '../models/rental.model.js';
@@ -37,17 +38,17 @@ export const downloadTemplate = async (req: Request, res: Response, next: NextFu
 
         if (type === 'asset') {
             const allAssetHeaders: Record<string, string> = {
-                name: 'Nama',
+                name: 'Name',
                 model: 'Model',
-                category: 'Kategori',
+                category: 'Category',
                 serial: 'Serial',
-                department: 'Departemen',
-                branch: 'Cabang',
-                location: 'Lokasi',
+                department: 'Department',
+                branch: 'Branch',
+                location: 'Location',
                 status: 'Status',
-                value: 'Nilai (Purchase Value)',
-                purchaseDate: 'Tanggal Pembelian (YYYY-MM-DD)',
-                warrantyDate: 'Kedaluwarsa Garansi (YYYY-MM-DD)'
+                value: 'Value (Purchase)',
+                purchaseDate: 'Purchase Date (YYYY-MM-DD)',
+                warrantyDate: 'Warranty Expiry (YYYY-MM-DD)'
             };
 
             if (customColumns.length > 0) {
@@ -58,19 +59,19 @@ export const downloadTemplate = async (req: Request, res: Response, next: NextFu
             filename = 'template_asset.xlsx';
         } else if (type === 'supply') {
             const allSupplyHeaders: Record<string, string> = {
-                name: 'Nama',
+                name: 'Name',
                 partNumber: 'Part Number',
-                category: 'Kategori',
-                unit: 'Satuan (Unit)',
-                quantity: 'Jumlah',
-                minimumStock: 'Stok Minimum',
-                location: 'Lokasi',
-                department: 'Departemen',
-                branch: 'Cabang',
-                cost: 'Biaya',
+                category: 'Category',
+                unit: 'Unit',
+                quantity: 'Quantity',
+                minimumStock: 'Min Stock',
+                location: 'Location',
+                department: 'Department',
+                branch: 'Branch',
+                cost: 'Cost',
                 vendor: 'Vendor',
-                description: 'Deskripsi',
-                compatibleModels: 'Model Kompatibel'
+                description: 'Description',
+                compatibleModels: 'Compatible Models'
             };
 
             if (customColumns.length > 0) {
@@ -195,11 +196,11 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 .populate('parentAssetId', 'name alias');
 
             headerMap = {
-                name: 'Nama', alias: 'Alias', model: 'Model', category: 'Kategori', serial: 'Serial',
-                department: 'Departemen', branch: 'Cabang', building: 'Gedung',
-                location: 'Lokasi', locationDetail: 'Detail Lokasi',
-                status: 'Status', assignment: 'Assignment', parentAsset: 'Parent Asset', value: 'Nilai (IDR)',
-                purchaseDate: 'Tgl Pembelian', lastUpdate: 'Terakhir Update'
+                name: 'Name', alias: 'Alias', model: 'Model', category: 'Category', serial: 'Serial',
+                department: 'Department', branch: 'Branch', building: 'Building',
+                location: 'Location', locationDetail: 'Location Detail',
+                status: 'Status', assignment: 'Assignment', parentAsset: 'Parent Asset', value: 'Value (IDR)',
+                purchaseDate: 'Purchase Date', lastUpdate: 'Last Updated'
             };
 
             // Fetch active assignments for these assets
@@ -239,8 +240,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     assignment: assignmentInfo,
                     parentAsset: a.parentAssetId ? ((a.parentAssetId as any)?.alias || (a.parentAssetId as any)?.name || '-') : '-',
                     value: a.value || 0,
-                    purchaseDate: a.purchaseDate ? new Date(a.purchaseDate).toLocaleDateString('id-ID') : '-',
-                    lastUpdate: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('id-ID') : '-'
+                    purchaseDate: a.purchaseDate ? new Date(a.purchaseDate).toLocaleDateString('en-US') : '-',
+                    lastUpdate: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('en-US') : '-'
                 };
             });
             filename = `export_assets_${Date.now()}`;
@@ -253,10 +254,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 .populate('vendorId', 'name');
 
             headerMap = {
-                name: 'Nama', partNumber: 'Part No', category: 'Kategori',
-                unit: 'Satuan', quantity: 'Stok Terkini', minimumStock: 'Stok Min',
-                location: 'Lokasi', department: 'Departemen', branch: 'Cabang', cost: 'Biaya',
-                vendor: 'Vendor', description: 'Deskripsi'
+                name: 'Name', partNumber: 'Part No', category: 'Category',
+                unit: 'Unit', quantity: 'Current Stock', minimumStock: 'Min Stock',
+                location: 'Location', department: 'Department', branch: 'Branch', cost: 'Cost',
+                vendor: 'Vendor', description: 'Description'
             };
 
             data = rawData.map(s => {
@@ -287,10 +288,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 .populate('assignedDepartment', 'name');
 
             headerMap = {
-                asset: 'Aset', model: 'Model', sn: 'Serial No', ticketNumber: 'No Tiket',
-                title: 'Judul', date: 'Tgl Selesai', spareparts: 'Sparepart',
-                pic: 'PIC/Vendor', internalNotes: 'Internal Notes', type: 'Tipe', cost: 'Biaya',
-                status: 'Status', branch: 'Cabang'
+                asset: 'Asset', model: 'Model', sn: 'Serial No', ticketNumber: 'Ticket No',
+                title: 'Title', date: 'Completion Date', spareparts: 'Spare Part',
+                pic: 'PIC/Vendor', internalNotes: 'Internal Notes', type: 'Type', cost: 'Cost',
+                status: 'Status', branch: 'Branch'
             };
 
             // Fetch current assignments for assets in these maintenance records
@@ -386,10 +387,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 .populate('branchId', 'name');
 
             headerMap = {
-                event: 'Event', item: 'Nama Item', type: 'Tipe',
-                venue: 'Venue', qty: 'Qty', price: 'Harga (IDR)',
-                amount: 'Total (IDR)', rentalDate: 'Tgl Pinjam',
-                returnDate: 'Estimasi Kembali', status: 'Status', branch: 'Cabang'
+                event: 'Event', item: 'Item Name', type: 'Type',
+                venue: 'Venue', qty: 'Qty', price: 'Price (IDR)',
+                amount: 'Total (IDR)', rentalDate: 'Rental Date',
+                returnDate: 'Est. Return', status: 'Status', branch: 'Branch'
             };
 
             const directRentals = rawData.map(r => {
@@ -403,8 +404,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     qty: 1,
                     price: price,
                     amount: price,
-                    rentalDate: r.rentalDate ? new Date(r.rentalDate).toLocaleDateString('id-ID') : '',
-                    returnDate: r.expectedReturnDate ? new Date(r.expectedReturnDate).toLocaleDateString('id-ID') : '',
+                    rentalDate: r.rentalDate ? new Date(r.rentalDate).toLocaleDateString('en-US') : '',
+                    returnDate: r.expectedReturnDate ? new Date(r.expectedReturnDate).toLocaleDateString('en-US') : '',
                     status: r.status,
                     branch: (r.branchId as any)?.name || 'N/A'
                 };
@@ -426,8 +427,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     qty: 1,
                     price: price,
                     amount: price,
-                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('id-ID') : '',
-                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('id-ID') : '',
+                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('en-US') : '',
+                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('en-US') : '',
                     status: ev.status,
                     branch: (ev.branchId as any)?.name || 'N/A'
                 };
@@ -450,8 +451,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     qty: ps.quantity || 0,
                     price: price,
                     amount: amount,
-                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('id-ID') : '',
-                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('id-ID') : '',
+                    rentalDate: ev.startTime ? new Date(ev.startTime).toLocaleDateString('en-US') : '',
+                    returnDate: ev.endTime ? new Date(ev.endTime).toLocaleDateString('en-US') : '',
                     status: ev.status,
                     branch: (ev.branchId as any)?.name || 'N/A'
                 };
@@ -508,7 +509,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             data.push(totalRow);
         }
 
-        const reportDate = new Date().toLocaleString('id-ID');
+        const reportDate = new Date().toLocaleString('en-US');
         const generatedBy = req.user.name || 'Admin';
 
         if (format === 'json') {
@@ -540,7 +541,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     grandTotal += subtotal;
                     const subtotalRow: any = {};
                     Object.values(headerMap).forEach(h => subtotalRow[h] = '');
-                    subtotalRow[headerMap.item] = 'TOTAL EVENT';
+                    subtotalRow[headerMap.item] = 'TOTAL EVENTS';
                     subtotalRow[headerMap.amount] = formatIDR(subtotal);
                     groupedData.push(subtotalRow);
 
@@ -595,7 +596,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     grandTotal += subtotal;
                     const subtotalRow: any = {};
                     Object.values(headerMap).forEach(h => subtotalRow[h] = '');
-                    subtotalRow[headerMap.title] = 'TOTAL ASSET';
+                    subtotalRow[headerMap.title] = 'TOTAL ASSETS';
                     subtotalRow[headerMap.cost] = formatIDR(subtotal);
                     groupedData.push(subtotalRow);
 
@@ -634,7 +635,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     // Header
                     const headerRow: any = {};
                     Object.values(headerMap).forEach(h => headerRow[h] = '');
-                    headerRow[headerMap.supply] = `BARANG: ${name}`;
+                    headerRow[headerMap.supply] = `ITEM: ${name}`;
                     headerRow[headerMap.sn] = `PART NO: ${sn}`;
                     groupedData.push(headerRow);
 
@@ -648,7 +649,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                     const subtotalRow: any = {};
                     Object.values(headerMap).forEach(h => subtotalRow[h] = '');
-                    subtotalRow[headerMap.action] = 'TOTAL DIPAKAI';
+                    subtotalRow[headerMap.action] = 'TOTAL USED';
                     subtotalRow[headerMap.change] = totalUsed;
                     groupedData.push(subtotalRow);
 
@@ -656,7 +657,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     const latestStock = groupItems[groupItems.length - 1][headerMap.stock];
                     const balanceRow: any = {};
                     Object.values(headerMap).forEach(h => balanceRow[h] = '');
-                    balanceRow[headerMap.action] = 'STOK SAAT INI';
+                    balanceRow[headerMap.action] = 'CURRENT STOCK';
                     balanceRow[headerMap.change] = latestStock;
                     groupedData.push(balanceRow);
 
@@ -702,7 +703,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                         // Total Unit row
                         const totalUnitRow: any = {};
                         Object.values(headerMap).forEach(h => totalUnitRow[h] = '');
-                        totalUnitRow[headerMap.serial] = 'TOTAL UNIT';
+                        totalUnitRow[headerMap.serial] = 'TOTAL UNITS';
                         totalUnitRow[headerMap.department] = groupItems.length;
                         groupedData.push(totalUnitRow);
 
@@ -763,10 +764,10 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
             doc.pipe(res);
 
-            doc.fontSize(16).text('Laporan Inventaris & Maintenance', { align: 'center' });
+            doc.fontSize(16).text('Inventory & Maintenance Report', { align: 'center' });
             doc.moveDown();
-            doc.fontSize(10).text(`Tanggal Laporan: ${reportDate}`);
-            doc.text(`Dibuat Oleh: ${generatedBy}`);
+            doc.fontSize(10).text(`Report Date: ${reportDate}`);
+            doc.text(`Generated By: ${generatedBy}`);
             doc.moveDown();
 
             if (type === 'asset') {
@@ -790,7 +791,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                         // Add total unit row
                         const totalRow = Object.values(headerMap).map(h => '');
-                        totalRow[Object.keys(headerMap).indexOf('serial')] = 'TOTAL UNIT';
+                        totalRow[Object.keys(headerMap).indexOf('serial')] = 'TOTAL UNITS';
                         totalRow[Object.keys(headerMap).indexOf('department')] = String(groupItems.length);
                         table.rows.push(totalRow);
 
@@ -810,7 +811,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                 } else {
                     // Flat PDF table if no grouping
                     const table = {
-                        title: 'Daftar Inventaris Aset',
+                        title: 'Asset Inventory List',
                         headers: Object.values(headerMap),
                         rows: data.map(item => Object.keys(headerMap).map(key => {
                             const val = item[key];
@@ -851,7 +852,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                     // Add subtotal row to the table rows
                     const subtotalRow = Object.values(headerMap).map(h => '');
-                    subtotalRow[Object.keys(headerMap).indexOf('item')] = 'TOTAL EVENT';
+                    subtotalRow[Object.keys(headerMap).indexOf('item')] = 'TOTAL EVENTS';
                     subtotalRow[Object.keys(headerMap).indexOf('amount')] = formatIDR(subtotal);
                     table.rows.push(subtotalRow);
 
@@ -895,7 +896,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                     // Add subtotal row
                     const subtotalRow = Object.values(headerMap).map(h => '');
-                    subtotalRow[Object.keys(headerMap).indexOf('title')] = 'TOTAL ASSET';
+                    subtotalRow[Object.keys(headerMap).indexOf('title')] = 'TOTAL ASSETS';
                     subtotalRow[Object.keys(headerMap).indexOf('cost')] = formatIDR(subtotal);
                     table.rows.push(subtotalRow);
 
@@ -928,7 +929,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                         .reduce((acc, curr) => acc + Math.abs(parseFloat(curr[headerMap.change]) || 0), 0);
 
                     const table = {
-                        title: `BARANG: ${name} (PART NO: ${sn})`,
+                        title: `ITEM: ${name} (PART NO: ${sn})`,
                         headers: Object.values(headerMap),
                         rows: groupItems.map(item => Object.keys(headerMap).map(key => {
                             const val = item[key];
@@ -938,13 +939,13 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                     // Subtotal row
                     const subtotalRow = Object.values(headerMap).map(h => '');
-                    subtotalRow[Object.keys(headerMap).indexOf('action')] = 'TOTAL DIPAKAI';
+                    subtotalRow[Object.keys(headerMap).indexOf('action')] = 'TOTAL USED';
                     subtotalRow[Object.keys(headerMap).indexOf('change')] = String(totalUsed);
                     table.rows.push(subtotalRow);
 
                     const balanceRow = Object.values(headerMap).map(h => '');
                     const latestStock = groupItems[groupItems.length - 1][headerMap.stock];
-                    balanceRow[Object.keys(headerMap).indexOf('action')] = 'STOK SAAT INI';
+                    balanceRow[Object.keys(headerMap).indexOf('action')] = 'CURRENT STOCK';
                     balanceRow[Object.keys(headerMap).indexOf('change')] = String(latestStock);
                     table.rows.push(balanceRow);
 
@@ -987,8 +988,8 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
             // Add Metadata rows
             const metadata = [
-                ['Tanggal Laporan:', reportDate],
-                ['Dibuat Oleh:', generatedBy],
+                ['Report Date:', reportDate],
+                ['Generated By:', generatedBy],
                 [] // Spacer
             ];
 
@@ -1050,8 +1051,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                 try {
                     // Resolve Relations
                     let deptId = userDeptId;
-                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
-                        const name = row['Departemen'].trim();
+                    if (['superuser', 'admin'].includes(req.user.role) && (row['Department'] || row['Departemen'])) {
+                        const name = (row['Department'] || row['Departemen']).trim();
                         if (!cache.departments.has(name)) {
                             const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (d) cache.departments.set(name, d._id.toString());
@@ -1060,8 +1061,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let bId = branchId;
-                    if (req.user.role === 'superuser' && row['Cabang']) {
-                        const name = row['Cabang'].trim();
+                    if (req.user.role === 'superuser' && (row['Branch'] || row['Cabang'])) {
+                        const name = (row['Branch'] || row['Cabang']).trim();
                         if (!cache.branches.has(name)) {
                             const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (b) cache.branches.set(name, b._id.toString());
@@ -1070,8 +1071,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let locId = undefined;
-                    if (row['Lokasi']) {
-                        const name = row['Lokasi'].trim();
+                    if (row['Location'] || row['Lokasi']) {
+                        const name = (row['Location'] || row['Lokasi']).trim();
                         if (!cache.locations.has(name)) {
                             const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (l) cache.locations.set(name, l._id.toString());
@@ -1080,25 +1081,35 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     const assetData = {
-                        name: row['Nama'],
+                        name: row['Name'] || row['Nama'],
                         model: row['Model'],
-                        category: row['Kategori'],
+                        category: row['Category'] || row['Kategori'],
                         serial: row['Serial'],
                         departmentId: deptId,
                         branchId: bId,
                         locationId: locId,
-                        location: row['Lokasi'],
+                        location: row['Location'] || row['Lokasi'],
                         status: row['Status']?.toLowerCase() || 'active',
-                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai (IDR)']) || Number(row['Nilai']) || 0,
-                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian']) : undefined,
-                        department: row['Departemen'],
+                        value: Number(row['Value (Purchase)'] || row['Nilai (Purchase Value)']) || Number(row['Value (IDR)'] || row['Nilai (IDR)']) || Number(row['Value'] || row['Nilai']) || 0,
+                        purchaseDate: (row['Purchase Date (YYYY-MM-DD)'] || row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Purchase Date'] || row['Tgl Pembelian']) ? new Date(row['Purchase Date (YYYY-MM-DD)'] || row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Purchase Date'] || row['Tgl Pembelian']) : undefined,
+                        department: row['Department'] || row['Departemen'],
                         warranty: {
-                            expirationDate: row['Kedaluwarsa Garansi (YYYY-MM-DD)'] ? new Date(row['Kedaluwarsa Garansi (YYYY-MM-DD)']) : undefined
+                            expirationDate: (row['Warranty Expiry (YYYY-MM-DD)'] || row['Kedaluwarsa Garansi (YYYY-MM-DD)']) ? new Date(row['Warranty Expiry (YYYY-MM-DD)'] || row['Kedaluwarsa Garansi (YYYY-MM-DD)']) : undefined
                         }
                     };
 
                     const asset = new Asset(assetData);
                     await asset.save();
+
+                    await AssetHistory.create({
+                        assetId: asset._id,
+                        action: 'CREATE',
+                        userId: req.user?._id,
+                        notes: `Import from Excel`,
+                        referenceType: 'Import',
+                        referenceId: null
+                    });
+
                     results.success++;
                 } catch (err: any) {
                     results.failed++;
@@ -1109,8 +1120,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
             for (const row of rows) {
                 try {
                     let deptId = userDeptId;
-                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
-                        const name = row['Departemen'].trim();
+                    if (['superuser', 'admin'].includes(req.user.role) && (row['Department'] || row['Departemen'])) {
+                        const name = (row['Department'] || row['Departemen']).trim();
                         if (!cache.departments.has(name)) {
                             const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (d) cache.departments.set(name, d._id.toString());
@@ -1119,8 +1130,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let bId = branchId;
-                    if (req.user.role === 'superuser' && row['Cabang']) {
-                        const name = row['Cabang'].trim();
+                    if (req.user.role === 'superuser' && (row['Branch'] || row['Cabang'])) {
+                        const name = (row['Branch'] || row['Cabang']).trim();
                         if (!cache.branches.has(name)) {
                             const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (b) cache.branches.set(name, b._id.toString());
@@ -1129,8 +1140,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let locId = undefined;
-                    if (row['Lokasi']) {
-                        const name = row['Lokasi'].trim();
+                    if (row['Location'] || row['Lokasi']) {
+                        const name = (row['Location'] || row['Lokasi']).trim();
                         if (!cache.locations.has(name)) {
                             const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (l) cache.locations.set(name, l._id.toString());
@@ -1139,8 +1150,8 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     let unitId = undefined;
-                    if (row['Satuan (Unit)'] || row['Satuan']) {
-                        const name = String(row['Satuan (Unit)'] || row['Satuan']).trim();
+                    if (row['Unit'] || row['Satuan (Unit)'] || row['Satuan']) {
+                        const name = String(row['Unit'] || row['Satuan (Unit)'] || row['Satuan']).trim();
                         if (!cache.units.has(name)) {
                             const u = await Unit.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (u) cache.units.set(name, u._id.toString());
@@ -1159,22 +1170,22 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                     }
 
                     const supplyData = {
-                        name: row['Nama'],
+                        name: row['Name'] || row['Nama'],
                         partNumber: row['Part Number'] || row['Part No'] || row['P/N'] || row['Serial/PN'] || '',
-                        category: row['Kategori'],
-                        description: row['Deskripsi'] || row['Description'] || row['Keterangan'] || '',
-                        unit: row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
+                        category: row['Category'] || row['Kategori'],
+                        description: row['Description'] || row['Deskripsi'] || row['Keterangan'] || '',
+                        unit: row['Unit'] || row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
                         unitId: unitId,
-                        quantity: Number(row['Jumlah'] || row['Stok']) || 0,
-                        minimumStock: Number(row['Stok Minimum'] || row['Stok Min']) || 1,
+                        quantity: Number(row['Quantity'] || row['Jumlah'] || row['Stok']) || 0,
+                        minimumStock: Number(row['Min Stock'] || row['Stok Minimum'] || row['Stok Min']) || 1,
                         locationId: locId,
-                        location: row['Lokasi'],
+                        location: row['Location'] || row['Lokasi'],
                         vendorId: vendorId,
-                        cost: Number(row['Biaya'] || row['Nilai (IDR)'] || row['Nilai']) || 0,
-                        compatibleModels: (row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
+                        cost: Number(row['Cost'] || row['Biaya'] || row['Value (IDR)'] || row['Nilai (IDR)'] || row['Value'] || row['Nilai']) || 0,
+                        compatibleModels: (row['Compatible Models'] || row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Compatible Models'] || row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
                         branchId: bId,
                         departmentId: deptId,
-                        department: row['Departemen']
+                        department: row['Department'] || row['Departemen']
                     };
 
                     const partNumber = supplyData.partNumber;
@@ -1207,7 +1218,7 @@ export const importData = async (req: Request, res: Response, next: NextFunction
                             quantityChange: supply.quantity,
                             newStock: supply.quantity,
                             userId: req.user?._id,
-                            notes: `Import dari Excel`,
+                            notes: `Import from Excel`,
                             referenceType: 'Import'
                         });
                     }
@@ -1263,8 +1274,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                 try {
                     // Resolve Relations
                     let deptId = userDeptId;
-                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
-                        const name = String(row['Departemen']).trim();
+                    if (['superuser', 'admin'].includes(req.user.role) && (row['Department'] || row['Departemen'])) {
+                        const name = String(row['Department'] || row['Departemen']).trim();
                         if (!cache.departments.has(name)) {
                             const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (d) cache.departments.set(name, d._id.toString());
@@ -1273,8 +1284,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     let bId = branchId;
-                    if (req.user.role === 'superuser' && row['Cabang']) {
-                        const name = String(row['Cabang']).trim();
+                    if (req.user.role === 'superuser' && (row['Branch'] || row['Cabang'])) {
+                        const name = String(row['Branch'] || row['Cabang']).trim();
                         if (!cache.branches.has(name)) {
                             const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (b) cache.branches.set(name, b._id.toString());
@@ -1283,8 +1294,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     let locId = undefined;
-                    if (row['Lokasi']) {
-                        const name = String(row['Lokasi']).trim();
+                    if (row['Location'] || row['Lokasi']) {
+                        const name = String(row['Location'] || row['Lokasi']).trim();
                         if (!cache.locations.has(name)) {
                             const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (l) cache.locations.set(name, l._id.toString());
@@ -1293,25 +1304,35 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     const assetData = {
-                        name: row['Nama'],
+                        name: row['Name'] || row['Nama'],
                         model: row['Model'],
-                        category: row['Kategori'],
+                        category: row['Category'] || row['Kategori'],
                         serial: row['Serial'],
                         departmentId: deptId,
                         branchId: bId,
                         locationId: locId,
-                        location: row['Lokasi'],
+                        location: row['Location'] || row['Lokasi'],
                         status: row['Status']?.toLowerCase() || 'active',
-                        value: Number(row['Nilai (Purchase Value)']) || Number(row['Nilai (IDR)']) || Number(row['Nilai']) || 0,
-                        purchaseDate: (row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian'] || row['Tgl Beli']) ? new Date(row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Tgl Pembelian'] || row['Tgl Beli']) : undefined,
-                        department: row['Departemen'],
+                        value: Number(row['Value (Purchase)'] || row['Nilai (Purchase Value)']) || Number(row['Value (IDR)'] || row['Nilai (IDR)']) || Number(row['Value'] || row['Nilai']) || 0,
+                        purchaseDate: (row['Purchase Date (YYYY-MM-DD)'] || row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Purchase Date'] || row['Tgl Pembelian'] || row['Tgl Beli']) ? new Date(row['Purchase Date (YYYY-MM-DD)'] || row['Tanggal Pembelian (YYYY-MM-DD)'] || row['Purchase Date'] || row['Tgl Pembelian'] || row['Tgl Beli']) : undefined,
+                        department: row['Department'] || row['Departemen'],
                         warranty: {
-                            expirationDate: (row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) ? new Date(row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) : undefined
+                            expirationDate: (row['Warranty Expiry (YYYY-MM-DD)'] || row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) ? new Date(row['Warranty Expiry (YYYY-MM-DD)'] || row['Kedaluwarsa Garansi (YYYY-MM-DD)'] || row['Tgl Garansi']) : undefined
                         }
                     };
 
                     const asset = new Asset(assetData);
                     await asset.save();
+
+                    await AssetHistory.create({
+                        assetId: asset._id,
+                        action: 'CREATE',
+                        userId: req.user?._id,
+                        notes: `Import from Excel`,
+                        referenceType: 'Import',
+                        referenceId: null
+                    });
+
                     results.success++;
                 } catch (err: any) {
                     results.failed++;
@@ -1323,8 +1344,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                 const row = rows[i];
                 try {
                     let deptId = userDeptId;
-                    if (['superuser', 'admin'].includes(req.user.role) && row['Departemen']) {
-                        const name = row['Departemen'].trim();
+                    if (['superuser', 'admin'].includes(req.user.role) && (row['Department'] || row['Departemen'])) {
+                        const name = (row['Department'] || row['Departemen']).trim();
                         if (!cache.departments.has(name)) {
                             const d = await Department.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (d) cache.departments.set(name, d._id.toString());
@@ -1333,8 +1354,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     let bId = branchId;
-                    if (req.user.role === 'superuser' && row['Cabang']) {
-                        const name = row['Cabang'].trim();
+                    if (req.user.role === 'superuser' && (row['Branch'] || row['Cabang'])) {
+                        const name = (row['Branch'] || row['Cabang']).trim();
                         if (!cache.branches.has(name)) {
                             const b = await Branch.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (b) cache.branches.set(name, b._id.toString());
@@ -1343,8 +1364,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     let locId = undefined;
-                    if (row['Lokasi']) {
-                        const name = row['Lokasi'].trim();
+                    if (row['Location'] || row['Lokasi']) {
+                        const name = (row['Location'] || row['Lokasi']).trim();
                         if (!cache.locations.has(name)) {
                             const l = await Location.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (l) cache.locations.set(name, l._id.toString());
@@ -1353,8 +1374,8 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     let unitId = undefined;
-                    if (row['Satuan (Unit)'] || row['Satuan']) {
-                        const name = String(row['Satuan (Unit)'] || row['Satuan']).trim();
+                    if (row['Unit'] || row['Satuan (Unit)'] || row['Satuan']) {
+                        const name = String(row['Unit'] || row['Satuan (Unit)'] || row['Satuan']).trim();
                         if (!cache.units.has(name)) {
                             const u = await Unit.findOne({ name: new RegExp(`^${name}$`, 'i') });
                             if (u) cache.units.set(name, u._id.toString());
@@ -1373,22 +1394,22 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                     }
 
                     const supplyData = {
-                        name: row['Nama'],
+                        name: row['Name'] || row['Nama'],
                         partNumber: row['Part Number'] || row['Part No'] || row['P/N'] || row['Serial/PN'] || '',
-                        category: row['Kategori'],
-                        description: row['Deskripsi'] || row['Description'] || row['Keterangan'] || '',
-                        unit: row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
+                        category: row['Category'] || row['Kategori'],
+                        description: row['Description'] || row['Deskripsi'] || row['Keterangan'] || '',
+                        unit: row['Unit'] || row['Satuan (Unit)'] || row['Satuan'] || 'Pcs',
                         unitId: unitId,
-                        quantity: Number(row['Jumlah'] || row['Stok']) || 0,
-                        minimumStock: Number(row['Stok Minimum'] || row['Stok Min']) || 1,
+                        quantity: Number(row['Quantity'] || row['Jumlah'] || row['Stok']) || 0,
+                        minimumStock: Number(row['Min Stock'] || row['Stok Minimum'] || row['Stok Min']) || 1,
                         locationId: locId,
-                        location: row['Lokasi'],
+                        location: row['Location'] || row['Lokasi'],
                         vendorId: vendorId,
-                        cost: Number(row['Biaya'] || row['Nilai (IDR)'] || row['Nilai']) || 0,
-                        compatibleModels: (row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
+                        cost: Number(row['Cost'] || row['Biaya'] || row['Value (IDR)'] || row['Nilai (IDR)'] || row['Value'] || row['Nilai']) || 0,
+                        compatibleModels: (row['Compatible Models'] || row['Model Kompatibel'] || row['Kompatibilitas']) ? (row['Compatible Models'] || row['Model Kompatibel'] || row['Kompatibilitas']).split(',').map((s: string) => s.trim()) : [],
                         branchId: bId,
                         departmentId: deptId,
-                        department: row['Departemen']
+                        department: row['Department'] || row['Departemen']
                     };
 
                     const partNumber = supplyData.partNumber;
@@ -1421,7 +1442,7 @@ export const bulkImportData = async (req: Request, res: Response, next: NextFunc
                             quantityChange: supply.quantity,
                             newStock: supply.quantity,
                             userId: req.user?._id,
-                            notes: `Import dari Excel UI`,
+                            notes: `Import from Excel UI`,
                             referenceType: 'Import'
                         });
                     }

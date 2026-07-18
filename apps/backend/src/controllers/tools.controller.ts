@@ -86,7 +86,7 @@ export const convertJsonToExcel = async (req: Request, res: Response, next: Next
         const files = req.files as Express.Multer.File[];
 
         if (!files || files.length === 0) {
-            return res.status(400).json({ message: 'Tidak ada file JSON yang diunggah' });
+            return res.status(400).json({ message: 'No JSON files uploaded' });
         }
 
         const wb = XLSX.utils.book_new();
@@ -139,14 +139,14 @@ export const convertJsonToExcel = async (req: Request, res: Response, next: Next
                 const rows = flattenObjectToVertialRows(parsedJson);
 
                 // Add header
-                rows.unshift(['Atribut', 'Nilai']);
+                rows.unshift(['Attribute', 'Value']);
 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
 
                 // Give some column widths
                 ws['!cols'] = [
-                    { wch: 40 }, // Atribut
-                    { wch: 60 }  // Nilai
+                    { wch: 40 }, // Attribute
+                    { wch: 60 }  // Value
                 ];
 
                 XLSX.utils.book_append_sheet(wb, ws, finalSheetName);
@@ -161,7 +161,7 @@ export const convertJsonToExcel = async (req: Request, res: Response, next: Next
 
         if (successCount === 0) {
             return res.status(400).json({
-                message: 'Semua file gagal diproses. Pastikan file JSON valid.',
+                message: 'All files failed to process. Make sure the JSON files are valid.',
                 failedCount: failCount,
                 failedFiles
             });

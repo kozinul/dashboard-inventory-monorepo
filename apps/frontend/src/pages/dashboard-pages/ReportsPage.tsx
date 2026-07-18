@@ -274,13 +274,13 @@ export default function ReportsPage() {
 
                     {reportType === 'asset' && (
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Kategori Asset</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Asset Category</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
                                 className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
                             >
-                                <option value="">Semua Kategori</option>
+                                <option value="">All Categories</option>
                                 {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
                             </select>
                         </div>
@@ -288,13 +288,13 @@ export default function ReportsPage() {
 
                     {(reportType === 'asset' || reportType === 'supply') && (
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Lokasi</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Location</label>
                             <select
                                 value={locationId}
                                 onChange={(e) => setLocationId(e.target.value)}
                                 className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
                             >
-                                <option value="">Semua Lokasi</option>
+                                <option value="">All Locations</option>
                                 {locations.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                             </select>
                         </div>
@@ -318,13 +318,13 @@ export default function ReportsPage() {
 
                     {reportType === 'asset' && (
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Filter Gedung</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Building Filter</label>
                             <select
                                 value={building}
                                 onChange={(e) => setBuilding(e.target.value)}
                                 className="w-full bg-slate-50 dark:bg-background-dark border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 h-11"
                             >
-                                <option value="">Semua Gedung</option>
+                                <option value="">All Buildings</option>
                                 {[...new Set(locations.filter(l => !l.parentId).map(l => l.name))].sort().map(b => (
                                     <option key={b} value={b}>{b}</option>
                                 ))}
@@ -342,7 +342,7 @@ export default function ReportsPage() {
                             <option value="">No Grouping</option>
                             {reportType === 'asset' && (
                                 <>
-                                    <option value="name">Nama</option>
+                                    <option value="name">Name</option>
                                     <option value="model">Model</option>
                                     <option value="category">Category</option>
                                     <option value="status">Status</option>

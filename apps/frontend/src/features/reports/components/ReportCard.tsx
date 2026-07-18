@@ -7,15 +7,15 @@ interface ReportCardProps {
 
 export const ReportCard: React.FC<ReportCardProps> = ({ data, type }) => {
     // Determine title and properties based on report type
-    const title = data['Nama'] || data['No Tiket'] || data['Aset'] || 'Record';
+    const title = data['Name'] || data['Ticket No'] || data['Asset'] || 'Record';
 
     // Extract key details to show prominently
     const status = data['Status'];
-    const subTitle = data['Model'] || data['Kategori'] || data['Peminjam'] || '';
+    const subTitle = data['Model'] || data['Category'] || data['Borrower'] || '';
 
     // Filter out some common fields for the body entries
     const bodyFields = Object.entries(data).filter(([key]) =>
-        !['Nama', 'No Tiket', 'Aset', 'Status', 'Model', 'Kategori'].includes(key)
+        !['Name', 'Ticket No', 'Asset', 'Status', 'Model', 'Category'].includes(key)
     );
 
     return (

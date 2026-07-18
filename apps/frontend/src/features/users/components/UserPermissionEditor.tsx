@@ -133,10 +133,10 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
                 useCustomPermissions,
                 customPermissions: permissions
             });
-            Swal.fire('Berhasil!', 'Permissions berhasil disimpan', 'success');
+            Swal.fire('Success!', 'Permissions saved successfully', 'success');
         } catch (error) {
             console.error('Failed to save permissions', error);
-            Swal.fire('Error', 'Gagal menyimpan permissions', 'error');
+            Swal.fire('Error', 'Failed to save permissions', 'error');
         } finally {
             setIsSaving(false);
         }
@@ -154,7 +154,7 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
                     <div>
                         <p className="font-medium text-green-800 dark:text-green-200">Full Access</p>
                         <p className="text-sm text-green-600 dark:text-green-400">
-                            User dengan role "{userRole}" memiliki akses penuh ke semua fitur.
+                            User with role "{userRole}" has full access to all features.
                         </p>
                     </div>
                 </div>
@@ -170,8 +170,8 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
                     <h4 className="font-medium text-slate-900 dark:text-white">Custom Permissions</h4>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         {useCustomPermissions
-                            ? 'Menggunakan custom permissions (override dari default role)'
-                            : `Menggunakan default permissions dari role "${userRole}"`}
+                            ? 'Using custom permissions (overrides default role)'
+                            : `Using default permissions from role "${userRole}"`}
                     </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -238,12 +238,12 @@ export default function UserPermissionEditor({ userId, userRole }: UserPermissio
                     {isSaving ? (
                         <>
                             <span className="material-symbols-outlined animate-spin">refresh</span>
-                            Menyimpan...
+                            Saving...
                         </>
                     ) : (
                         <>
                             <span className="material-symbols-outlined">save</span>
-                            Simpan Permissions
+                            Save Permissions
                         </>
                     )}
                 </button>

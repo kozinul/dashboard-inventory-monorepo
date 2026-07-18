@@ -4,6 +4,7 @@ import { supplyService, Supply } from '@/services/supplyService';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { getImageUrl } from '@/utils/imageUtils';
 import { showErrorToast, showSuccessToast } from '@/utils/swal';
+import { formatIDR } from '@/utils/currency';
 
 interface AddMaintenanceSupplyModalProps {
     isOpen: boolean;
@@ -307,7 +308,7 @@ export default function AddMaintenanceSupplyModal({ isOpen, onClose, ticket, onS
                                                                     <td className="p-4 text-right">
                                                                         {supply.cost ? (
                                                                             <span className="font-mono text-xs dark:text-slate-300">
-                                                                                Rp {supply.cost.toLocaleString('id-ID')}
+                                                                                {formatIDR(supply.cost || 0)}
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-[10px] text-slate-400 italic">No cost</span>

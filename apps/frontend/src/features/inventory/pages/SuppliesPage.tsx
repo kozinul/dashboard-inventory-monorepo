@@ -8,6 +8,7 @@ import { AddSupplyModal } from '../components/supplies/AddSupplyModal';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import ImportPreviewModal from '../components/ImportPreviewModal';
 import { showSuccessToast, showErrorToast, showConfirmDialog } from '@/utils/swal';
+import { formatIDR } from '@/utils/currency';
 
 export default function SuppliesPage() {
     const { activeBranchId } = useAppStore();
@@ -258,7 +259,7 @@ export default function SuppliesPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                Rp {item.cost?.toLocaleString('id-ID')}
+                                                {formatIDR(item.cost || 0)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

@@ -74,7 +74,7 @@ export const createSupply = async (req: Request, res: Response, next: NextFuncti
             quantityChange: supply.quantity,
             newStock: supply.quantity,
             userId: req.user?._id,
-            notes: `Stok awal: ${supply.quantity} ${supply.unit || 'unit'}`,
+            notes: `Initial stock: ${supply.quantity} ${supply.unit || 'unit'}`,
             referenceType: 'Manual'
         });
 
@@ -277,7 +277,7 @@ export const deleteSupply = async (req: Request, res: Response, next: NextFuncti
             previousStock: supply.quantity,
             newStock: 0,
             userId: req.user?._id,
-            notes: `Item dihapus dari sistem`,
+            notes: `Item removed from system`,
             referenceType: 'Manual'
         });
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Transfer } from '../models/transfer.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 
 import { Branch } from '../models/branch.model.js';
 import { recordAuditLog } from '../utils/logger.js';
@@ -200,6 +201,17 @@ export const approveTransfer = async (req: Request, res: Response, next: NextFun
             // asset.status = 'active'; 
 
             await asset.save();
+
+            await AssetHistory.create({
+                assetId: transfer.assetId,
+                action: 'TRANSFER',
+                userId: req.user?._id,
+                fromDepartment: transfer.fromDepartmentId,
+                toDepartment: transfer.toDepartmentId,
+                notes: `Transfer approved: ${transfer.notes || 'Asset transferred'}`,
+                referenceType: 'Transfer',
+                referenceId: transfer._id
+            });
 
             // Record Audit Log
             await recordAuditLog({

@@ -5,8 +5,8 @@ import { Download, FileJson, Loader2, X, AlertCircle, FileSpreadsheet } from 'lu
 import Swal from 'sweetalert2';
 
 const toast = {
-    error: (msg: string) => Swal.fire({ icon: 'error', title: 'Opss...', text: msg }),
-    success: (msg: string) => Swal.fire({ icon: 'success', title: 'Berhasil!', text: msg, timer: 2000, showConfirmButton: false })
+    error: (msg: string) => Swal.fire({ icon: 'error', title: 'Oops...', text: msg }),
+    success: (msg: string) => Swal.fire({ icon: 'success', title: 'Success!', text: msg, timer: 2000, showConfirmButton: false })
 };
 
 export default function ToolsPage() {
@@ -18,7 +18,7 @@ export default function ToolsPage() {
         const jsonFiles = acceptedFiles.filter(file => file.name.endsWith('.json') || file.type === 'application/json');
 
         if (jsonFiles.length !== acceptedFiles.length) {
-            toast.error('Beberapa file ditolak. Hanya file .json yang diizinkan.');
+            toast.error('Some files were rejected. Only .json files are allowed.');
         }
 
         setFiles(prev => {
@@ -63,8 +63,8 @@ export default function ToolsPage() {
             });
 
             Swal.fire({
-                title: 'Memproses Data...',
-                text: 'Harap tunggu, sedang membersihkan format dan mengkonversi JSON.',
+                title: 'Processing Data...',
+                text: 'Please wait, cleaning format and converting JSON.',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -82,7 +82,7 @@ export default function ToolsPage() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                throw new Error(errorData?.message || 'Terjadi kesalahan saat mengkonversi data');
+                throw new Error(errorData?.message || 'An error occurred while converting data');
             }
 
             // Get headers for stats
@@ -105,9 +105,9 @@ export default function ToolsPage() {
             Swal.close();
 
             if (failCount > 0) {
-                toast.error(`${failCount} file JSON gagal diparsing atau divalidasi`);
+                toast.error(`${failCount} JSON file(s) failed to parse or validate`);
             } else {
-                toast.success('Berhasil mengkonversi JSON ke Excel!');
+                toast.success('Successfully converted JSON to Excel!');
                 // Auto clear files on full success
                 setFiles([]);
             }
@@ -115,7 +115,7 @@ export default function ToolsPage() {
         } catch (error: any) {
             console.error('Upload error:', error);
             Swal.close();
-            toast.error(error.message || 'Gagal mengunggah file.');
+            toast.error(error.message || 'Failed to upload file.');
         } finally {
             setIsUploading(false);
         }
@@ -132,8 +132,8 @@ export default function ToolsPage() {
                         JSON to Excel Converter
                     </h1>
                     <p className="text-sm text-slate-500 mt-2">
-                        Alat administrator untuk mengunggah berbagai file JSON hasil export (dari PowerShell) dan mengubahnya secara instan menjadi format Excel.
-                        Setiap file JSON akan otomatis diperbaiki (autofix) jika terdapat error syntax, lalu direpresentasikan ke dalam Worksheet tersendiri.
+                        Administrator tool to upload JSON export files (from PowerShell) and instantly convert them to Excel format.
+                        Each JSON file will be automatically fixed (autofix) if syntax errors are found, then placed into its own worksheet.
                     </p>
                 </div>
 
@@ -149,13 +149,13 @@ export default function ToolsPage() {
                         <FileJson className="size-8 text-slate-400" />
                     </div>
                     <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-                        {isDragActive ? 'Lepaskan file di sini...' : 'Tarik & letakkan file .json di sini'}
+                        {isDragActive ? 'Drop files here...' : 'Drag & drop .json files here'}
                     </h3>
                     <p className="text-sm text-slate-500 mb-6">
-                        Atau klik untuk memilih file dari komputer Anda (Bisa lebih dari 1 file)
+                        Or click to select files from your computer (supports multiple files)
                     </p>
                     <button className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors pointer-events-none">
-                        Pilih File JSON
+                        Select JSON Files
                     </button>
                 </div>
 
@@ -163,9 +163,9 @@ export default function ToolsPage() {
                     <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
                         <AlertCircle className="size-5 text-blue-500 mt-0.5" />
                         <div>
-                            <h4 className="font-medium text-blue-900 dark:text-blue-100">Hasil Pemrosesan Terakhir</h4>
+                            <h4 className="font-medium text-blue-900 dark:text-blue-100">Last Processing Result</h4>
                             <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                Berhasil: <b>{uploadStats.success}</b> file, Gagal: <b>{uploadStats.fail}</b> file.
+                                Success: <b>{uploadStats.success}</b> files, Failed: <b>{uploadStats.fail}</b> files.
                             </p>
                         </div>
                     </div>
@@ -178,13 +178,13 @@ export default function ToolsPage() {
                                 <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
                                     {files.length}
                                 </span>
-                                File terpilih
+                                File selected
                             </h3>
                             <button
                                 onClick={clearAll}
                                 className="text-sm text-red-500 hover:text-red-600 font-medium"
                             >
-                                Hapus Semua
+                                Clear All
                             </button>
                         </div>
                         <ul className="divide-y divide-slate-100 dark:divide-slate-800/50 max-h-[300px] overflow-y-auto">
@@ -217,12 +217,12 @@ export default function ToolsPage() {
                                 {isUploading ? (
                                     <>
                                         <Loader2 className="size-4 animate-spin" />
-                                        Memproses...
+                                        Processing...
                                     </>
                                 ) : (
                                     <>
                                         <Download className="size-4" />
-                                        Konversi ke Excel
+                                        Convert to Excel
                                     </>
                                 )}
                             </button>

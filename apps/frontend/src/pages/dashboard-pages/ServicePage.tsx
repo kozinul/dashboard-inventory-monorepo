@@ -5,6 +5,7 @@ import { ServiceModal } from '@/features/service/components/ServiceModal';
 import { assetService, Asset } from '@/services/assetService';
 import { AssetTable } from '@/features/inventory/components/AssetTable';
 import { MaintenanceModal } from '@/features/maintenance/components/MaintenanceModal';
+import { formatIDR } from '@/utils/currency';
 
 export default function ServicePage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -170,7 +171,7 @@ export default function ServicePage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Cost</p>
-                            <h4 className="text-2xl font-bold text-slate-900 dark:text-white">Rp. {totalCost.toLocaleString('id-ID')}</h4>
+                            <h4 className="text-2xl font-bold text-slate-900 dark:text-white">{formatIDR(totalCost)}</h4>
                         </div>
                     </div>
                 </div>

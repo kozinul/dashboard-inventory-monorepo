@@ -151,7 +151,7 @@ export const router = createBrowserRouter([
                                 element: <ReportsPage />,
                             },
                             {
-                                path: 'reports/mutasi-barang',
+                                path: 'reports/item-mutation',
                                 element: <ItemMutationReportPage />,
                             },
                             {

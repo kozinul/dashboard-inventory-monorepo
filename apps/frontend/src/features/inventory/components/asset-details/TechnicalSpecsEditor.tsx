@@ -32,14 +32,14 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
 
     const handleDeleteSpec = async (key: string) => {
         const result = await Swal.fire({
-            title: 'Hapus Spesifikasi?',
-            text: `Apakah Anda yakin ingin menghapus "${key}"?`,
+            title: 'Delete Specification?',
+            text: `Are you sure you want to delete "${key}"?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: 'Cancel'
         });
 
         if (result.isConfirmed) {
@@ -51,14 +51,14 @@ export function TechnicalSpecsEditor({ asset, onUpdate }: TechnicalSpecsEditorPr
 
     const handleClearAll = async () => {
         const result = await Swal.fire({
-            title: 'Bersihkan Semua Spesifikasi?',
-            text: "Tindakan ini akan menghapus semua spesifikasi teknis aset ini.",
+            title: 'Clear All Specifications?',
+            text: "This will delete all technical specifications for this asset.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Bersihkan Semua',
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Yes, Clear All',
+            cancelButtonText: 'Cancel'
         });
 
         if (result.isConfirmed) {

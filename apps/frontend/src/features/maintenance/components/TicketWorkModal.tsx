@@ -4,6 +4,7 @@ import imageCompression from 'browser-image-compression';
 import { maintenanceService, MaintenanceTicket } from '@/services/maintenanceService';
 import { showSuccessToast, showErrorToast, showConfirmDialog, showInputDialog } from '@/utils/swal';
 import { validateFile, formatFileSize } from '@/utils/fileValidation';
+import { formatIDR } from '@/utils/currency';
 import AddMaintenanceSupplyModal from './AddMaintenanceSupplyModal';
 
 
@@ -453,7 +454,7 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                                                     <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                         <td className="px-4 py-3 font-medium dark:text-slate-200">{item.name}</td>
                                                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{item.quantity}</td>
-                                                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">Rp {item.cost?.toLocaleString('id-ID')}</td>
+                                                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">{formatIDR(item.cost || 0)}</td>
                                                         <td className="px-4 py-3 text-right">
                                                             {idx >= (ticket.suppliesUsed?.length || 0) && (
                                                                 <button
@@ -474,7 +475,7 @@ export function TicketWorkModal({ isOpen, onClose, onSuccess, ticket }: TicketWo
                                                 <tr>
                                                     <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-600 dark:text-slate-400">Total Estimation</td>
                                                     <td className="px-4 py-3 text-right font-black text-primary">
-                                                        Rp {addedSupplies.reduce((sum, item) => sum + (item.cost * item.quantity), 0).toLocaleString('id-ID')}
+                                                        {formatIDR(addedSupplies.reduce((sum, item) => sum + (item.cost * item.quantity), 0))}
                                                     </td>
                                                 </tr>
                                             </tfoot>

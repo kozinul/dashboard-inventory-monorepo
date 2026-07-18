@@ -6,6 +6,7 @@ import AddEventAssetModal from '@/features/events/components/AddEventAssetModal'
 import AddEventSupplyModal from '@/features/events/components/AddEventSupplyModal';
 import { showConfirmDialog, showSuccess, showErrorToast, showAlert } from '@/utils/swal';
 import { useAuthStore } from '@/store/authStore';
+import { formatIDR } from '@/utils/currency';
 
 export default function EventDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -377,7 +378,7 @@ export default function EventDetailsPage() {
                                                 {item.assetId?.name}
                                             </td>
                                             <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                                                Rp. {item.rentalRate.toLocaleString('id-ID')} / {item.rentalRateUnit}
+                                                {formatIDR(item.rentalRate)} / {item.rentalRateUnit}
                                             </td>
                                             <td className="py-3 px-4 text-right">
                                                 <button
@@ -442,7 +443,7 @@ export default function EventDetailsPage() {
                                                 {item.quantity} {item.supplyId?.unit}
                                             </td>
                                             <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                                                Rp. {item.cost.toLocaleString('id-ID')}
+                                                {formatIDR(item.cost)}
                                             </td>
                                             <td className="py-3 px-4 text-right">
                                                 <button
@@ -478,7 +479,7 @@ export default function EventDetailsPage() {
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Rented Assets Subtotal</p>
                         <div className="flex items-end justify-between mt-1">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                                Rp. {event.rentedAssets?.reduce((sum, item) => sum + item.rentalRate, 0).toLocaleString('id-ID')}
+                                {formatIDR(event.rentedAssets?.reduce((sum, item) => sum + item.rentalRate, 0) || 0)}
                             </span>
                             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
                                 {event.rentedAssets?.length || 0} Assets
@@ -489,7 +490,7 @@ export default function EventDetailsPage() {
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Planned Supplies Subtotal</p>
                         <div className="flex items-end justify-between mt-1">
                             <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                                Rp. {event.planningSupplies?.reduce((sum, item) => sum + item.cost, 0).toLocaleString('id-ID')}
+                                {formatIDR(event.planningSupplies?.reduce((sum, item) => sum + item.cost, 0) || 0)}
                             </span>
                             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
                                 {event.planningSupplies?.reduce((sum, item) => sum + item.quantity, 0) || 0} Items
@@ -500,10 +501,10 @@ export default function EventDetailsPage() {
                         <p className="text-sm font-bold text-white/80">Grand Total</p>
                         <div className="flex items-end justify-between mt-1">
                             <span className="text-2xl font-black text-white">
-                                Rp. {(
+                                {formatIDR(
                                     (event.rentedAssets?.reduce((sum, item) => sum + item.rentalRate, 0) || 0) +
                                     (event.planningSupplies?.reduce((sum, item) => sum + item.cost, 0) || 0)
-                                ).toLocaleString('id-ID')}
+                                )}
                             </span>
                             <span className="text-sm font-bold text-white/90">
                                 {(event.rentedAssets?.length || 0) + (event.planningSupplies?.reduce((sum, item) => sum + item.quantity, 0) || 0)} Total Qty

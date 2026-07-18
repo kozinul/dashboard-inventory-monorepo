@@ -43,6 +43,13 @@ export default function ItemMutationReportPage() {
             case 'ASSIGN': return 'text-cyan-600 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-500/10';
             case 'RETURN': return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-500/10';
             case 'TRANSFER': return 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-500/10';
+            case 'STATUS_CHANGE': return 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10';
+            case 'CREATE': return 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10';
+            case 'DELETE': return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10';
+            case 'INSTALL': return 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-500/10';
+            case 'DISMANTLE': return 'text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-500/10';
+            case 'EVENT_BOOK': return 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-500/10';
+            case 'EVENT_RELEASE': return 'text-pink-600 bg-pink-50 dark:text-pink-400 dark:bg-pink-500/10';
             default: return 'text-slate-600 bg-slate-50 dark:text-slate-400 dark:bg-slate-800';
         }
     };
@@ -102,7 +109,7 @@ export default function ItemMutationReportPage() {
                                 <th className="px-6 py-4">Item</th>
                                 <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Action</th>
-                                <th className="px-6 py-4">Keterangan</th>
+                                <th className="px-6 py-4">Notes</th>
                                 <th className="px-6 py-4">From Location</th>
                                 <th className="px-6 py-4">To Location</th>
                                 <th className="px-6 py-4">User</th>

@@ -683,7 +683,7 @@ export const getInventoryStats = async (req: Request, res: Response, next: NextF
         const maintenanceCount = assetsInMaintenance + activeRentals;
 
         // Total Value (Keep existing logic if needed, but UI asked to replace it? 
-        // Prompt: "ganti total value dengan total outside servicing". 
+        // Prompt: "replace total value with total outside servicing". 
         // So I will return 'outsideService' instead of value or alongside it. 
         // The frontend expects a shape. I will send the new fields.
 

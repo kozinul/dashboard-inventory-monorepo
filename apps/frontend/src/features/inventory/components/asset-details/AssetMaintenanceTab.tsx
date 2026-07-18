@@ -3,6 +3,7 @@ import { Asset } from '@/services/assetService';
 import { maintenanceService } from '@/services/maintenanceService';
 import { MaintenanceDetailModal } from '@/features/maintenance/components/MaintenanceDetailModal';
 import { format } from 'date-fns';
+import { formatIDR } from '@/utils/currency';
 
 interface AssetMaintenanceTabProps {
     asset: Asset | null;
@@ -105,7 +106,7 @@ export function AssetMaintenanceTab({ asset }: AssetMaintenanceTabProps) {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right font-medium text-slate-900 dark:text-white font-mono">
-                                        {record.cost ? `Rp. ${record.cost.toLocaleString('id-ID')}` : '-'}
+                                        {record.cost ? formatIDR(record.cost) : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button

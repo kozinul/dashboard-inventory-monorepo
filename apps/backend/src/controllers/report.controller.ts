@@ -110,8 +110,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
             // ── 2a. Assignments ──
             const assignments = await Assignment.find({
                 ...dateMatch,
-                assetId: { $in: assetIds },
-                isDeleted: { $ne: true }
+                assetId: { $in: assetIds }
             })
                 .sort({ createdAt: -1 })
                 .populate('assetId', 'name serial alias')
@@ -135,8 +134,8 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     toLocation: loc?.name || null,
                     userName: (a.userId as any)?.name || a.assignedTo || 'System',
                     notes: a.notes || (a.status === 'returned'
-                        ? `Dikembalikan dari ${a.assignedTo || (a.userId as any)?.name || 'user'}`
-                        : `Ditugaskan ke ${a.assignedTo || (a.userId as any)?.name || 'user'}`),
+                        ? `Returned from ${a.assignedTo || (a.userId as any)?.name || 'user'}`
+                        : `Assigned to ${a.assignedTo || (a.userId as any)?.name || 'user'}`),
                     referenceType: 'Assignment',
                     previousStock: null, quantityChange: null, newStock: null
                 });
@@ -172,7 +171,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                     fromLocation: from,
                     toLocation: to,
                     userName: (t.requestedBy as any)?.name || 'System',
-                    notes: t.notes || `Transfer dari ${from} ke ${to}`,
+                    notes: t.notes || `Transfer from ${from} to ${to}`,
                     referenceType: 'Transfer',
                     previousStock: null, quantityChange: null, newStock: null
                 });
@@ -211,7 +210,7 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
             }
 
             // ── 2d. AuditLog for legacy Asset activities (pre-AssetHistory) ──
-            const auditActions = ['create', 'update', 'delete', 'install', 'dismantle'];
+            const auditActions = ['create', 'update', 'delete', 'install', 'dismantle', 'assign', 'return', 'submit', 'accept', 'complete', 'cancel', 'reject', 'create_transfer', 'submit_transfer', 'approve_transfer', 'reject_transfer', 'create_rental', 'delete_rental'];
             const auditLogs = await AuditLog.find({
                 ...dateMatch,
                 resourceType: 'Asset',
@@ -234,6 +233,19 @@ export const getSupplyMutationReport = async (req: Request, res: Response, next:
                 else if (log.action === 'delete') action = 'DELETE';
                 else if (log.action === 'install') action = 'INSTALL';
                 else if (log.action === 'dismantle') action = 'DISMANTLE';
+                else if (log.action === 'assign') action = 'ASSIGN';
+                else if (log.action === 'return') action = 'RETURN';
+                else if (log.action === 'submit') action = 'STATUS_CHANGE';
+                else if (log.action === 'accept') action = 'STATUS_CHANGE';
+                else if (log.action === 'complete') action = 'STATUS_CHANGE';
+                else if (log.action === 'cancel') action = 'STATUS_CHANGE';
+                else if (log.action === 'reject') action = 'STATUS_CHANGE';
+                else if (log.action === 'create_transfer') action = 'TRANSFER';
+                else if (log.action === 'submit_transfer') action = 'TRANSFER';
+                else if (log.action === 'approve_transfer') action = 'TRANSFER';
+                else if (log.action === 'reject_transfer') action = 'TRANSFER';
+                else if (log.action === 'create_rental') action = 'STATUS_CHANGE';
+                else if (log.action === 'delete_rental') action = 'STATUS_CHANGE';
 
                 // Parse location change from details if present
                 let fromLocation: string | null = null;
@@ -333,8 +345,8 @@ export const exportSupplyMutationExcel = async (req: Request, res: Response, nex
                 'Previous Stock': h.previousStock ?? '-',
                 Change: h.quantityChange ?? '-',
                 'New Stock': h.newStock ?? '-',
-                'Keterangan': h.notes || '',
-                'Sumber': h.referenceType || '-'
+                'Notes': h.notes || '',
+                'Source': h.referenceType || '-'
             };
         });
 

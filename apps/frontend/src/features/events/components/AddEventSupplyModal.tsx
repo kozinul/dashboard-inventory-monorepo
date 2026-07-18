@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { supplyService, Supply } from '@/services/supplyService';
 import { eventService } from '@/services/eventService';
 import { getImageUrl } from '@/utils/imageUtils';
+import { formatIDR } from '@/utils/currency';
 
 interface AddEventSupplyModalProps {
     isOpen: boolean;
@@ -287,7 +288,7 @@ export default function AddEventSupplyModal({ isOpen, onClose, eventId, onSucces
                                                                 <td className="p-4 border-t border-slate-100 dark:border-slate-800 text-right">
                                                                     {supply.cost ? (
                                                                         <span className="px-2 py-1 bg-primary/10 text-primary rounded text-[10px] font-bold uppercase tracking-wider">
-                                                                            Rp. {supply.cost.toLocaleString('id-ID')}
+                                                                            {formatIDR(supply.cost || 0)}
                                                                         </span>
                                                                     ) : (
                                                                         <span className="text-xs text-slate-400 italic">No cost</span>

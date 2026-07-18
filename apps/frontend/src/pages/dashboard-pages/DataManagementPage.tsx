@@ -22,33 +22,33 @@ export default function DataManagementPage() {
 
     // Column selection state
     const assetColumns = [
-        { id: 'name', label: 'Nama' },
+        { id: 'name', label: 'Name' },
         { id: 'model', label: 'Model' },
-        { id: 'category', label: 'Kategori' },
+        { id: 'category', label: 'Category' },
         { id: 'serial', label: 'Serial' },
-        { id: 'department', label: 'Departemen' },
-        { id: 'branch', label: 'Cabang' },
-        { id: 'location', label: 'Lokasi' },
+        { id: 'department', label: 'Department' },
+        { id: 'branch', label: 'Branch' },
+        { id: 'location', label: 'Location' },
         { id: 'status', label: 'Status' },
-        { id: 'value', label: 'Nilai' },
-        { id: 'purchaseDate', label: 'Tgl Beli' },
-        { id: 'warrantyDate', label: 'Tgl Garansi' }
+        { id: 'value', label: 'Value' },
+        { id: 'purchaseDate', label: 'Purchase Date' },
+        { id: 'warrantyDate', label: 'Warranty Date' }
     ];
 
     const supplyColumns = [
-        { id: 'name', label: 'Nama' },
+        { id: 'name', label: 'Name' },
         { id: 'partNumber', label: 'Part Number' },
-        { id: 'category', label: 'Kategori' },
-        { id: 'description', label: 'Deskripsi' },
-        { id: 'unit', label: 'Satuan' },
-        { id: 'quantity', label: 'Jumlah' },
-        { id: 'minimumStock', label: 'Stok Min' },
-        { id: 'location', label: 'Lokasi' },
-        { id: 'department', label: 'Departemen' },
-        { id: 'branch', label: 'Cabang' },
-        { id: 'cost', label: 'Biaya' },
+        { id: 'category', label: 'Category' },
+        { id: 'description', label: 'Description' },
+        { id: 'unit', label: 'Unit' },
+        { id: 'quantity', label: 'Quantity' },
+        { id: 'minimumStock', label: 'Min Stock' },
+        { id: 'location', label: 'Location' },
+        { id: 'department', label: 'Department' },
+        { id: 'branch', label: 'Branch' },
+        { id: 'cost', label: 'Cost' },
         { id: 'vendor', label: 'Vendor' },
-        { id: 'compatibleModels', label: 'Kompatibilitas' }
+        { id: 'compatibleModels', label: 'Compatibility' }
     ];
 
     const [selectedAssetCols, setSelectedAssetCols] = useState<string[]>(assetColumns.map(c => c.id));

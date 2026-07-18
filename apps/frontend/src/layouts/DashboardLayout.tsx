@@ -54,7 +54,7 @@ const mainNavigation = [
     { name: 'Maintenance', href: '/maintenance', icon: WrenchScrewdriverIcon },
     { name: 'Services', href: '/services', icon: WrenchScrewdriverIcon },
     { name: 'Report', href: '/reports', icon: ChartBarIcon },
-    { name: 'Item Mutation', href: '/reports/mutasi-barang', icon: DocumentTextIcon },
+    { name: 'Item Mutation', href: '/reports/item-mutation', icon: DocumentTextIcon },
     { name: 'Transfers', href: '/transfer', icon: ArrowsRightLeftIcon },
     { name: 'Rental', href: '/rental', icon: CalendarDaysIcon },
     { name: 'Disposal', href: '/disposal', icon: TrashIcon },

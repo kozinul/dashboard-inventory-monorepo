@@ -83,7 +83,7 @@ export const createEvent = async (req: Request, res: Response, next: NextFunctio
                     userId: req.user._id,
                     fromStatus: oldStatus,
                     toStatus: 'event',
-                    notes: `Direservasi untuk event: ${event.name}`,
+                    notes: `Reserved for event: ${event.name}`,
                     referenceType: 'Event',
                     referenceId: event._id
                 });
@@ -224,7 +224,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                         previousStock: oldStock,
                         newStock: supply.quantity,
                         userId: req.user?._id,
-                        notes: `Dipakai untuk event: ${currentEvent.name}`,
+                        notes: `Used for event: ${currentEvent.name}`,
                         referenceType: 'Event',
                         referenceId: currentEvent._id
                     });
@@ -250,7 +250,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                         previousStock: oldStock,
                         newStock: supply.quantity,
                         userId: req.user?._id,
-                        notes: `Pengembalian dari event dibatalkan: ${currentEvent.name}`,
+                        notes: `Return from cancelled event: ${currentEvent.name}`,
                         referenceType: 'Event',
                         referenceId: currentEvent._id
                     });
@@ -288,8 +288,8 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                             newStock: supply.quantity,
                             userId: req.user?._id,
                             notes: diff > 0
-                                ? `Penambahan supply untuk event: ${currentEvent.name}`
-                                : `Pengurangan supply dari event: ${currentEvent.name}`,
+                                ? `Supply added for event: ${currentEvent.name}`
+                                : `Supply deducted from event: ${currentEvent.name}`,
                             referenceType: 'Event',
                             referenceId: currentEvent._id
                         });
@@ -315,7 +315,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                             previousStock: oldStock,
                             newStock: supply.quantity,
                             userId: req.user?._id,
-                            notes: `Supply dihapus dari event: ${currentEvent.name}`,
+                            notes: `Supply removed from event: ${currentEvent.name}`,
                             referenceType: 'Event',
                             referenceId: currentEvent._id
                         });
@@ -373,7 +373,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                     userId: req.user._id,
                     fromStatus: 'active',
                     toStatus: 'event',
-                    notes: `Direservasi ulang untuk event: ${currentEvent.name}`,
+                    notes: `Re-reserved for event: ${currentEvent.name}`,
                     referenceType: 'Event',
                     referenceId: currentEvent._id
                 });
@@ -395,7 +395,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                         userId: req.user._id,
                         fromStatus: 'active',
                         toStatus: 'event',
-                        notes: `Ditambahkan ke event: ${currentEvent.name}`,
+                        notes: `Added to event: ${currentEvent.name}`,
                         referenceType: 'Event',
                         referenceId: currentEvent._id
                     });
@@ -410,7 +410,7 @@ export const updateEvent = async (req: Request, res: Response, next: NextFunctio
                         userId: req.user._id,
                         fromStatus: 'event',
                         toStatus: 'active',
-                        notes: `Dihapus dari event: ${currentEvent.name}`,
+                        notes: `Removed from event: ${currentEvent.name}`,
                         referenceType: 'Event',
                         referenceId: currentEvent._id
                     });
@@ -514,7 +514,7 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
                     userId: req.user._id,
                     fromStatus: 'event',
                     toStatus: 'active',
-                    notes: `Event dihapus: ${eventToCheck.name}`,
+                    notes: `Event deleted: ${eventToCheck.name}`,
                     referenceType: 'Event',
                     referenceId: eventToCheck._id
                 });
@@ -537,7 +537,7 @@ export const deleteEvent = async (req: Request, res: Response, next: NextFunctio
                         previousStock: oldStock,
                         newStock: supply.quantity,
                         userId: req.user?._id,
-                        notes: `Pengembalian dari event dihapus (${eventToCheck.status}): ${eventToCheck.name}`,
+                        notes: `Return from deleted event (${eventToCheck.status}): ${eventToCheck.name}`,
                         referenceType: 'Event',
                         referenceId: eventToCheck._id
                     });

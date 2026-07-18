@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { DisposalRecord } from '../models/disposal.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 
 export const getDisposalRecords = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -83,6 +84,17 @@ export const approveDisposal = async (req: Request, res: Response, next: NextFun
             const { Asset } = await import('../models/asset.model.js');
             await Asset.findByIdAndUpdate(record.asset, { status: 'disposed' });
 
+            await AssetHistory.create({
+                assetId: record.asset,
+                action: 'STATUS_CHANGE',
+                userId: req.user?._id,
+                fromStatus: 'active',
+                toStatus: 'disposed',
+                notes: `Asset disposed: ${record.reason || 'Disposal approved'}`,
+                referenceType: 'Disposal',
+                referenceId: record._id
+            });
+
             await record.save();
             return res.json(record);
         }
@@ -103,6 +115,17 @@ export const approveDisposal = async (req: Request, res: Response, next: NextFun
             // Update Asset status
             const { Asset } = await import('../models/asset.model.js');
             await Asset.findByIdAndUpdate(record.asset, { status: 'disposed' });
+
+            await AssetHistory.create({
+                assetId: record.asset,
+                action: 'STATUS_CHANGE',
+                userId: req.user?._id,
+                fromStatus: 'active',
+                toStatus: 'disposed',
+                notes: `Asset disposed: ${record.reason || 'Disposal approved'}`,
+                referenceType: 'Disposal',
+                referenceId: record._id
+            });
         }
 
         await record.save();

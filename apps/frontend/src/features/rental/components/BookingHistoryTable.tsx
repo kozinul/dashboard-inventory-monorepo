@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { eventService, Event } from '@/services/eventService';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { formatIDR } from '@/utils/currency';
 
 interface BookingHistoryTableProps {
     assetId: string;
@@ -81,7 +82,7 @@ export default function BookingHistoryTable({ assetId }: BookingHistoryTableProp
                                         // Need to handle populated object or string ID
                                         typeof ra.assetId === 'string' ? ra.assetId === assetId : ra.assetId._id === assetId
                                     );
-                                    return rentedAsset ? `Rp. ${rentedAsset.rentalRate.toLocaleString('id-ID')} / ${rentedAsset.rentalRateUnit}` : '-';
+                                    return rentedAsset ? `${formatIDR(rentedAsset.rentalRate)} / ${rentedAsset.rentalRateUnit}` : '-';
                                 })()}
                             </td>
                         </tr>

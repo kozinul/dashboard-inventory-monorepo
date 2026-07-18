@@ -3,6 +3,7 @@ import { StockOpname } from '../models/stockOpname.model.js';
 import { StockOpnameItem } from '../models/stockOpnameItem.model.js';
 import { Supply } from '../models/supply.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { SupplyHistory } from '../models/supplyHistory.model.js';
 import { Assignment } from '../models/assignment.model.js';
 import { recordAuditLog } from '../utils/logger.js';
@@ -283,13 +284,26 @@ export const completeStockOpname = async (req: Request, res: Response, next: Nex
             } else if (item.assetId && !item.isAssetFound) {
                 const asset = await Asset.findById(item.assetId);
                 if (asset) {
+                    const previousStatus = asset.status;
                     asset.activityLog.push({
                         action: 'audit',
                         details: `Asset marked missing during SO: ${so.title}. Notes: ${item.notes}`,
                         performedBy: req.user._id,
                         date: new Date()
                     });
+                    asset.status = 'storage';
                     await asset.save();
+
+                    await AssetHistory.create({
+                        assetId: item.assetId,
+                        action: 'STATUS_CHANGE',
+                        userId: req.user?._id,
+                        fromStatus: previousStatus,
+                        toStatus: 'storage',
+                        notes: `Stock Opname: asset not found at location, moved to storage`,
+                        referenceType: 'StockOpname',
+                        referenceId: so._id
+                    });
                 }
             }
         }

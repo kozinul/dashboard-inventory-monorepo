@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { formatIDR } from '@/utils/currency';
 
 interface ServiceTableProps {
     records: any[];
@@ -71,7 +72,7 @@ export function ServiceTable({ records, loading, onEdit, onDelete, onStatusChang
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 font-mono text-sm text-slate-600 dark:text-slate-400">
-                                    {record.cost ? `Rp. ${record.cost.toLocaleString('id-ID')}` : '-'}
+                                    {record.cost ? formatIDR(record.cost) : '-'}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                                     {record.expectedCompletionDate ? format(new Date(record.expectedCompletionDate), 'MMM d, yyyy') : '-'}

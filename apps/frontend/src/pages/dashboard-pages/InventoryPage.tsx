@@ -210,7 +210,7 @@ export default function InventoryPage() {
         const asset = assets.find(a => (a.id || a._id) === id);
         const result = await showOptionalInputDialog(
             `Request Delete: "${asset?.name || 'this asset'}"`,
-            'Alasan penghapusan (opsional)',
+            'Deletion reason (optional)',
             'textarea',
             ''
         );

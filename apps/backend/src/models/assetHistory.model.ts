@@ -50,7 +50,7 @@ const assetHistorySchema = new mongoose.Schema({
     },
     referenceType: {
         type: String,
-        enum: ['Event', 'Assignment', 'Transfer', 'Manual', 'StockOpname', 'Import', null],
+        enum: ['Event', 'Assignment', 'Transfer', 'Manual', 'StockOpname', 'Import', 'Maintenance', 'Rental', 'Disposal', null],
         required: false
     },
     referenceId: {

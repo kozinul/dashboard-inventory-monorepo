@@ -6,6 +6,7 @@ import { Supply, supplyService } from '../../../services/supplyService';
 import { maintenanceService } from '../../../services/maintenanceService';
 import { EditSupplyModal } from '../components/supplies/EditSupplyModal';
 import { useForm } from 'react-hook-form';
+import { formatIDR } from '@/utils/currency';
 
 export default function SupplyDetailsPage() {
     const { id } = useParams();
@@ -194,7 +195,7 @@ export default function SupplyDetailsPage() {
                             </div>
                             <div className="flex justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
                                 <dt className="text-slate-500">Cost</dt>
-                                <dd className="font-medium">Rp {supply.cost?.toLocaleString('id-ID')}</dd>
+                                <dd className="font-medium">{formatIDR(supply.cost || 0)}</dd>
                             </div>
                         </dl>
                         {supply.description && (

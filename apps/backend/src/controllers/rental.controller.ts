@@ -1,5 +1,6 @@
 import Rental from '../models/rental.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 import { Request, Response, NextFunction } from 'express';
 
@@ -34,6 +35,17 @@ export const createRental = async (req: Request, res: Response, next: NextFuncti
             rentedAsset.status = 'rented';
             await rentedAsset.save();
         }
+
+        await AssetHistory.create({
+            assetId: req.body.assetId,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: 'active',
+            toStatus: 'rented',
+            notes: `Asset rented for event: ${req.body.eventId || 'Direct rental'}`,
+            referenceType: 'Rental',
+            referenceId: rental._id
+        });
 
         // Record Audit Log
         await recordAuditLog({
@@ -155,6 +167,17 @@ export const deleteRental = async (req: Request, res: Response, next: NextFuncti
             rentedAsset.status = 'active';
             await rentedAsset.save();
         }
+
+        await AssetHistory.create({
+            assetId: rental.assetId,
+            action: 'STATUS_CHANGE',
+            userId: req.user?._id,
+            fromStatus: 'rented',
+            toStatus: 'active',
+            notes: `Rental deleted`,
+            referenceType: 'Rental',
+            referenceId: rental._id
+        });
 
         // Record Audit Log
         await recordAuditLog({

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Assignment } from '../models/assignment.model.js';
 import { Asset } from '../models/asset.model.js';
+import { AssetHistory } from '../models/assetHistory.model.js';
 import { User } from '../models/user.model.js';
 import { recordAuditLog } from '../utils/logger.js';
 
@@ -76,6 +77,16 @@ export const createAssignment = async (req: Request, res: Response, next: NextFu
 
         await Asset.findByIdAndUpdate(assetId, assetUpdate);
 
+        await AssetHistory.create({
+            assetId,
+            action: 'ASSIGN',
+            userId: req.user?._id,
+            toLocation: locationId || undefined,
+            notes: `Assigned to ${assignedTo || (assignment.userId as any)?.name || 'user'}`,
+            referenceType: 'Assignment',
+            referenceId: assignment._id
+        });
+
         // Populate return data
         await assignment.populate(['assetId', 'userId', 'locationId']);
 
@@ -127,6 +138,15 @@ export const returnAsset = async (req: Request, res: Response, next: NextFunctio
         const asset = await Asset.findById(assignment.assetId);
         if (asset && asset.status !== 'maintenance' && asset.status !== 'request maintenance') {
             await Asset.findByIdAndUpdate(assignment.assetId, { status: 'active' });
+
+            await AssetHistory.create({
+                assetId: assignment.assetId,
+                action: 'RETURN',
+                userId: req.user?._id,
+                notes: `Returned from ${assignment.assignedTo || 'user'}`,
+                referenceType: 'Assignment',
+                referenceId: assignment._id
+            });
         }
 
         // Record Audit Log

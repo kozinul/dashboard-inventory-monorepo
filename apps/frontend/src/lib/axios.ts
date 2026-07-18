@@ -31,8 +31,8 @@ instance.interceptors.response.use(
         } else if (error.response?.status === 403) {
             Swal.fire({
                 icon: 'error',
-                title: 'Akses Ditolak',
-                text: error.response?.data?.message || 'Anda tidak memiliki hak akses untuk melakukan tindakan ini.',
+                title: 'Access Denied',
+                text: error.response?.data?.message || 'You do not have permission to perform this action.',
                 confirmButtonColor: '#6366F1'
             });
         }

@@ -426,7 +426,7 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                         Is Container
                                                     </label>
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 mt-1 ml-6">Centang jika aset ini dapat menampung aset lain (contoh: NVR 16ch untuk camera).</p>
+                                                <p className="text-[10px] text-slate-400 mt-1 ml-6">Check if this asset can contain other assets (e.g., NVR 16ch for cameras).</p>
                                                 {isContainerChecked && (
                                                     <div className="mt-2 ml-6">
                                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Total Slots</label>

@@ -109,14 +109,14 @@ export default function ActivityLogPage() {
 
     const handleResetLogs = async () => {
         const result = await Swal.fire({
-            title: 'Hapus Semua Log?',
-            text: "Tindakan ini akan menghapus permanen seluruh riwayat aktivitas sistem!",
+            title: 'Delete All Logs?',
+            text: "This will permanently delete all system activity history!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#64748b',
-            confirmButtonText: 'Ya, Hapus Semua',
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Yes, Delete All',
+            cancelButtonText: 'Cancel'
         });
 
         if (result.isConfirmed) {
@@ -124,8 +124,8 @@ export default function ActivityLogPage() {
             try {
                 await auditLogService.clearAll();
                 Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Seluruh log aktivitas telah dibersihkan.',
+                    title: 'Success!',
+                    text: 'All activity logs have been cleared.',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
@@ -133,7 +133,7 @@ export default function ActivityLogPage() {
                 fetchLogs();
             } catch (error) {
                 console.error('Reset failed:', error);
-                Swal.fire('Error', 'Gagal menghapus log', 'error');
+                Swal.fire('Error', 'Failed to delete logs', 'error');
             } finally {
                 setLoading(false);
             }

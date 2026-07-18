@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { assetService, Asset } from '@/services/assetService';
 import { eventService } from '@/services/eventService';
 import { getImageUrl } from '@/utils/imageUtils';
+import { formatIDR } from '@/utils/currency';
 
 interface AddEventAssetModalProps {
     isOpen: boolean;
@@ -262,7 +263,7 @@ export default function AddEventAssetModal({ isOpen, onClose, eventId, onSuccess
                                                                 <td className="p-4 border-t border-slate-100 dark:border-slate-800 text-right">
                                                                     {defaultRate ? (
                                                                         <span className="px-2 py-1 bg-primary/10 text-primary rounded text-[10px] font-bold uppercase tracking-wider">
-                                                                            Rp. {defaultRate.rate.toLocaleString('id-ID')} / {defaultRate.unit}
+                                                                            {formatIDR(defaultRate.rate)} / {defaultRate.unit}
                                                                         </span>
                                                                     ) : (
                                                                         <span className="text-xs text-slate-400 italic">No rate</span>

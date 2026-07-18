@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Asset, assetService } from '@/services/assetService';
 import { PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { showSuccessToast, showErrorToast } from '@/utils/swal';
+import { formatIDR } from '@/utils/currency';
 import Swal from 'sweetalert2';
 
 interface AssetRentalRatesTabProps {
@@ -209,7 +210,7 @@ export function AssetRentalRatesTab({ asset, onUpdate }: AssetRentalRatesTabProp
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-bold text-primary">
-                                                Rp {r.rate.toLocaleString('id-ID')}
+                                                {formatIDR(r.rate)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

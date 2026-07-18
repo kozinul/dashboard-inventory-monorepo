@@ -26,9 +26,9 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                 const dataArr = new Uint8Array(buffer);
                 const wb = XLSX.read(dataArr, { type: 'array' });
                 const wsname = wb.SheetNames[0];
-                if (!wsname) throw new Error("File Excel kosong.");
+                if (!wsname) throw new Error("Excel file is empty.");
                 const ws = wb.Sheets[wsname];
-                if (!ws) throw new Error("Worksheet tidak valid.");
+                if (!ws) throw new Error("Invalid worksheet.");
 
                 // Convert sheet to JSON array
                 const parsedData = XLSX.utils.sheet_to_json(ws, { defval: '' });
@@ -42,12 +42,12 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                     }));
                     setData(formattedData);
                 } else {
-                    Swal.fire('Oops', 'File Excel kososng atau format tidak sesuai.', 'error');
+                    Swal.fire('Oops', 'Excel file is empty or format is invalid.', 'error');
                     onClose();
                 }
             } catch (error) {
                 console.error("Error parsing Excel:", error);
-                Swal.fire('Error', 'Gagal membaca file Excel.', 'error');
+                Swal.fire('Error', 'Failed to read Excel file.', 'error');
                 onClose();
             }
         };
@@ -75,7 +75,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
 
     const handleConfirm = async () => {
         if (data.length === 0) {
-            Swal.fire('Oops', 'Tidak ada data untuk di-import.', 'warning');
+            Swal.fire('Oops', 'No data to import.', 'warning');
             return;
         }
 
@@ -108,7 +108,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                             Review Excel: {file?.name}
                         </h2>
                         <p className="text-sm text-slate-500 mt-1">
-                            Anda dapat mengubah teks secara manual dengan mengklik kolom di bawah ini, atau menghapus baris yang tidak perlu sebelum disimpan ke Database.
+                            You can edit text manually by clicking cells below, or remove unnecessary rows before saving to the database.
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition">
@@ -121,7 +121,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-64">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                            <p className="mt-4 text-slate-500">Membaca file Excel...</p>
+                            <p className="mt-4 text-slate-500">Reading Excel file...</p>
                         </div>
                     ) : (
                         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shadow-sm">
@@ -136,7 +136,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                                                 </th>
                                             ))}
                                             <th className="px-4 py-3 font-semibold border-b border-slate-200 dark:border-slate-700 sticky right-0 bg-slate-100 dark:bg-slate-900/50 text-center shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">
-                                                Aksi
+                                                Action
                                             </th>
                                         </tr>
                                     </thead>
@@ -158,7 +158,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                                                     <button
                                                         onClick={() => handleRemoveRow(row._tempId)}
                                                         className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                                                        title="Hapus baris ini"
+                                                        title="Delete this row"
                                                     >
                                                         <Trash2 className="size-4" />
                                                     </button>
@@ -169,7 +169,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                                             <tr>
                                                 <td colSpan={columns.length + 2} className="px-4 py-8 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
                                                     <AlertCircle className="size-6 text-slate-400" />
-                                                    Tidak ada data tersisa.
+                                                    No data remaining.
                                                 </td>
                                             </tr>
                                         )}
@@ -183,7 +183,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                 {/* Footer */}
                 <div className="flex items-center justify-between p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                     <div className="text-sm font-medium text-slate-500">
-                        Total baris divalidasi: <span className="text-slate-900 dark:text-white font-bold">{data.length}</span>
+                        Total rows validated: <span className="text-slate-900 dark:text-white font-bold">{data.length}</span>
                     </div>
                     <div className="flex gap-3">
                         <button
@@ -191,7 +191,7 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                             disabled={isSaving}
                             className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition"
                         >
-                            Batal
+                            Cancel
                         </button>
                         <button
                             onClick={handleConfirm}
@@ -201,10 +201,10 @@ export default function ImportPreviewModal({ isOpen, onClose, file, onConfirm }:
                             {isSaving ? (
                                 <>
                                     <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Menyimpan...
+                                    Saving...
                                 </>
                             ) : (
-                                <>Submit ke Database</>
+                                <>Submit to Database</>
                             )}
                         </button>
                     </div>
