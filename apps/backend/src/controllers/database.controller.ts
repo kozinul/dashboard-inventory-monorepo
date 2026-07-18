@@ -259,36 +259,59 @@ export const downloadBackup = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+const COLLECTION_MAP: Record<string, any> = {
+    MaintenanceRecord,
+    Transfer,
+    Disposal,
+    Assignment,
+    Rental,
+    Event,
+    SupplyHistory,
+    Asset,
+    Supply,
+};
+
+const COLLECTION_LABELS: Record<string, string> = {
+    MaintenanceRecord: 'Maintenance Records',
+    Transfer: 'Transfers',
+    Disposal: 'Disposals',
+    Assignment: 'Assignments',
+    Rental: 'Rentals',
+    Event: 'Events',
+    SupplyHistory: 'Supply History',
+    Asset: 'Assets',
+    Supply: 'Supplies',
+};
+
 export const resetTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Double check authorization (though middleware handles it)
-        if (req.user.role !== 'superuser' && req.user.role !== 'system_admin') {
-            res.status(403);
-            throw new Error('Not authorized to perform this dangerous action');
+        const { collections } = req.body as { collections?: string[] };
+
+        if (!collections || !Array.isArray(collections) || collections.length === 0) {
+            res.status(400);
+            throw new Error('Please provide an array of collection names to wipe');
         }
 
-        console.log(`Database reset initiated by ${req.user.email}`);
+        const invalid = collections.filter(c => !COLLECTION_MAP[c]);
+        if (invalid.length > 0) {
+            res.status(400);
+            throw new Error(`Invalid collections: ${invalid.join(', ')}`);
+        }
 
-        // Delete Transactional Data
-        await Promise.all([
-            MaintenanceRecord.deleteMany({}),
-            Transfer.deleteMany({}),
-            Disposal.deleteMany({}),
-            Assignment.deleteMany({}),
-            Rental.deleteMany({}),
-            Event.deleteMany({}),
-            SupplyHistory.deleteMany({}),
-            Asset.deleteMany({}), // Assets are inventory/transactional
-            Supply.deleteMany({}), // Supplies are inventory/transactional
-            // Notification.deleteMany({}),
-            // AuditLog.deleteMany({}) 
-        ]);
+        console.log(`Database wipe initiated by ${req.user.email}: ${collections.join(', ')}`);
 
-        // Note: Masterdata (Branches, Departments, Users, etc.) are PRESERVED
+        const wipeResults = await Promise.all(
+            collections.map(name => COLLECTION_MAP[name].deleteMany({}))
+        );
 
-        console.log(`Database reset completed successfully by ${req.user.email}`);
+        const summary = collections.map((name, i) => `${COLLECTION_LABELS[name]}: ${wipeResults[i].deletedCount}`);
 
-        res.json({ message: 'System transactional data reset successfully. Masterdata preserved.' });
+        console.log(`Database wipe completed by ${req.user.email}: ${summary.join(', ')}`);
+
+        res.json({
+            message: `Wipe completed. ${collections.length} collection(s) cleared.`,
+            details: summary,
+        });
     } catch (error) {
         next(error);
     }

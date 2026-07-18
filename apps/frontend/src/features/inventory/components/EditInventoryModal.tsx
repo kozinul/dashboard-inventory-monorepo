@@ -24,7 +24,8 @@ interface InventoryFormInputs {
     serial: string;
     departmentId: string;
     // ...
-    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use' | 'broken';
+    brokenReason?: string;
     parentAssetId?: string; // Add parentAssetId
     requiresExternalService: boolean;
     isContainer: boolean;
@@ -133,7 +134,8 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                 vendorAddress: asset.vendor?.address || '',
                 vendorWebsite: asset.vendor?.website || '',
                 warrantyExpiration: asset.warranty?.expirationDate ? new Date(asset.warranty.expirationDate).toISOString().split('T')[0] : '',
-                warrantyDetails: asset.warranty?.details || ''
+                warrantyDetails: asset.warranty?.details || '',
+                brokenReason: asset.brokenReason || ''
             };
 
             // Small delay to ensure the browser has finished rendering the <option> elements
@@ -577,8 +579,21 @@ export function EditInventoryModal({ isOpen, onClose, onUpdate, asset }: EditInv
                                                     <option value="assigned">Assigned</option>
                                                     <option value="request maintenance">Request Maintenance</option>
                                                     <option value="disposed">Disposed</option>
+                                                    <option value="broken">Broken</option>
                                                 </select>
                                             </div>
+
+                                            {watch('status') === 'broken' && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Keterangan Broken</label>
+                                                    <textarea
+                                                        {...register('brokenReason')}
+                                                        rows={3}
+                                                        placeholder="Jelaskan alapan aset ini broken..."
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                            )}
 
                                             <div>
                                                 <div className="flex items-center gap-2 mt-8">

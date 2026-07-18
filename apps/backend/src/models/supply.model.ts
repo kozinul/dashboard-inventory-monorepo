@@ -77,6 +77,10 @@ const supplySchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    hideFromLowStock: {
+        type: Boolean,
+        default: false
+    },
     images: [{
         url: String,
         caption: String,

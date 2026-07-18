@@ -20,7 +20,11 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
         event: 'bg-cyan-500',
         storage: 'bg-blue-500',
         assigned: 'bg-indigo-500',
-        disposed: 'bg-gray-500'
+        disposed: 'bg-gray-500',
+        broken: 'bg-red-500',
+        'request maintenance': 'bg-rose-500',
+        pending_delete: 'bg-red-600',
+        in_use: 'bg-orange-500'
     };
     const statusClass = statusColors[asset.status] || 'bg-blue-500';
 
@@ -187,6 +191,14 @@ export function AssetHero({ asset, onEdit, currentLocation }: AssetHeroProps) {
                                         {typeof asset.parentAssetId === 'object' ? (asset.parentAssetId.alias || asset.parentAssetId.name) : 'View Parent'}
                                     </a>
                                 </div>
+                            </div>
+                        )}
+                        {asset.status === 'broken' && asset.brokenReason && (
+                            <div className="col-span-2 md:col-span-4 mt-2 pt-3 border-t border-red-100 dark:border-red-900/30">
+                                <p className="text-[10px] text-red-500 font-bold uppercase mb-1 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-sm">warning</span> Keterangan Broken
+                                </p>
+                                <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{asset.brokenReason}</p>
                             </div>
                         )}
                     </div>

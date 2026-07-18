@@ -177,10 +177,11 @@ export const getLowStockSupplies = async (req: Request, res: Response, next: Nex
             branchFilter.departmentId = { $in: deptIds };
         }
 
-        // Fetch supplies where quantity <= minimumStock
+        // Fetch supplies where quantity <= minimumStock and not hidden
         const lowStockSupplies = await Supply.find({
             ...branchFilter,
-            $expr: { $lte: ['$quantity', '$minimumStock'] }
+            $expr: { $lte: ['$quantity', '$minimumStock'] },
+            hideFromLowStock: { $ne: true }
         })
             .sort({ quantity: 1 }) // Show out of stock first
             .limit(10)

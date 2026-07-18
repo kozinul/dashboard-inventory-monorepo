@@ -160,6 +160,11 @@ const assetSchema = new mongoose.Schema({
         type: String,
         required: false,
         trim: true
+    },
+    brokenReason: {
+        type: String,
+        required: false,
+        trim: true
     }
 }, {
     timestamps: true

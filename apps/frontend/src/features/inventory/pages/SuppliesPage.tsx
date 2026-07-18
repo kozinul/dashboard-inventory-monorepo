@@ -77,6 +77,17 @@ export default function SuppliesPage() {
         setIsEditModalOpen(true);
     };
 
+    const handleToggleHide = async (supply: Supply) => {
+        try {
+            await supplyService.update(supply._id!, { hideFromLowStock: !supply.hideFromLowStock });
+            fetchSupplies();
+            showSuccessToast(supply.hideFromLowStock ? 'Shown on dashboard' : 'Hidden from dashboard');
+        } catch (error) {
+            console.error('Toggle hide failed:', error);
+            showErrorToast('Failed to update visibility.');
+        }
+    };
+
     const handleDelete = async (id: string) => {
         const result = await showConfirmDialog(
             'Are you sure?',
@@ -175,13 +186,14 @@ export default function SuppliesPage() {
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Department</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Location</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Cost</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dashboard</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex justify-center">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                         </div>
@@ -189,7 +201,7 @@ export default function SuppliesPage() {
                                 </tr>
                             ) : filteredSupplies.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex flex-col items-center gap-2">
                                             <span className="material-symbols-outlined text-4xl text-slate-300">inventory_2</span>
                                             <p>No supplies found for your department</p>
@@ -248,6 +260,19 @@ export default function SuppliesPage() {
                                             <span className="text-sm text-slate-600 dark:text-slate-400">
                                                 Rp {item.cost?.toLocaleString('id-ID')}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {item.quantity <= item.minimumStock ? (
+                                                <button
+                                                    onClick={() => handleToggleHide(item)}
+                                                    className={`p-1.5 rounded-lg transition-colors ${item.hideFromLowStock ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 hover:text-slate-600' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-500 hover:text-amber-600'}`}
+                                                    title={item.hideFromLowStock ? 'Shown on dashboard - click to hide' : 'Hidden from dashboard - click to show'}
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">{item.hideFromLowStock ? 'visibility_off' : 'visibility'}</span>
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-slate-300 dark:text-slate-600">-</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">

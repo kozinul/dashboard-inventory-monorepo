@@ -466,7 +466,7 @@ export const startTicket = async (req: Request, res: Response, next: NextFunctio
             return res.status(403).json({ message: 'You are not assigned to this ticket' });
         }
 
-        const validStatuses = ['Accepted', 'Sent'];
+        const validStatuses = ['Accepted', 'Sent', 'Pending'];
         if (!validStatuses.includes(record.status)) {
             return res.status(400).json({ message: 'Ticket cannot be started from current status' });
         }

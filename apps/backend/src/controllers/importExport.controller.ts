@@ -191,13 +191,14 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
             rawData = await Asset.find(query)
                 .populate('departmentId', 'name')
                 .populate('branchId', 'name')
-                .populate('locationId', 'name');
+                .populate('locationId', 'name')
+                .populate('parentAssetId', 'name alias');
 
             headerMap = {
-                name: 'Nama', model: 'Model', category: 'Kategori', serial: 'Serial',
+                name: 'Nama', alias: 'Alias', model: 'Model', category: 'Kategori', serial: 'Serial',
                 department: 'Departemen', branch: 'Cabang', building: 'Gedung',
                 location: 'Lokasi', locationDetail: 'Detail Lokasi',
-                status: 'Status', assignment: 'Assignment', value: 'Nilai (IDR)',
+                status: 'Status', assignment: 'Assignment', parentAsset: 'Parent Asset', value: 'Nilai (IDR)',
                 purchaseDate: 'Tgl Pembelian', lastUpdate: 'Terakhir Update'
             };
 
@@ -225,6 +226,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
 
                 return {
                     name: a.name,
+                    alias: a.alias || '-',
                     model: a.model,
                     category: a.category,
                     serial: a.serial,
@@ -235,6 +237,7 @@ export const exportData = async (req: Request, res: Response, next: NextFunction
                     locationDetail: a.locationDetail || '-',
                     status: a.status,
                     assignment: assignmentInfo,
+                    parentAsset: a.parentAssetId ? ((a.parentAssetId as any)?.alias || (a.parentAssetId as any)?.name || '-') : '-',
                     value: a.value || 0,
                     purchaseDate: a.purchaseDate ? new Date(a.purchaseDate).toLocaleDateString('id-ID') : '-',
                     lastUpdate: a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('id-ID') : '-'

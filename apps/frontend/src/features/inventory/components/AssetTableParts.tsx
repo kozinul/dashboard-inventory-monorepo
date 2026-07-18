@@ -101,7 +101,8 @@ export function AssetStatusBadge({ status }: { status: string }) {
         disposed: "bg-gray-500/10 text-gray-500 border-gray-500/20",
         in_use: "bg-orange-500/10 text-orange-500 border-orange-500/20",
         rented: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-        event: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20"
+        event: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+        broken: "bg-red-500/10 text-red-500 border-red-500/20"
     };
 
     const currentStyle = styles[status] || "bg-slate-500/10 text-slate-500 border-slate-500/20";

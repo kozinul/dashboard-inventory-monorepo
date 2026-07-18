@@ -29,6 +29,7 @@ export interface Supply {
     vendorId?: string;
     compatibleModels?: string[];
     cost?: number;
+    hideFromLowStock?: boolean;
     images?: {
         url: string;
         caption?: string;

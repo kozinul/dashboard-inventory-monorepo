@@ -23,7 +23,8 @@ interface InventoryFormInputs {
     category: string;
     serial: string;
     departmentId: string;
-    status: 'active' | 'maintenance' | 'storage' | 'retired';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'broken';
+    brokenReason?: string;
     requiresExternalService: boolean;
     isContainer: boolean;
     totalSlots: string;
@@ -383,8 +384,21 @@ export function AddInventoryModal({ isOpen, onClose, onAdd }: AddInventoryModalP
                                                     <option value="maintenance">Maintenance</option>
                                                     <option value="storage">Storage</option>
                                                     <option value="retired">Retired</option>
+                                                    <option value="broken">Broken</option>
                                                 </select>
                                             </div>
+
+                                            {watch('status') === 'broken' && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Keterangan Broken</label>
+                                                    <textarea
+                                                        {...register('brokenReason')}
+                                                        rows={3}
+                                                        placeholder="Jelaskan alasan aset ini broken..."
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary"
+                                                    />
+                                                </div>
+                                            )}
 
                                             <div>
                                                 <div className="flex items-center gap-2 mt-8">

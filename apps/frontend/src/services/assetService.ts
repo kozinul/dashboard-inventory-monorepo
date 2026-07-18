@@ -20,7 +20,7 @@ export interface Asset {
     departmentId?: string;
     department?: string;
     branchId?: string | { _id: string; name: string };
-    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use';
+    status: 'active' | 'maintenance' | 'storage' | 'retired' | 'assigned' | 'request maintenance' | 'pending_delete' | 'disposed' | 'in_use' | 'broken';
     isContainer?: boolean;
     totalSlots?: number;
     requiresExternalService?: boolean;
@@ -79,6 +79,7 @@ export interface Asset {
     }[];
     deleteRequestedBy?: string | { _id: string; name: string };
     deleteRequestNote?: string;
+    brokenReason?: string;
 }
 
 export const assetService = {

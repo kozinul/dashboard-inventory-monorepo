@@ -4,7 +4,8 @@ import {
     TrashIcon,
     ArrowPathIcon,
     PlusIcon,
-    ExclamationTriangleIcon
+    ExclamationTriangleIcon,
+    XMarkIcon
 } from '@heroicons/react/24/outline';
 import axios from '@/lib/axios';
 import Swal from 'sweetalert2';
@@ -39,7 +40,58 @@ export default function DatabaseManagement() {
     const [soLoading, setSoLoading] = useState(false);
     const [selectedSOs, setSelectedSOs] = useState<Set<string>>(new Set());
 
+    // Wipe modal
+    const [showWipeModal, setShowWipeModal] = useState(false);
+    const [wipeSelections, setWipeSelections] = useState<Set<string>>(new Set());
+    const [wipeStep, setWipeStep] = useState<'select' | 'confirm' | 'done'>('select');
+
     const API_URL = '/database';
+
+    const WIPE_CATEGORIES = [
+        { key: 'MaintenanceRecord', label: 'Maintenance Records', desc: 'All maintenance tickets' },
+        { key: 'Transfer', label: 'Transfers', desc: 'All asset transfers' },
+        { key: 'Disposal', label: 'Disposals', desc: 'All asset disposals' },
+        { key: 'Assignment', label: 'Assignments', desc: 'All asset assignments' },
+        { key: 'Rental', label: 'Rentals', desc: 'All rental transactions' },
+        { key: 'Event', label: 'Events', desc: 'All event bookings' },
+        { key: 'SupplyHistory', label: 'Supply History', desc: 'All supply usage history' },
+        { key: 'Asset', label: 'Assets', desc: 'All asset data' },
+        { key: 'Supply', label: 'Supplies', desc: 'All supply data' },
+    ];
+
+    const toggleWipeSelection = (key: string) => {
+        setWipeSelections(prev => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    };
+
+    const openWipeModal = () => {
+        setWipeSelections(new Set());
+        setWipeStep('select');
+        setShowWipeModal(true);
+    };
+
+    const handleWipeConfirm = async () => {
+        const selected = Array.from(wipeSelections);
+        setResetting(true);
+        setWipeStep('done');
+        try {
+            const { data } = await axios.post(`${API_URL}/reset-transactions`, { collections: selected });
+            Swal.fire({
+                title: 'Wipe Complete!',
+                html: `<div style="text-align:left">${data.details.map((d: string) => `<div>${d}</div>`).join('')}</div>`,
+                icon: 'success'
+            });
+        } catch (error: any) {
+            Swal.fire('Error!', error?.response?.data?.message || 'Failed to wipe data.', 'error');
+        } finally {
+            setResetting(false);
+            setShowWipeModal(false);
+        }
+    };
 
     const fetchBackups = async () => {
         setLoading(true);
@@ -134,39 +186,6 @@ export default function DatabaseManagement() {
             });
         } finally {
             setRestoring(null);
-        }
-    };
-
-    const handleResetTransactions = async () => {
-        const result = await Swal.fire({
-            title: 'Reset All Transactions?',
-            text: "This will DELETE ALL Maintenance Records, Transfers, Assignments, Disposals, and history! Only Master Data (Users, Assets, Locations, etc.) will remain. This action CANNOT be undone.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, WIPE IT ALL!'
-        });
-
-        if (result.isConfirmed) {
-            setResetting(true);
-            try {
-                await axios.delete(`${API_URL}/reset-transactions`);
-                Swal.fire(
-                    'Reset Complete!',
-                    'All transactional data has been wiped. Assets are reset.',
-                    'success'
-                );
-            } catch (error) {
-                console.error('Failed to reset transactions', error);
-                Swal.fire(
-                    'Error!',
-                    'Failed to reset data.',
-                    'error'
-                );
-            } finally {
-                setResetting(false);
-            }
         }
     };
 
@@ -308,6 +327,7 @@ export default function DatabaseManagement() {
     };
 
     return (
+        <>
         <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center justify-between">
                 <div className="sm:flex-auto">
@@ -319,7 +339,7 @@ export default function DatabaseManagement() {
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
                     <button
                         type="button"
-                        onClick={handleResetTransactions}
+                        onClick={openWipeModal}
                         disabled={resetting}
                         className="block rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50"
                     >
@@ -545,5 +565,100 @@ export default function DatabaseManagement() {
                 </div>
             </div>
         </div>
+
+        {showWipeModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+                    <div className="flex items-center justify-between border-b px-6 py-4">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            {wipeStep === 'select' ? 'Select Data to Wipe' : 'Confirm Wipe'}
+                        </h3>
+                        <button onClick={() => setShowWipeModal(false)} className="text-gray-400 hover:text-gray-600">
+                            <XMarkIcon className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    <div className="px-6 py-4">
+                        {wipeStep === 'select' && (
+                            <>
+                                <p className="text-sm text-gray-500 mb-4">Check the collections you want to permanently delete:</p>
+                                <div className="space-y-2 max-h-80 overflow-y-auto">
+                                    {WIPE_CATEGORIES.map(cat => (
+                                        <label
+                                            key={cat.key}
+                                            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                wipeSelections.has(cat.key)
+                                                    ? 'border-red-300 bg-red-50'
+                                                    : 'border-gray-200 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={wipeSelections.has(cat.key)}
+                                                onChange={() => toggleWipeSelection(cat.key)}
+                                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                            />
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900">{cat.label}</div>
+                                                <div className="text-xs text-gray-500">{cat.desc}</div>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {wipeStep === 'confirm' && (
+                            <div>
+                                <p className="text-sm text-red-600 font-medium mb-3">
+                                    You are about to permanently delete:
+                                </p>
+                                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    {Array.from(wipeSelections).map(key => {
+                                        const cat = WIPE_CATEGORIES.find(c => c.key === key);
+                                        return <li key={key}>{cat?.label}</li>;
+                                    })}
+                                </ul>
+                                <p className="text-sm text-gray-500 mt-4">This action cannot be undone.</p>
+                            </div>
+                        )}
+
+                        {wipeStep === 'done' && (
+                            <div className="text-center py-4">
+                                <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+                                <p className="text-sm text-gray-600">Wiping selected data...</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-3 border-t px-6 py-4">
+                        <button
+                            onClick={() => setShowWipeModal(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                        >
+                            Cancel
+                        </button>
+                        {wipeStep === 'select' && (
+                            <button
+                                onClick={() => wipeSelections.size > 0 && setWipeStep('confirm')}
+                                disabled={wipeSelections.size === 0}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                            >
+                                Continue ({wipeSelections.size} selected)
+                            </button>
+                        )}
+                        {wipeStep === 'confirm' && (
+                            <button
+                                onClick={handleWipeConfirm}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                            >
+                                Yes, Wipe Now
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 }
