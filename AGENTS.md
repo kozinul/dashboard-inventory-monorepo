@@ -9,6 +9,27 @@
 
 ## Completed Tasks
 
+### 2026-07-18
+- **Indonesian to English translation** — Converted all Indonesian text to English across 21 files (frontend + backend). UI labels, error messages, Excel column headers, history notes, modal texts, button labels, filter labels all translated. Import column lookups kept backward-compatible with `||` fallback to Indonesian.
+- **Currency format standardization** — All manual `Rp ... toLocaleString('id-ID')` replaced with centralized `formatIDR()` from `@/utils/currency`. Added `formatNumber()` utility. Updated 13+ files.
+- **Selective Wipe Transactions** — Backend `resetTransactions` now accepts `{ collections: string[] }` body; frontend replaced single "Wipe All" button with 2-step modal (select checkboxes → confirm). Fixed admin authorization bug.
+- **Asset status 'broken'** — Added `broken` to shared `AssetStatusSchema` enum; `brokenReason` field on Asset model/schema; badge styles in `AssetTableParts`/`AssetHero`; conditional textarea in `EditInventoryModal`/`AddInventoryModal`.
+- **Hide Low Stock from Dashboard** — Added `hideFromLowStock` (Boolean) to Supply model; excluded in `getLowStockSupplies` query; toggle icon column in `SuppliesPage`.
+- **Item Mutation Report — full asset movement tracking** — Added `AssetHistory.create` to 7 controllers:
+  - `maintenance.controller.ts` — STATUS_CHANGE on send/accept/complete/reject/cancel tickets
+  - `rental.controller.ts` — STATUS_CHANGE on create/delete rental
+  - `disposal.controller.ts` — STATUS_CHANGE on approve disposal
+  - `stockOpname.controller.ts` — STATUS_CHANGE on asset missing during SO
+  - `importExport.controller.ts` — CREATE on Excel import
+  - `assignment.controller.ts` — ASSIGN/RETURN on create/return assignment
+  - `transfer.controller.ts` — TRANSFER on approve transfer
+- **Item Mutation Report — Assignment fix** — Removed `isDeleted` filter from Assignment query so soft-deleted assignments (returned/cleaned) still appear in report history.
+- **Item Mutation Report — AuditLog expanded** — Added maintenance, transfer, rental actions to auditActions query and action mapping.
+- **Item Mutation Report — frontend fixes** — Header "Keterangan" → "Notes"; added action badge styles for STATUS_CHANGE, CREATE, DELETE, INSTALL, DISMANTLE, EVENT_BOOK, EVENT_RELEASE.
+- **AssetHistory model updated** — Added `Maintenance`, `Rental`, `Disposal` to `referenceType` enum.
+- **URL path rename** — `/reports/mutasi-barang` → `/reports/item-mutation`.
+- **Pending ticket start fix** — `startTicket` handler `validStatuses` changed from `['Accepted', 'Sent']` to `['Accepted', 'Sent', 'Pending']`.
+
 ### 2026-07-16
 - **Category page empty fix** — Added `!cat.branchId` to frontend branch filter in `CategoryManagement.tsx` so global categories (no branchId) appear.
 - **Units page empty fix** — Added `!unit.branchId` to frontend branch filter in `UnitManagementPage.tsx` so global units appear.
@@ -23,7 +44,7 @@
 - **Item Mutation Report — auto-apply filters** — useEffect now depends on `itemTypeFilter`, `startDate`, `endDate` (no manual "Filter" click needed).
 - **Item Mutation Report — AssetHistory integration** — Backend now queries `AssetHistory` alongside `AuditLog` for asset mutations; `referenceType` included in all rows.
 - **SupplyHistory — referenceType & referenceId added** — New schema fields: `referenceType` (Event/Manual/Import/StockOpname) + `referenceId`.
-- **AssetHistory model created** — Unified asset movement log with actions: CREATE, UPDATE, DELETE, ASSIGN, RETURN, TRANSFER, EVENT_BOOK, EVENT_RELEASE, ADJUST, MOVE, STATUS_CHANGE.
+- **AssetHistory model created** — Unified asset movement log with actions: CREATE, UPDATE, DELETE, ASSIGN, RETURN, TRANSFER, EVENT_BOOK, EVENT_RELEASE, ADJUST, MOVE, STATUS_CHANGE, INSTALL, DISMANTLE.
 - **Supply deduction/restock in event controller** — Deduct on planning→scheduled; restock on cancelled only (consumables not restocked on completion); restock on deleteEvent for scheduled/ongoing.
 - **All SupplyHistory.create calls updated** — Added `userId`, `referenceType`, Indonesian notes across supply, event, stockOpname, importExport controllers.
 - **RBAC fixes** — `item_mutation_report` removed from `user` role defaults; added to fallback arrays for manager, supervisor, technician, auditor in DashboardLayout.tsx.
@@ -43,8 +64,10 @@
 - **Item Mutation Report — alias field added** — Backend select/populate includes `alias`; frontend shows alias as primary line above asset name in Item column; qty displays `1` for assets, stock change for supplies.
 
 ## Important Notes
-- Backend/frontend containers must be rebuilt with `docker compose build && up -d --force-recreate` after code changes.
+- Backend/frontend containers must be rebuilt with `docker compose -f docker-compose.prod.yml build --no-cache backend frontend && up -d --force-recreate` after code changes.
 - Mongoose connects to database `inventory`.
 - `Location.branchId` and `Asset.branchId` stored as ObjectId. Mongoose `find()` auto-converts strings to ObjectId, but `aggregate()` requires explicit `new mongoose.Types.ObjectId()` conversion.
 - Vendor data in DB: 2 vendors — 1 with `null` branchId (global), 1 with BNDCC branchId.
 - Rental & Event feature is fully functional (models, controllers, routes, pages, components, RBAC) — now visible in sidebar.
+- All user-facing text is in English. Currency formatting uses `formatIDR()` from `@/utils/currency`. Import templates support both English and Indonesian column headers for backward compatibility.
+- Item Mutation Report captures all asset movements via 5 data sources: SupplyHistory, Assignment, Transfer, AssetHistory, AuditLog.
